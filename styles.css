@@ -16,10 +16,11 @@
     font-family:'Instrument Sans',system-ui,sans-serif;
     overflow:hidden;
   }
-  .deck{position:fixed;inset:0}
+  .deck{position:fixed;inset:0;counter-reset:slide}
 
   .slide{
     position:absolute;inset:0;
+    counter-increment:slide;
     padding:clamp(24px,5vw,72px) clamp(24px,7vw,96px) 120px;
     display:flex;flex-direction:column;justify-content:center;
     opacity:0;visibility:hidden;
@@ -42,6 +43,12 @@
     color:var(--pet);
     margin-bottom:clamp(14px,2.5vh,28px);
   }
+  .eyebrow::before{
+    content:counter(slide, decimal-leading-zero) ".";
+    color:var(--coral);
+    margin-right:.75em;
+  }
+  .eyebrow-section{color:var(--coral)}
   h1,h2{
     font-family:'Bricolage Grotesque',sans-serif;
     font-weight:800;line-height:1.02;
