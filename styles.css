@@ -32,6 +32,17 @@
     transition:opacity .45s ease, transform .45s ease;
   }
   .slide.dark{background:var(--deep);color:var(--ice)}
+  .reveal-pending{
+    opacity:0;
+    transform:translateY(8px);
+    visibility:hidden;
+  }
+  .reveal-visible{
+    opacity:1;
+    transform:none;
+    visibility:visible;
+    transition:opacity .28s ease, transform .28s ease;
+  }
   .slide.dark .eyebrow{color:#7ED2E6}
   .slide.dark .hair{background:rgba(234,243,244,.22)}
   .slide.dark .sentence strong{color:#7ED2E6}
@@ -201,5 +212,5 @@
     .ledger .gain,.ledger .red{text-align:left}
   }
   @media (prefers-reduced-motion:reduce){
-    .slide,.fill,.marker{transition:none}
+    .slide,.fill,.marker,.reveal-visible{transition:none}
   }
