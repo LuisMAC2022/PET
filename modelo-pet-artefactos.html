@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anatomía de un modelo de PET — qué matemática lo sostiene</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10261f;
+    --paper:#f3f0e7;
+    --paper-2:#eae5d6;
+    --green:#1f6f54;
+    --resin:#0e9b6c;
+    --rust:#c4622d;
+    --loss:#c0392b;
+    --sage:#7a8b6f;
+    --sage-line:#c9cbb8;
+    --display:'Space Grotesk',sans-serif;
+    --body:'Newsreader',Georgia,serif;
+    --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:18px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--resin);color:var(--paper)}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  .rule{height:1px;background:var(--sage-line);border:0;margin:0}
+
+  /* ---------- eyebrow / labels ---------- */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--sage);
+    font-weight:500;
+  }
+
+  /* ---------- hero ---------- */
+  header.hero{
+    padding:72px 0 40px;
+    position:relative;
+  }
+  .hero .kicker{margin-bottom:26px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  .hero h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(34px,6vw,68px);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    max-width:16ch;
+    margin-bottom:22px;
+  }
+  .hero h1 em{font-style:normal;color:var(--green)}
+  .hero .lede{
+    max-width:60ch;
+    font-size:clamp(18px,2.3vw,22px);
+    color:#27392f;
+  }
+  .hero .lede b{font-weight:500;color:var(--rust)}
+
+  /* ---------- the living equation ---------- */
+  .eqstage{
+    margin:30px 0 8px;
+    padding:38px 28px 30px;
+    background:linear-gradient(180deg,#fbfaf4 0%,#f0ece0 100%);
+    border:1px solid var(--sage-line);
+    border-radius:3px;
+    position:relative;
+  }
+  .eqstage .hint{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--sage);margin-bottom:20px;display:flex;align-items:center;gap:9px;
+  }
+  .eqstage .hint .dot{width:7px;height:7px;border-radius:50%;background:var(--resin);
+    box-shadow:0 0 0 0 rgba(14,155,108,.5);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(14,155,108,.45)}70%{box-shadow:0 0 0 9px rgba(14,155,108,0)}100%{box-shadow:0 0 0 0 rgba(14,155,108,0)}}
+
+  .equation{
+    font-family:var(--mono);
+    font-size:clamp(22px,4.4vw,40px);
+    font-weight:500;
+    line-height:1.5;
+    display:flex;flex-wrap:wrap;align-items:center;gap:.18em;
+    color:#43504a;
+  }
+  .term.term-sig{display:inline-flex;align-items:baseline;border-bottom-width:2.5px}
+  .term.term-sig .sig{transition:.18s}
+  .term.term-sig:hover .sig,.term.term-sig:focus-visible .sig,.term.term-sig.active .sig{color:var(--resin)}
+  .equation .op{color:var(--sage);font-weight:400}
+  .equation .sig{font-size:1.18em;color:var(--green);font-weight:700}
+  .equation .paren{color:var(--sage);font-weight:400}
+  .term{
+    cursor:pointer;
+    color:var(--ink);
+    border-bottom:2.5px solid transparent;
+    padding:0 .04em 2px;
+    transition:.18s;
+    position:relative;
+    outline:none;
+  }
+  .term:hover,.term:focus-visible{color:var(--resin);border-bottom-color:var(--resin)}
+  .term.active{color:var(--resin);border-bottom-color:var(--resin)}
+  .term sub{font-size:.62em;color:var(--rust)}
+
+  .eqcaption{margin-top:20px;font-size:15px;color:var(--sage);font-family:var(--mono);letter-spacing:.02em}
+
+  /* ---------- symbol detail panel ---------- */
+  .panel{
+    margin-top:22px;
+    border-top:1px dashed var(--sage-line);
+    padding-top:22px;
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:34px;
+    align-items:start;
+  }
+  .panel .meaning h3{
+    font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.01em;
+    margin-bottom:6px;display:flex;align-items:baseline;gap:12px;
+  }
+  .panel .meaning h3 .glyph{font-family:var(--mono);color:var(--green);font-size:26px}
+  .panel .meaning .role{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--rust);margin-bottom:14px}
+  .panel .meaning p{font-size:16.5px;margin-bottom:12px;max-width:52ch}
+  .panel .meaning p:last-child{margin-bottom:0}
+  .panel .meaning .artifact{
+    background:var(--paper-2);border-left:3px solid var(--green);
+    padding:11px 15px;font-size:14.5px;line-height:1.5;margin-top:6px;
+  }
+  .panel .meaning .artifact b{font-family:var(--mono);font-weight:700;font-size:12.5px;letter-spacing:.04em;color:var(--green);display:block;margin-bottom:3px;text-transform:uppercase}
+
+  .slider-card{
+    background:#fbfaf4;border:1px solid var(--sage-line);border-radius:3px;padding:18px;
+  }
+  .slider-card .sval{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);line-height:1}
+  .slider-card .sunit{font-family:var(--mono);font-size:12px;color:var(--sage);letter-spacing:.06em;margin-top:4px}
+  .slider-card label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--rust);display:block;margin-bottom:12px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:3px;background:var(--sage-line);
+    border-radius:3px;outline:none;margin:16px 0 4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--resin);cursor:pointer;border:3px solid var(--paper);box-shadow:0 0 0 1px var(--green)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--resin);cursor:pointer;border:3px solid var(--paper);box-shadow:0 0 0 1px var(--green)}
+  .slider-card .srange{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--sage)}
+
+  /* ---------- section scaffold ---------- */
+  section{padding:64px 0}
+  .sec-head{display:flex;gap:18px;align-items:baseline;margin-bottom:30px;flex-wrap:wrap}
+  .sec-head .num{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--rust);letter-spacing:.1em}
+  .sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,3.6vw,40px);letter-spacing:-.018em;line-height:1.06}
+  .prose{max-width:64ch}
+  .prose p{margin-bottom:18px}
+  .prose p b{font-weight:500;color:var(--green)}
+  .prose .mono{font-family:var(--mono);font-size:.92em;background:var(--paper-2);padding:1px 6px;border-radius:2px}
+
+  /* ---------- artifact ledger ---------- */
+  .ledger{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--sage-line);border:1px solid var(--sage-line);border-radius:3px;overflow:hidden;margin-top:8px}
+  .ledger .cell{background:var(--paper);padding:26px 24px}
+  .ledger .cell .tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--rust);margin-bottom:9px}
+  .ledger .cell h4{font-family:var(--display);font-weight:600;font-size:20px;margin-bottom:8px;letter-spacing:-.01em}
+  .ledger .cell p{font-size:15.5px;color:#2c3b33;max-width:46ch}
+  .ledger .cell .formula{font-family:var(--mono);font-size:14px;color:var(--green);margin-top:12px;padding-top:12px;border-top:1px dashed var(--sage-line)}
+  @media(max-width:720px){.ledger{grid-template-columns:1fr}}
+
+  /* ---------- uncertainty lab ---------- */
+  .lab{
+    background:var(--ink);color:var(--paper);border-radius:4px;padding:40px clamp(20px,4vw,44px);margin-top:10px;
+  }
+  .lab .eyebrow{color:var(--sage)}
+  .lab h2{font-family:var(--display);font-weight:600;font-size:clamp(24px,3.4vw,36px);color:var(--paper);letter-spacing:-.018em;margin:14px 0 10px;line-height:1.08}
+  .lab .sub{color:#bcc6ba;max-width:58ch;font-size:16.5px;margin-bottom:30px}
+  .lab .sub b{color:var(--resin);font-weight:500}
+
+  .linklock{
+    display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+    background:#193129;border:1px solid #2c4238;border-radius:3px;
+    color:#cdd6cc;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    padding:9px 15px;margin-bottom:12px;transition:.18s;
+  }
+  .linklock:hover{border-color:var(--sage)}
+  .linklock .lk-icon{display:inline-flex;color:var(--sage);transition:.18s}
+  .linklock[aria-pressed="true"]{background:#16332a;border-color:var(--resin);color:var(--resin)}
+  .linklock[aria-pressed="true"] .lk-icon{color:var(--resin)}
+  .linklock:focus-visible{outline:2px solid var(--resin);outline-offset:2px}
+  .lk-note{font-family:var(--mono);font-size:11px;line-height:1.6;color:#7e9184;letter-spacing:.02em;max-width:60ch;margin-bottom:28px}
+  .lk-note b{color:#cdd6cc;font-weight:700}
+
+  /* locked-source sliders read as driven, not editable */
+  .controls input[type=range].driven{opacity:.5;cursor:not-allowed}
+  .controls .ctl.driven .top .v{color:var(--sage)}
+  .controls .ctl .drivetag{display:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--resin);margin-top:5px}
+  .controls .ctl.driven .drivetag{display:block}
+  .controls .ctl.driven .ctlhint{display:none}
+
+  .labgrid{display:grid;grid-template-columns:300px 1fr;gap:38px;align-items:start}
+  @media(max-width:820px){.labgrid{grid-template-columns:1fr;gap:28px}}
+
+  .controls .ctl{margin-bottom:22px}
+  .controls .ctl .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .controls .ctl .top label{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#d7ddd3}
+  .controls .ctl .top .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--resin)}
+  .controls input[type=range]{background:#2c4238;margin:4px 0}
+  .controls input[type=range]::-webkit-slider-thumb{border-color:var(--ink);box-shadow:0 0 0 1px var(--resin)}
+  .controls input[type=range]::-moz-range-thumb{border-color:var(--ink);box-shadow:0 0 0 1px var(--resin)}
+  .controls .ctlhint{font-family:var(--mono);font-size:10.5px;color:#7e9184;letter-spacing:.04em;margin-top:5px}
+
+  .readout{}
+
+  /* centerpiece composition bar */
+  .bigsplit{margin-bottom:30px}
+  .bs-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+  .bs-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8aa093}
+  .bs-gen{font-family:var(--mono);font-size:14px;color:#cdd6cc}
+  .bs-gen span{font-weight:700;color:var(--paper)}
+  .bs-bar{height:62px;display:flex;border-radius:4px;overflow:hidden;background:#0c1c16;border:1px solid #2c4238}
+  .bs-rec{height:100%;background:var(--resin);display:flex;align-items:center;justify-content:center;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:0}
+  .bs-lost{height:100%;background:var(--loss);display:flex;align-items:center;justify-content:center;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:0}
+  .bs-in{font-family:var(--mono);font-size:14px;font-weight:700;color:#06140e;white-space:nowrap;padding:0 8px;overflow:hidden;text-overflow:ellipsis}
+  .bs-lost .bs-in{color:#fff}
+  .bs-legend{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px}
+  .bs-legend .lg{font-family:var(--mono);font-size:12px;color:#aebab0;display:flex;align-items:center;gap:7px}
+  .bs-legend .lg b{color:var(--paper);font-weight:700}
+  .bs-legend .sw{width:12px;height:12px;border-radius:2px;display:inline-block}
+
+  /* three scenarios as compact rows */
+  .scentitle{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8aa093;margin-bottom:12px}
+  .scenrows{display:flex;flex-direction:column;gap:9px;margin-bottom:8px}
+  .scen-row{display:grid;grid-template-columns:130px 1fr 88px;align-items:center;gap:14px}
+  .scen-row .sr-lbl{font-family:var(--mono);font-size:11px;color:#9aada0;letter-spacing:.04em}
+  .scen-row.central .sr-lbl{color:var(--resin);font-weight:700}
+  .scen-row .sr-bar{height:14px;display:flex;border-radius:2px;overflow:hidden;background:#0c1c16}
+  .scen-row .sr-rec{height:100%;background:var(--resin);transition:width .4s ease}
+  .scen-row .sr-lost{height:100%;background:var(--loss);transition:width .4s ease}
+  .scen-row .sr-gen{font-family:var(--mono);font-size:12px;color:#cdd6cc;text-align:right}
+  .scen-row .sr-gen span{font-weight:700;color:var(--paper)}
+  @media(max-width:560px){.scen-row{grid-template-columns:96px 1fr 70px;gap:9px}}
+
+  .verdict{margin-top:24px;background:#193129;border-left:3px solid var(--loss);padding:16px 20px;font-size:15.5px;color:#dfe6da}
+  .verdict b{color:var(--loss);font-weight:600}
+  .verdict .pct{font-family:var(--mono);font-weight:700;color:var(--resin)}
+
+  /* ---------- validation ---------- */
+  .valbox{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center;margin-top:8px}
+  @media(max-width:720px){.valbox{grid-template-columns:1fr}}
+  .valbox .scale-illu{background:#fbfaf4;border:1px solid var(--sage-line);border-radius:3px;padding:30px;text-align:center}
+  .valbox .scale-illu .pred{font-family:var(--mono);font-size:13px;color:var(--sage);letter-spacing:.1em;text-transform:uppercase}
+  .valbox .scale-illu .v1{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--green);margin:6px 0 18px}
+  .valbox .scale-illu .vs{font-family:var(--display);font-size:15px;color:var(--rust);margin-bottom:18px}
+  .valbox .scale-illu .v2{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink)}
+
+  /* ---------- footer ---------- */
+  footer{padding:54px 0 70px}
+  footer .closer{font-family:var(--display);font-weight:500;font-size:clamp(20px,2.8vw,28px);letter-spacing:-.01em;max-width:30ch;line-height:1.18;color:var(--ink)}
+  footer .closer em{font-style:normal;color:var(--green)}
+  footer .meta{font-family:var(--mono);font-size:12px;color:var(--sage);letter-spacing:.04em;margin-top:24px;line-height:1.9}
+
+  @media(max-width:760px){
+    .panel{grid-template-columns:1fr;gap:22px}
+    .slider-card{order:-1}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">
+      <span class="eyebrow">Modelo de residuos · campus universitario</span>
+      <span class="eyebrow" style="color:var(--rust)">PET → filamento</span>
+    </div>
+    <h1>Una fórmula no es rigurosa por ser exacta. Lo es por saber <em>cuánto no sabe.</em></h1>
+    <p class="lede">El modelo estima dos cosas: cuánto PET <b>genera</b> el campus y qué fracción <b>recupera</b> ECOCE. Abajo está la ecuación de generación, viva. Toca cualquier símbolo para ver qué artefacto matemático lo justifica — y muévelo.</p>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="eqstage">
+  <div class="hint"><span class="dot"></span>Toca un símbolo para inspeccionarlo</div>
+
+  <div class="equation" id="equation">
+    <span class="term" data-k="G" tabindex="0">G</span>
+    <span class="op">=</span>
+    <span class="term term-sig" data-k="p" tabindex="0"><span class="sig">Σ</span><sub style="font-family:var(--mono);font-size:.5em;color:var(--rust)">p</sub></span>
+    <span class="paren">(</span>
+    <span class="term" data-k="N" tabindex="0">N</span>
+    <span class="op">·</span>
+    <span class="term" data-k="a" tabindex="0">a<sub>p</sub></span>
+    <span class="op">·</span>
+    <span class="term" data-k="d" tabindex="0">d<sub>p</sub></span>
+    <span class="op">·</span>
+    <span class="term" data-k="c" tabindex="0">c</span>
+    <span class="op">·</span>
+    <span class="term" data-k="m" tabindex="0">m</span>
+    <span class="paren">)</span>
+  </div>
+  <div class="eqcaption" id="eqcaption">G = kilogramos de PET generados al año, sumando sobre cada periodo p del calendario.</div>
+
+  <div class="panel">
+    <div class="meaning">
+      <h3><span class="glyph" id="p-glyph">N</span><span id="p-name">Población del campus</span></h3>
+      <div class="role" id="p-role">Constante estructural · escalar</div>
+      <div id="p-body"></div>
+    </div>
+    <div class="slider-card">
+      <label id="s-label">Población N</label>
+      <div class="sval"><span id="s-val">21500</span></div>
+      <div class="sunit" id="s-unit">personas</div>
+      <input type="range" id="s-range" min="20000" max="23000" step="100" value="21500">
+      <div class="srange"><span id="s-min">20 000</span><span id="s-max">23 000</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="wrap"><hr class="rule" style="margin-top:60px"></div>
+
+<!-- ===================== WHY THIS STRUCTURE ===================== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">01</span>
+      <h2>Por qué la estructura es un producto, no una suma</h2>
+    </div>
+    <div class="prose">
+      <p>La pieza de generación es un <b>producto de factores</b> sumado sobre una partición del tiempo. Cada decisión de forma esconde un supuesto matemático que conviene nombrar.</p>
+      <p>El término <span class="mono">N · aₚ · dₚ · c · m</span> es multiplicativo porque modela <b>eventos independientes encadenados</b>: una persona presente, en un día hábil, que consume, una botella, de cierta masa. La multiplicación es la operación correcta cuando el resultado es la <b>intersección</b> de condiciones, no su acumulación. Si fueran aditivos, estarías diciendo que basta con que ocurra uno — y eso es falso: sin asistencia no hay consumo, por mucho que haya días hábiles.</p>
+      <p>La sumatoria <span class="mono">Σₚ</span> sobre periodos es una <b>integral discretizada</b>. El consumo real es una función del tiempo; tú la aproximas como constante a trozos sobre intervalos donde la asistencia es estable (semestre, exámenes, intersemestral, vacaciones). Es exactamente la lógica de una <b>suma de Riemann</b> con pocos rectángulos anchos: cada periodo es un rectángulo de altura "tasa diaria de generación" y base "días hábiles".</p>
+    </div>
+
+    <div class="ledger">
+      <div class="cell">
+        <div class="tag">Artefacto · Álgebra</div>
+        <h4>Producto de factores</h4>
+        <p>Modela condiciones que deben cumplirse a la vez. Cada factor es una razón con unidades que se cancelan en cadena hasta dejar kg.</p>
+        <div class="formula">[pers]·[día/pers... ]·[bot/día]·[kg/bot] → kg</div>
+      </div>
+      <div class="cell">
+        <div class="tag">Artefacto · Cálculo</div>
+        <h4>Suma de Riemann</h4>
+        <p>El consumo C(t) varía en el año. Lo aproximas como escalonado: constante dentro de cada periodo, sumando áreas de rectángulos.</p>
+        <div class="formula">G ≈ Σₚ rₚ · dₚ ≈ ∫ C(t) dt</div>
+      </div>
+      <div class="cell">
+        <div class="tag">Artefacto · Análisis dimensional</div>
+        <h4>Cierre de unidades</h4>
+        <p>La prueba más barata de que el modelo no está roto: si las unidades no colapsan a kilogramos, hay un factor mal puesto.</p>
+        <div class="formula">verificación, no decoración</div>
+      </div>
+      <div class="cell">
+        <div class="tag">Artefacto · Probabilidad</div>
+        <h4>Esperanza de un producto</h4>
+        <p>aₚ y c son en realidad promedios de variables aleatorias. El modelo calcula E[generación] tratando los factores como medias.</p>
+        <div class="formula">E[N·a·d·c·m] bajo independencia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ===================== THE SOFT PARAMETER ===================== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">02</span>
+      <h2>El parámetro blando y la trampa de la falsa precisión</h2>
+    </div>
+    <div class="prose">
+      <p>Dos factores — la asistencia <span class="mono">aₚ</span> y el consumo per cápita <span class="mono">c</span> — no se conocen, se <b>estiman</b>. Ahí es donde un modelo honesto se separa de uno que aparenta. La tentación es reportar un solo número con cuatro cifras. El artefacto correcto es lo contrario: <b>declarar el rango y propagarlo</b>.</p>
+      <p>Cuando multiplicas factores inciertos, la incertidumbre relativa se <b>compone</b>. Para un producto de variables independientes, las incertidumbres relativas se suman en cuadratura: si <span class="mono">c</span> tiene ±30% y <span class="mono">m</span> tiene ±15%, el resultado no tiene ±45% ni ±15%, sino la raíz de la suma de cuadrados. Esa es la razón matemática por la que un número único es deshonesto: pierde la información de cuánto puede moverse.</p>
+      <p>De ahí los <b>tres escenarios</b> — mínimo, central, máximo. No son pesimismo y optimismo arbitrarios: son los <b>percentiles</b> de la distribución de G inducida por los rangos de los factores. Trabajar con tres puntos es la versión mínima viable de propagar incertidumbre; el laboratorio de abajo lo hace explícito.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== UNCERTAINTY LAB ===================== -->
+<div class="wrap">
+<div class="lab">
+  <div class="eyebrow">Laboratorio · propagación de incertidumbre</div>
+  <h2>Cuánto PET se recupera, cuánto se desperdicia.</h2>
+  <p class="sub">ECOCE recupera entre <b>700 y 1000 kg</b> de PET al año. La pregunta es contra qué se compara eso: cuánto genera el campus en total. Ajusta los factores del modelo y observa qué fracción se recupera (verde) y cuánta se va a la basura (rojo).</p>
+
+  <button class="linklock" id="linklock" aria-pressed="false" title="Ligar los factores del hero a este laboratorio">
+    <span class="lk-icon" id="lk-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="17" height="17" id="lk-open"><path d="M7 10V7a5 5 0 0 1 9.6-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="11" cy="15" r="1.4" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="17" height="17" id="lk-closed" style="display:none"><path d="M7 10V7a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="11" cy="15" r="1.4" fill="currentColor"/></svg>
+    </span>
+    <span class="lk-text" id="lk-text">Hero desligado</span>
+  </button>
+  <p class="lk-note" id="lk-note">Los deslizadores del hero solo ilustran. Cierra el candado para que <b>c, m y N</b> del hero controlen este laboratorio. La asistencia y los días quedan sueltos a propósito: arriba son por periodo, aquí van agregados.</p>
+
+  <div class="labgrid">
+    <div class="controls">
+      <div class="ctl" id="ctl-c">
+        <div class="top"><label>Consumo per cápita c</label><span class="v" id="lc-v">0.10</span></div>
+        <input type="range" id="lc" min="0.03" max="0.45" step="0.01" value="0.10">
+        <div class="ctlhint">botellas / persona / día — el dato más crítico</div>
+        <div class="drivetag">↑ controlado por el hero</div>
+      </div>
+      <div class="ctl">
+        <div class="top"><label>Incertidumbre de c</label><span class="v" id="lcu-v">±30%</span></div>
+        <input type="range" id="lcu" min="5" max="50" step="1" value="30">
+        <div class="ctlhint">qué tan blando es tu estimador de consumo</div>
+      </div>
+      <div class="ctl" id="ctl-m">
+        <div class="top"><label>Masa por botella m</label><span class="v" id="lm-v">24 g</span></div>
+        <input type="range" id="lm" min="18" max="35" step="0.5" value="24">
+        <div class="ctlhint">pésala: muestra de 30–50 botellas</div>
+        <div class="drivetag">↑ controlado por el hero</div>
+      </div>
+      <div class="ctl">
+        <div class="top"><label>Asistencia media ā</label><span class="v" id="la-v">0.62</span></div>
+        <input type="range" id="la" min="0.40" max="0.80" step="0.01" value="0.62">
+        <div class="ctlhint">promedio ponderado sobre periodos</div>
+      </div>
+      <div class="ctl">
+        <div class="top"><label>Recuperación ECOCE R</label><span class="v" id="lr-v">850 kg</span></div>
+        <input type="range" id="lr" min="700" max="1000" step="10" value="850">
+        <div class="ctlhint">dato reportado (rango 700–1000)</div>
+      </div>
+    </div>
+
+    <div class="readout">
+      <!-- centerpiece: how much of what's generated gets recovered -->
+      <div class="bigsplit">
+        <div class="bs-head">
+          <span class="bs-title">Escenario central · de lo generado al año</span>
+          <span class="bs-gen"><span id="gmid">—</span> kg generados</span>
+        </div>
+        <div class="bs-bar">
+          <div class="bs-rec" id="bsrec"><span class="bs-in" id="bsrec-lbl"></span></div>
+          <div class="bs-lost" id="bslost"><span class="bs-in" id="bslost-lbl"></span></div>
+        </div>
+        <div class="bs-legend">
+          <span class="lg"><span class="sw" style="background:var(--resin)"></span><b id="reckg">—</b> recuperado por ECOCE</span>
+          <span class="lg"><span class="sw" style="background:var(--loss)"></span><b id="lostkg">—</b> no recuperado · a la basura</span>
+        </div>
+      </div>
+
+      <!-- the three scenarios as compact composition rows -->
+      <div class="scentitle">El mismo balance bajo incertidumbre</div>
+      <div class="scenrows" id="scenrows">
+        <div class="scen-row"><span class="sr-lbl">Mínima generación</span><div class="sr-bar"><div class="sr-rec" id="rmin"></div><div class="sr-lost" id="lmin"></div></div><span class="sr-gen"><span id="gmin">—</span> kg</span></div>
+        <div class="scen-row central"><span class="sr-lbl">Central</span><div class="sr-bar"><div class="sr-rec" id="rmid"></div><div class="sr-lost" id="lmid"></div></div><span class="sr-gen"><span id="gmid2">—</span> kg</span></div>
+        <div class="scen-row"><span class="sr-lbl">Máxima generación</span><div class="sr-bar"><div class="sr-rec" id="rmax"></div><div class="sr-lost" id="lmax"></div></div><span class="sr-gen"><span id="gmax">—</span> kg</span></div>
+      </div>
+
+      <div class="verdict" id="verdict"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="wrap"><hr class="rule" style="margin-top:64px"></div>
+
+<!-- ===================== VALIDATION ===================== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">03</span>
+      <h2>El aforo de validación: cómo un modelo se gana la credibilidad</h2>
+    </div>
+    <div class="prose">
+      <p>Un modelo que solo predice no se puede falsar. El movimiento metodológico fuerte es <b>cerrar el lazo</b>: si la fórmula predice X kg en una semana de periodo regular, ve a contar botellas físicamente esa semana. Si el conteo cae cerca de la predicción, el modelo gana respaldo empírico. Si no, te dice exactamente qué factor recalibrar.</p>
+      <p>Matemáticamente esto es <b>validación cruzada con dato fuera de muestra</b>. El conteo no se usó para construir el modelo, así que su acuerdo con la predicción es evidencia genuina, no circular. El mismo aforo sirve doble: valida el modelo y <b>estima c directamente</b>, que era el parámetro más débil.</p>
+    </div>
+
+    <div class="valbox">
+      <div class="scale-illu">
+        <div class="pred">Predicho por el modelo</div>
+        <div class="v1" id="val-pred">— kg</div>
+        <div class="vs">↑ se compara contra ↓</div>
+        <div class="v2">aforo físico</div>
+        <div class="sunit" style="margin-top:8px">una semana, zona muestra</div>
+      </div>
+      <div class="prose" style="margin:0">
+        <p style="margin:0"><b>La ruta defendible (a):</b> contar botellas en contenedores de zonas muestra durante una semana típica y extrapolar. Es la más cara en esfuerzo y la más barata en supuestos — por eso es la que sostiene la propuesta. Las rutas (b) ventas de cafeterías y (c) literatura de campus mexicanos sirven como <b>referencia cruzada</b>: si tres métodos independientes coinciden en orden de magnitud, el número deja de ser una conjetura.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<footer>
+  <div class="wrap">
+    <p class="closer">El resultado que importa no es el kilogramaje. Es que la recuperación sale <em>baja</em> — y una tasa baja, bien medida, es la prueba de que hay material yéndose a la basura.</p>
+    <p class="meta">
+      Artefactos invocados — producto de factores · suma de Riemann · análisis dimensional · esperanza de un producto · propagación de incertidumbre en cuadratura · comparación parte-todo · validación fuera de muestra.<br>
+      Datos a conseguir — Agenda Estadística UNAM (N) · Calendario escolar UNAM (dₚ) · proxies de aforo (aₚ) · conteo en zona muestra (c) · báscula, 30–50 botellas (m) · ECOCE (R).
+    </p>
+  </div>
+</footer>
+
+<script>
+/* ---------------- symbol detail data ---------------- */
+const SYM = {
+  p:{glyph:"Σₚ",name:"Suma sobre periodos",role:"Índice de la sumatoria · partición del año",
+     body:`<p><b>p es cada periodo del calendario escolar.</b> El año no se consume de forma uniforme, así que se parte en tramos donde la asistencia es estable: semestre regular, exámenes, intersemestral y vacaciones.</p>
+           <p>La Σₚ suma la contribución de cada tramo. Por eso <b>aₚ y dₚ llevan el subíndice p</b> — cambian de periodo a periodo (en vacaciones aₚ≈0) — mientras que N, c y m no lo llevan: se asumen constantes todo el año.</p>
+           <div class="artifact"><b>Artefacto · suma de Riemann</b>Cada periodo es un rectángulo de altura "tasa diaria de generación" y base dₚ. Sumar sus áreas aproxima la integral del consumo en el tiempo.</div>`,
+     slider:{label:"Nº de periodos",min:2,max:6,step:1,val:4,unit:"tramos del año",fmt:v=>v+" periodos",fmtR:v=>v+""}},
+  G:{glyph:"G",name:"PET generado al año",role:"Salida del modelo · kilogramos",
+     body:`<p>El número que persigues: masa total de PET producida en el campus durante un año, en kilogramos. No se mide directo — se construye sumando la contribución de cada periodo.</p>
+           <div class="artifact"><b>Artefacto · integral discretizada</b>G es el área bajo la curva de generación en el tiempo, aproximada como suma de rectángulos por periodo.</div>`,
+     slider:null},
+  N:{glyph:"N",name:"Población del campus",role:"Constante estructural · escalar",
+     body:`<p>El total de personas que pisan FES Acatlán: alumnos más planta académica y administrativa. Ronda los <b>20–23 mil</b> según la Agenda Estadística UNAM.</p>
+           <p>Es el factor de escala. Multiplica todo lo demás, así que un error aquí se propaga linealmente a G.</p>
+           <div class="artifact"><b>Artefacto · dato público</b>Agenda Estadística UNAM. Es el factor más fácil y el más sólido del modelo.</div>`,
+     slider:{label:"Población N",min:20000,max:23000,step:100,val:21500,unit:"personas",fmt:v=>v.toLocaleString('es-MX'),fmtR:v=>(v/1000).toFixed(0)+" 000"}},
+  a:{glyph:"aₚ",name:"Factor de asistencia",role:"Parámetro blando · fracción [0,1]",
+     body:`<p>Qué fracción de la población realmente asiste en el periodo p. No todos van todos los días: <b>~0.7–0.8</b> en semestre regular, <b>~0.4–0.5</b> en exámenes, <b>~0.1</b> intersemestral, <b>~0</b> en vacaciones.</p>
+           <p>Es uno de los dos parámetros que no conoces. Se estima con proxies — ocupación de biblioteca, aforo de Pumabús, conteos en accesos — o se asume y se declara.</p>
+           <div class="artifact"><b>Artefacto · estimación por proxy</b>Variable latente medida por indicadores correlacionados. Aquí entra la incertidumbre.</div>`,
+     slider:{label:"Asistencia aₚ (regular)",min:0.4,max:0.85,step:0.01,val:0.75,unit:"fracción presente",fmt:v=>v.toFixed(2),fmtR:v=>v.toFixed(2)}},
+  d:{glyph:"dₚ",name:"Días hábiles del periodo",role:"Constante de calendario · conteo",
+     body:`<p>Cuántos días de actividad tiene el periodo p. Sale directo del <b>Calendario escolar UNAM</b>, sin estimación.</p>
+           <p>Es la "base" de cada rectángulo en la suma de Riemann: el ancho del intervalo de tiempo sobre el que la tasa de generación se asume constante.</p>
+           <div class="artifact"><b>Artefacto · dato exacto</b>Calendario oficial. Cero incertidumbre — es conteo de días, no estimación.</div>`,
+     slider:{label:"Días hábiles dₚ",min:0,max:90,step:1,val:75,unit:"días del periodo",fmt:v=>v+" d",fmtR:v=>v+" d"}},
+  c:{glyph:"c",name:"Consumo per cápita",role:"Parámetro crítico · botellas/pers/día",
+     body:`<p>Cuántas botellas de PET consume una persona por día en campus. <b>El dato que nadie tiene</b> y el más determinante.</p>
+           <p>Tres rutas: <b>(a)</b> aforo directo en contenedores —la más defendible—, <b>(b)</b> ventas de cafeterías y máquinas, <b>(c)</b> literatura de campus mexicanos como referencia cruzada.</p>
+           <div class="artifact"><b>Artefacto · estimador muestral</b>Se infiere de una muestra y se extrapola. Su incertidumbre domina la de G.</div>`,
+     slider:{label:"Consumo c",min:0.03,max:0.45,step:0.01,val:0.10,unit:"botellas / pers / día",fmt:v=>v.toFixed(2),fmtR:v=>v.toFixed(2)}},
+  m:{glyph:"m",name:"Masa por botella",role:"Constante física · gramos → kg",
+     body:`<p>El peso promedio de una botella vacía. Se mide pesando una muestra de <b>30–50 botellas</b> del campus; típicamente <b>18–35 g</b> (una de 600 ml ronda 22–27 g).</p>
+           <p>Es el factor que convierte conteo de botellas en masa. Pesable directamente, así que su incertidumbre es chica y controlable.</p>
+           <div class="artifact"><b>Artefacto · medición directa</b>Báscula + muestra. Promedio empírico con desviación pequeña; el factor más honesto del set blando.</div>`,
+     slider:{label:"Masa m",min:18,max:35,step:0.5,val:24,unit:"gramos / botella",fmt:v=>v+" g",fmtR:v=>v+" g"}}
+};
+
+/* ---------------- symbol panel interaction ---------------- */
+const terms=[...document.querySelectorAll('.term')];
+const elG=document.getElementById('p-glyph'),elN=document.getElementById('p-name'),
+      elR=document.getElementById('p-role'),elB=document.getElementById('p-body');
+const sLabel=document.getElementById('s-label'),sVal=document.getElementById('s-val'),
+      sUnit=document.getElementById('s-unit'),sRange=document.getElementById('s-range'),
+      sMin=document.getElementById('s-min'),sMax=document.getElementById('s-max'),
+      sliderCard=document.querySelector('.slider-card');
+let curFmt=v=>v;
+let curKey='N';
+let linked=false;
+
+// remember the last position of each hero slider so reselecting a symbol doesn't reset it
+const heroState={};
+Object.keys(SYM).forEach(k=>{ if(SYM[k].slider) heroState[k]=SYM[k].slider.val; });
+
+function selectSym(k){
+  const d=SYM[k];
+  curKey=k;
+  terms.forEach(t=>t.classList.toggle('active',t.dataset.k===k));
+  elG.textContent=d.glyph; elN.textContent=d.name; elR.textContent=d.role; elB.innerHTML=d.body;
+  if(d.slider){
+    sliderCard.style.display='block';
+    const s=d.slider; curFmt=s.fmt;
+    const v=heroState[k];                 // restore remembered value, not the default
+    sLabel.textContent=s.label; sUnit.textContent=s.unit;
+    sRange.min=s.min; sRange.max=s.max; sRange.step=s.step; sRange.value=v;
+    sVal.textContent=s.fmt(v);
+    sMin.textContent=s.fmtR(s.min); sMax.textContent=s.fmtR(s.max);
+  } else {
+    sliderCard.style.display='none';
+  }
+  if(linked && (k==='c'||k==='m')){ pushHeroToLab(k, parseFloat(sRange.value)); }
+}
+terms.forEach(t=>{
+  t.addEventListener('click',()=>selectSym(t.dataset.k));
+  t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectSym(t.dataset.k)}});
+});
+sRange.addEventListener('input',()=>{
+  const val=parseFloat(sRange.value);
+  heroState[curKey]=val;                  // persist the new position
+  sVal.textContent=curFmt(val);
+  if(linked) pushHeroToLab(curKey,val);
+});
+selectSym('N');
+
+/* ---------------- uncertainty lab ---------------- */
+const L={c:el('lc'),cu:el('lcu'),m:el('lm'),a:el('la'),r:el('lr')};
+function el(id){return document.getElementById(id)}
+const out={
+  cv:el('lc-v'),cuv:el('lcu-v'),mv:el('lm-v'),av:el('la-v'),rv:el('lr-v'),
+  gmid:el('gmid'), gmid2:el('gmid2'), gmin:el('gmin'), gmax:el('gmax'),
+  bsrec:el('bsrec'), bslost:el('bslost'), bsrecLbl:el('bsrec-lbl'), bslostLbl:el('bslost-lbl'),
+  reckg:el('reckg'), lostkg:el('lostkg'),
+  rmin:el('rmin'),rmid:el('rmid'),rmax:el('rmax'),
+  lmin:el('lmin'),lmid:el('lmid'),lmax:el('lmax'),
+  verdict:el('verdict'),valpred:el('val-pred')
+};
+
+// structural inputs (annualized)
+let N=21500;            // population — driven by hero when locked
+const DAYS=240;         // nominal active days in academic year used with ā
+
+function genG(c,m,a){ // kg/year central formula: N · ā · days · c · (m grams→kg)
+  return N*a*DAYS*c*(m/1000);
+}
+function fmt(x){return Math.round(x).toLocaleString('es-MX');}
+
+function simulate(){
+  const c=+L.c.value, cu=+L.cu.value/100, m=+L.m.value, a=+L.a.value, R=+L.r.value;
+  out.cv.textContent=c.toFixed(2);
+  out.cuv.textContent='±'+(cu*100).toFixed(0)+'%';
+  out.mv.textContent=m+' g';
+  out.av.textContent=a.toFixed(2);
+  out.rv.textContent=R+' kg';
+
+  // three generation scenarios via combined relative uncertainty in quadrature
+  const mRel=0.08, aRel=0.12;                       // soft uncertainties on m and ā
+  const sigRel=Math.sqrt(cu*cu+mRel*mRel+aRel*aRel);
+  const Gc=genG(c,m,a);
+  const Gmin=Gc*(1-1.28*sigRel);                    // low-generation scenario
+  const Gmax=Gc*(1+1.28*sigRel);                    // high-generation scenario
+
+  // ---- centerpiece: recovered (R) vs not-recovered (G−R) for the central case ----
+  const recCentral=Math.min(R,Gc);
+  const lostCentral=Math.max(0,Gc-recCentral);
+  const recFrac=recCentral/Gc;
+  out.gmid.textContent=fmt(Gc);
+  out.gmid2.textContent=fmt(Gc);
+  out.bsrec.style.width=(recFrac*100)+'%';
+  out.bslost.style.width=((1-recFrac)*100)+'%';
+  out.reckg.textContent=fmt(recCentral)+' kg';
+  out.lostkg.textContent=fmt(lostCentral)+' kg';
+  // only show inline labels when the segment is wide enough to fit text
+  out.bsrecLbl.textContent = recFrac>0.16 ? (recFrac*100).toFixed(1)+'%' : '';
+  out.bslostLbl.textContent = (1-recFrac)>0.16 ? ((1-recFrac)*100).toFixed(1)+'%' : '';
+
+  // ---- three scenarios as recovered/not-recovered rows ----
+  function setRow(G,recEl,lostEl){
+    const rf=Math.min(1,R/G);
+    recEl.style.width=(rf*100)+'%';
+    lostEl.style.width=((1-rf)*100)+'%';
+  }
+  setRow(Gmin,out.rmin,out.lmin); out.gmin.textContent=fmt(Gmin);
+  setRow(Gc,  out.rmid,out.lmid);
+  setRow(Gmax,out.rmax,out.lmax); out.gmax.textContent=fmt(Gmax);
+
+  // validation: one week of regular-period prediction
+  const weekKg=N*0.75*5*c*(m/1000);
+  out.valpred.textContent=fmt(weekKg)+' kg';
+
+  // verdict — plain language, no threshold
+  const lostPct=(1-recFrac)*100;
+  out.verdict.innerHTML=`Bajo el escenario central, ECOCE recupera <span class="pct">${(recFrac*100).toFixed(1)}%</span> de lo generado; `+
+    `el resto, <b>${fmt(lostCentral)} kg al año</b> (${lostPct.toFixed(0)}%), no se recupera. `+
+    `Esa franja roja es el material que hoy se va a la basura — y el insumo potencial del proyecto PET-a-filamento.`;
+}
+
+Object.values(L).forEach(s=>s.addEventListener('input',simulate));
+
+/* ---------------- hero ↔ lab link (lock) ---------------- */
+// Map hero symbol → lab target. Only scalar factors that mean the same in both views.
+function pushHeroToLab(key,val){
+  if(key==='c'){ L.c.value=clampToRange(L.c,val); }
+  else if(key==='m'){ L.m.value=clampToRange(L.m,val); }
+  else if(key==='N'){ N=val; }
+  else return;            // aₚ, dₚ, p, G are not linked
+  simulate();
+}
+function clampToRange(input,v){
+  const lo=+input.min, hi=+input.max;
+  return Math.min(hi,Math.max(lo,v));
+}
+
+const lockBtn=el('linklock');
+function setLinked(on){
+  linked=on;
+  lockBtn.setAttribute('aria-pressed',on?'true':'false');
+  el('lk-open').style.display=on?'none':'block';
+  el('lk-closed').style.display=on?'block':'none';
+  el('lk-text').textContent=on?'Hero ligado':'Hero desligado';
+  el('ctl-c').classList.toggle('driven',on);
+  el('ctl-m').classList.toggle('driven',on);
+  L.c.classList.toggle('driven',on);
+  L.m.classList.toggle('driven',on);
+  L.c.disabled=on; L.m.disabled=on;
+  if(on){
+    // pull current hero values for the linked factors into the lab
+    syncFromHero('c');
+    syncFromHero('m');
+    // N comes from its remembered hero position
+    N = heroState.N;
+  }
+  simulate();
+}
+// read the hero's value for a factor: its remembered position (live if it's the selected symbol)
+function syncFromHero(key){
+  let v = (curKey===key) ? parseFloat(sRange.value) : heroState[key];
+  if(key==='c') L.c.value=clampToRange(L.c,v);
+  if(key==='m') L.m.value=clampToRange(L.m,v);
+}
+lockBtn.addEventListener('click',()=>setLinked(!linked));
+
+simulate();
+
+</script>
+</body>
+</html>
