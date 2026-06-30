@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DEMO — Reciclaje PET Fase 1</title>
+  <style>
+    :root {
+      --bg: #f4f4f1;
+      --panel: #ffffff;
+      --ink: #1d1d1b;
+      --muted: #6b6b66;
+      --line: #d8d8d2;
+      --bad: #b42318;
+      --ok: #197a45;
+      --warn: #986f00;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    header {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    h1 { margin: 0; font-size: 22px; }
+    .sub { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+    main {
+      display: grid;
+      grid-template-columns: 260px minmax(320px, 1fr) 300px;
+      gap: 14px;
+      padding: 14px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    section, aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 160px;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    h3 { margin: 14px 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--ink);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover { background: #eee; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+
+    .stack { display: grid; gap: 8px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+    .money {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 4px 0 12px;
+    }
+
+    .bar {
+      height: 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: #222;
+      transition: width .18s ease;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12px;
+      background: #fafafa;
+    }
+
+    .bottle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .bottle {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      min-height: 134px;
+      cursor: pointer;
+    }
+
+    .bottle.selected { outline: 3px solid #111; }
+    .bottle.perfect { border-color: var(--ok); }
+    .bottle.dirty { border-color: #d49a9a; }
+
+    .mini-svg {
+      width: 52px;
+      height: 72px;
+      display: block;
+      margin: 0 auto 8px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 10px;
+      line-height: 1.2;
+      color: var(--muted);
+    }
+
+    .tag.bad { color: var(--bad); border-color: #e4b5b2; }
+    .tag.good { color: var(--ok); border-color: #b8d9c6; }
+
+    .price {
+      margin-top: 8px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .price.neg { color: var(--bad); }
+    .price.pos { color: var(--ok); }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .details {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 130px;
+      background: #fbfbfa;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 10px;
+      color: var(--warn);
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .message.show { opacity: 1; }
+
+    .log {
+      max-height: 150px;
+      overflow: auto;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Simulador de la cadena de valor del reciclaje de PET — Fase 1</h1>
+    <div class="sub">MVP hormiga: recolectar → procesar → vender. Sin maquinaria, sin mapa, sin fase industrial.</div>
+  </header>
+
+  <main>
+    <aside>
+      <h2>Estado</h2>
+      <div class="money" id="dinero">$0.00</div>
+
+      <div class="row"><strong>Inventario</strong><span id="volumenTexto">0.0 / 10.0</span></div>
+      <div class="bar"><div class="fill" id="inventarioBar"></div></div>
+
+      <h3>Contenedor</h3>
+      <div class="row"><span>Botellas disponibles</span><span class="pill" id="contenedorCantidad">0</span></div>
+      <div class="row"><span>Capacidad fijada</span><span class="pill">100</span></div>
+      <div class="bar"><div class="fill" id="contenedorBar"></div></div>
+
+      <h3>Ciclo</h3>
+      <div class="stack">
+        <button id="btnGenerar">+ generar botella</button>
+        <button id="btnRecolectar">Recolectar una</button>
+        <button id="btnVender">Vender seleccionada</button>
+        <button id="btnVenderTodo">Vender todo</button>
+      </div>
+
+      <div id="mensaje" class="message"></div>
+    </aside>
+
+    <section>
+      <div class="row">
+        <h2>Inventario</h2>
+        <span class="pill" id="inventarioCantidad">0 botellas</span>
+      </div>
+      <div id="inventario" class="bottle-grid"></div>
+    </section>
+
+    <aside>
+      <h2>Procesar botella</h2>
+      <div id="detalle" class="details empty">Selecciona una botella del inventario.</div>
+
+      <h3>Acciones puras</h3>
+      <div class="actions">
+        <button data-accion="destapar">Destapar</button>
+        <button data-accion="quitarEtiqueta">Quitar etiqueta</button>
+        <button data-accion="vaciar">Vaciar</button>
+        <button data-accion="secar">Secar</button>
+        <button data-accion="comprimir">Comprimir</button>
+        <button data-accion="descomprimir">Descomprimir</button>
+      </div>
+
+      <h3>Orden óptimo</h3>
+      <p class="sub">destapar → quitarEtiqueta → vaciar → secar → comprimir</p>
+
+      <h3>Registro</h3>
+      <ol id="log" class="log"></ol>
+    </aside>
+  </main>
+
+  <script>
+    const CAPACIDAD_INVENTARIO = 10;
+    const CAPACIDAD_CONTENEDOR = 100;
+
+    const BASE = 28;
+    const PENALIZACIONES = [
+      { condicion: b => b.tiene_tapa, penalizacion: 3 },
+      { condicion: b => b.tiene_etiqueta, penalizacion: 2 },
+      { condicion: b => !b.comprimida, penalizacion: 4 },
+      { condicion: b => !b.seca, penalizacion: 6 },
+      { condicion: b => b.tiene_liquido, penalizacion: 18 },
+      { condicion: b => b.comprimida && b.tiene_liquido, penalizacion: 10 }
+    ];
+
+    const estado = {
+      dinero: 0,
+      contenedor: [],
+      inventario: [],
+      seleccion: null,
+      siguienteId: 1
+    };
+
+    function botellaNueva() {
+      return {
+        id: estado.siguienteId++,
+        tiene_tapa: true,
+        tiene_etiqueta: true,
+        tiene_liquido: true,
+        comprimida: false,
+        seca: false,
+        volumen: 1.0
+      };
+    }
+
+    function calcularPrecio(botella) {
+      const centavos = PENALIZACIONES.reduce((total, regla) => {
+        return total - (regla.condicion(botella) ? regla.penalizacion : 0);
+      }, BASE);
+      return centavos / 100;
+    }
+
+    function sinCambio(botella, texto) {
+      mostrarMensaje(texto);
+      return botella;
+    }
+
+    function destapar(botella) {
+      return { ...botella, tiene_tapa: false };
+    }
+
+    function quitarEtiqueta(botella) {
+      return { ...botella, tiene_etiqueta: false };
+    }
+
+    function vaciar(botella) {
+      if (!(botella.tiene_liquido === true && botella.comprimida === false)) {
+        return sinCambio(botella, 'No se puede vaciar: debe tener líquido y estar descomprimida.');
+      }
+      return { ...botella, tiene_liquido: false };
+    }
+
+    function secar(botella) {
+      if (!(botella.tiene_liquido === false && botella.comprimida === false)) {
+        return sinCambio(botella, 'No se puede secar: debe estar vacía y descomprimida.');
+      }
+      return { ...botella, seca: true };
+    }
+
+    function comprimir(botella) {
+      if (!(botella.tiene_tapa === false)) {
+        return sinCambio(botella, 'No se puede comprimir: primero quita la tapa.');
+      }
+      return { ...botella, comprimida: true, volumen: 0.3 };
+    }
+
+    function descomprimir(botella) {
+      return { ...botella, comprimida: false, volumen: 1.0 };
+    }
+
+    const acciones = { destapar, quitarEtiqueta, vaciar, secar, comprimir, descomprimir };
+
+    function volumenUsado() {
+      return estado.inventario.reduce((suma, botella) => suma + botella.volumen, 0);
+    }
+
+    function esPerfecta(b) {
+      return !b.tiene_tapa && !b.tiene_etiqueta && !b.tiene_liquido && b.comprimida && b.seca && b.volumen === 0.3;
+    }
+
+    function recolectar() {
+      if (estado.contenedor.length === 0) {
+        mostrarMensaje('El contenedor está vacío. Genera o espera una botella.');
+        return;
+      }
+
+      const botella = estado.contenedor[0];
+      if (volumenUsado() + botella.volumen > CAPACIDAD_INVENTARIO) {
+        mostrarMensaje('Inventario lleno: procesa, comprime o vende antes de recoger más.');
+        return;
+      }
+
+      estado.contenedor.shift();
+      estado.inventario.push(botella);
+      estado.seleccion = botella.id;
+      registrar('Recolectada botella #' + botella.id + '.');
+      render();
+    }
+
+    function generarBotella() {
+      if (estado.contenedor.length >= CAPACIDAD_CONTENEDOR) {
+        mostrarMensaje('Contenedor lleno. El desbordamiento queda fuera del MVP.');
+        return;
+      }
+      estado.contenedor.push(botellaNueva());
+      render();
+    }
+
+    function aplicarAccion(nombre) {
+      if (estado.seleccion === null) {
+        mostrarMensaje('Selecciona una botella antes de procesar.');
+        return;
+      }
+
+      const i = estado.inventario.findIndex(b => b.id === estado.seleccion);
+      if (i === -1) return;
+
+      const antes = estado.inventario[i];
+      const despues = acciones[nombre](antes);
+      estado.inventario[i] = despues;
+      estado.seleccion = despues.id;
+
+      if (despues !== antes) registrar(nombre + ' aplicada a botella #' + despues.id + '.');
+      render();
+    }
+
+    function venderSeleccionada() {
+      if (estado.seleccion === null) {
+        mostrarMensaje('Selecciona una botella para vender.');
+        return;
+      }
+      const i = estado.inventario.findIndex(b => b.id === estado.seleccion);
+      if (i === -1) return;
+      const [botella] = estado.inventario.splice(i, 1);
+      const precio = calcularPrecio(botella);
+      estado.dinero += precio;
+      estado.seleccion = estado.inventario[0]?.id ?? null;
+      registrar('Vendida botella #' + botella.id + ' por ' + formato(precio) + '.');
+      render();
+    }
+
+    function venderTodo() {
+      if (estado.inventario.length === 0) {
+        mostrarMensaje('No hay botellas en inventario.');
+        return;
+      }
+      const total = estado.inventario.reduce((suma, botella) => suma + calcularPrecio(botella), 0);
+      const n = estado.inventario.length;
+      estado.dinero += total;
+      estado.inventario = [];
+      estado.seleccion = null;
+      registrar('Venta total: ' + n + ' botellas por ' + formato(total) + '.');
+      render();
+    }
+
+    function formato(n) {
+      const signo = n < 0 ? '-' : '';
+      return signo + '$' + Math.abs(n).toFixed(2);
+    }
+
+    function mostrarMensaje(texto) {
+      const el = document.getElementById('mensaje');
+      el.textContent = texto;
+      el.classList.add('show');
+      clearTimeout(mostrarMensaje.timer);
+      mostrarMensaje.timer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function registrar(texto) {
+      const log = document.getElementById('log');
+      const li = document.createElement('li');
+      li.textContent = texto;
+      log.prepend(li);
+      while (log.children.length > 9) log.removeChild(log.lastChild);
+    }
+
+    function botellaSvg(b) {
+      const alto = b.comprimida ? 38 : 62;
+      const y = b.comprimida ? 26 : 8;
+      const liquido = b.tiene_liquido ? '<rect x="17" y="45" width="18" height="18" rx="3" fill="#ddd" />' : '';
+      const tapa = b.tiene_tapa ? '<rect x="21" y="2" width="10" height="7" rx="1" fill="#333" />' : '';
+      const etiqueta = b.tiene_etiqueta ? '<rect x="13" y="34" width="26" height="10" rx="2" fill="#e6e6e6" stroke="#aaa" />' : '';
+      return '<svg class="mini-svg" viewBox="0 0 52 76" aria-hidden="true">' +
+        tapa +
+        '<rect x="18" y="8" width="16" height="11" rx="3" fill="none" stroke="#222" />' +
+        '<rect x="10" y="' + y + '" width="32" height="' + alto + '" rx="8" fill="none" stroke="#222" stroke-width="2" />' +
+        liquido + etiqueta +
+      '</svg>';
+    }
+
+    function etiquetas(b) {
+      return [
+        b.tiene_tapa ? ['tapa', 'bad'] : ['sin tapa', 'good'],
+        b.tiene_etiqueta ? ['etiqueta', 'bad'] : ['sin etiqueta', 'good'],
+        b.tiene_liquido ? ['líquido', 'bad'] : ['vacía', 'good'],
+        b.comprimida ? ['comprimida', 'good'] : ['sin comprimir', 'bad'],
+        b.seca ? ['seca', 'good'] : ['húmeda', 'bad']
+      ].map(([texto, clase]) => '<span class="tag ' + clase + '">' + texto + '</span>').join('');
+    }
+
+    function renderInventario() {
+      const cont = document.getElementById('inventario');
+      if (estado.inventario.length === 0) {
+        cont.innerHTML = '<div class="empty">Inventario vacío. Recolecta botellas del contenedor.</div>';
+        return;
+      }
+      cont.innerHTML = estado.inventario.map(b => {
+        const precio = calcularPrecio(b);
+        const clases = ['bottle', b.id === estado.seleccion ? 'selected' : '', esPerfecta(b) ? 'perfect' : 'dirty'].join(' ');
+        return '<div class="' + clases + '" data-id="' + b.id + '">' +
+          botellaSvg(b) +
+          '<div class="tags">' + etiquetas(b) + '</div>' +
+          '<div class="price ' + (precio < 0 ? 'neg' : 'pos') + '">' + formato(precio) + '</div>' +
+        '</div>';
+      }).join('');
+
+      cont.querySelectorAll('.bottle').forEach(el => {
+        el.addEventListener('click', () => {
+          estado.seleccion = Number(el.dataset.id);
+          render();
+        });
+      });
+    }
+
+    function renderDetalle() {
+      const el = document.getElementById('detalle');
+      const b = estado.inventario.find(x => x.id === estado.seleccion);
+      if (!b) {
+        el.className = 'details empty';
+        el.innerHTML = 'Selecciona una botella del inventario.';
+        return;
+      }
+      el.className = 'details';
+      el.innerHTML =
+        '<strong>Botella #' + b.id + '</strong>' +
+        '<div class="price ' + (calcularPrecio(b) < 0 ? 'neg' : 'pos') + '">' + formato(calcularPrecio(b)) + '</div>' +
+        '<p class="sub">Volumen: ' + b.volumen.toFixed(1) + '</p>' +
+        '<div class="tags">' + etiquetas(b) + '</div>';
+    }
+
+    function render() {
+      const vol = volumenUsado();
+      document.getElementById('dinero').textContent = formato(estado.dinero);
+      document.getElementById('volumenTexto').textContent = vol.toFixed(1) + ' / ' + CAPACIDAD_INVENTARIO.toFixed(1);
+      document.getElementById('inventarioBar').style.width = Math.min(100, (vol / CAPACIDAD_INVENTARIO) * 100) + '%';
+      document.getElementById('contenedorCantidad').textContent = estado.contenedor.length;
+      document.getElementById('contenedorBar').style.width = Math.min(100, (estado.contenedor.length / CAPACIDAD_CONTENEDOR) * 100) + '%';
+      document.getElementById('inventarioCantidad').textContent = estado.inventario.length + (estado.inventario.length === 1 ? ' botella' : ' botellas');
+      document.getElementById('btnRecolectar').disabled = estado.contenedor.length === 0;
+      document.getElementById('btnVender').disabled = estado.seleccion === null;
+      document.getElementById('btnVenderTodo').disabled = estado.inventario.length === 0;
+      renderInventario();
+      renderDetalle();
+    }
+
+    document.getElementById('btnGenerar').addEventListener('click', generarBotella);
+    document.getElementById('btnRecolectar').addEventListener('click', recolectar);
+    document.getElementById('btnVender').addEventListener('click', venderSeleccionada);
+    document.getElementById('btnVenderTodo').addEventListener('click', venderTodo);
+    document.querySelectorAll('[data-accion]').forEach(btn => {
+      btn.addEventListener('click', () => aplicarAccion(btn.dataset.accion));
+    });
+
+    for (let i = 0; i < 4; i++) generarBotella();
+    setInterval(generarBotella, 4500);
+    render();
+  </script>
+</body>
+</html>
