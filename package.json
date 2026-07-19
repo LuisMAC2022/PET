@@ -1,0 +1,13 @@
+{
+  "name": "simulador-residuos-fes-acatlan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/invariantes.test.js",
+    "check": "node --check app.js && node --check parametros.js && node --check modelo.js && node --check integrador.js && node --check arbol.js && node --check reporte.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
