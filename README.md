@@ -1,8 +1,12 @@
 # Simulador stock-and-flow de residuos · FES Acatlán
 
-Aplicación estática en HTML, CSS y JavaScript puro para explorar dos cadenas de residuos —PET y orgánicos— mediante stocks, flujos y un árbol determinista de escenarios. No utiliza frameworks, bibliotecas numéricas, servicios externos ni aleatoriedad.
+Aplicación estática en HTML, CSS y JavaScript puro para explorar dos cadenas de residuos —PET y orgánicos— mediante stocks, flujos y un árbol determinista de escenarios. La interfaz es un asistente de captura trazable para público no técnico; el núcleo numérico permanece separado y reproducible. No utiliza frameworks, bibliotecas numéricas, servicios externos ni aleatoriedad.
 
 > El estudio de caracterización aún no está autorizado. Los valores `SUPUESTO` son marcadores de posición, no datos observados del campus.
+
+La experiencia de uso y la interpretación de resultados están documentadas en [`GUIA_USUARIO.md`](GUIA_USUARIO.md). Este README conserva el detalle técnico del modelo.
+
+El contraste entre la base, el primer intento revertido y las salvaguardas del reintento está en [`IMPLEMENTACION_A02.md`](IMPLEMENTACION_A02.md).
 
 ## Ejecutar
 
@@ -188,8 +192,10 @@ modelo.js → no importa otros módulos
 | `arbol.js` | Construcción DFS, herencia de estado y trayectorias segmentadas. |
 | `reporte.js` | Indicadores, dependencias de supuestos y serialización CSV. |
 | `escenarios_ejemplo.js` | Árbol ordenado de tres puntos y ocho hojas. |
-| `app.js` | Adaptación entre DOM, núcleo científico, SVG y descargas. |
-| `tests/suite.js` | Casos compartidos por Node y `tests.html`. |
+| `app.js` | Asistente, conversión de unidades visibles, revisión, SVG y descargas. |
+| `GUIA_USUARIO.md` | Recorrido sin jerga, glosario, límites y lectura de salidas. |
+| `IMPLEMENTACION_A02.md` | Contraste de versiones, causas reproducidas y contratos preservados. |
+| `tests/suite.js` | Invariantes numéricos y cobertura del contenido de onboarding. |
 
 Todas las firmas públicas tienen JSDoc. El estado numérico usa `Float64Array`; las unidades internas son exclusivamente kg y días.
 
@@ -236,7 +242,9 @@ El integrador llega exactamente a `tDia`, congela el vector del padre, crea una 
 base/alta_participacion/segunda_maquina/bokashi_ampliado
 ```
 
-La interfaz permite editar la spec completa como JSON.
+La ruta técnica conserva `capacidad_bokashi`/`bokashi_ampliado` por compatibilidad con exportaciones anteriores, pero la interfaz la presenta como **Separación y aplicación orgánica ampliadas** porque el modelo no tiene un tope máximo de fermentación.
+
+En el flujo normal, la persona construye decisiones, alternativas, valores, procedencias y fuentes con controles guiados. La spec completa solo aparece en la divulgación **Avanzado** para importación o diagnóstico experto.
 
 ## Indicadores y exportaciones
 
@@ -253,11 +261,14 @@ Cada hoja informa:
 
 `generado − relleno` se reporta como desvío neto. Puede incluir material todavía almacenado o en proceso; por eso la interfaz muestra además el inventario pendiente y las salidas útiles realizadas.
 
-Se generan tres CSV:
+Se generan cuatro CSV:
 
 - una fila de indicadores por hoja;
 - trayectoria completa de la hoja seleccionada;
-- parámetros efectivos por hoja e intervalo temporal.
+- parámetros efectivos y fuentes por hoja e intervalo temporal;
+- diccionario de datos con nombre legible, unidades, rangos, ejemplos y exposición.
+
+Indicadores, trayectoria y parámetros incluyen la versión del modelo, commit base, periodo, pregunta, marca de corrida ilustrativa, advertencia determinista, stocks iniciales y límites de esta versión.
 
 El mapa de dependencias de supuestos es conservador. Debido a R1 y B1, PET y orgánicos quedan acoplados a través de participación; la lista indica qué parámetros pueden afectar un indicador, no una sensibilidad calibrada.
 
@@ -272,7 +283,18 @@ La suite cubre:
 5. crecimiento lineal del backlog bajo saturación;
 6. reproducibilidad exacta de indicadores y trayectorias CSV;
 7. herencia del estado, orden DFS y bloqueo de parámetros estructurales;
-8. participación acotada mediante logit.
+8. participación acotada mediante logit;
+9. anotaciones completas para las 41 rutas y clasificación 29 U / 1 U-R / 11 A;
+10. conversión explícita `30 % ↔ 0.30`;
+11. detección de huecos y traslapes en calendarios;
+12. metadatos, fuentes y límites obligatorios en exportaciones;
+13. conservación de IDs DOM usados por la versión estable;
+14. rutas técnicas históricas con nombres visibles corregidos;
+15. compatibilidad del constructor sin `Object.hasOwn` ni `Array.prototype.at`;
+16. ausencia de autoejecución y diagnóstico visible de arranque;
+17. invalidación de resultados cuando cambia la configuración.
+
+Además, antes de publicar se recorre la interfaz en Chrome headless —incluidos constructor, restauración, dos corridas y vista móvil— y se auditan bienvenida y resultados contra WCAG 2 A/AA.
 
 ## Costura futura para estocasticidad
 

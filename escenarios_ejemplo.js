@@ -57,16 +57,18 @@ export const ARBOL_EJEMPLO = Object.freeze({
     },
     {
       tDia: 135,
+      // El identificador técnico se conserva por compatibilidad con rutas y CSV
+      // existentes. La interfaz usa nombreVisible para corregir la semántica.
       nombre: "capacidad_bokashi",
       alternativas: [
         {
           etiqueta: "bokashi_actual",
-          nombreVisible: "Bokashi actual",
+          nombreVisible: "Operación orgánica actual",
           overrides: {},
         },
         {
           etiqueta: "bokashi_ampliado",
-          nombreVisible: "Bokashi ampliado",
+          nombreVisible: "Separación y aplicación orgánica ampliadas",
           overrides: {
             "organico.cobertura": {
               valor: 0.78,
