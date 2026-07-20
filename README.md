@@ -1,10 +1,8 @@
 # Simulador stock-and-flow de residuos · FES Acatlán
 
-Aplicación estática en HTML, CSS y JavaScript puro para explorar dos cadenas de residuos —PET y orgánicos— mediante stocks, flujos y un árbol determinista de escenarios. La interfaz es un asistente de captura trazable para público no técnico; el núcleo numérico permanece separado y reproducible. No utiliza frameworks, bibliotecas numéricas, servicios externos ni aleatoriedad.
+Aplicación estática en HTML, CSS y JavaScript puro para explorar dos cadenas de residuos —PET y orgánicos— mediante stocks, flujos y un árbol determinista de escenarios. No utiliza frameworks, bibliotecas numéricas, servicios externos ni aleatoriedad.
 
 > El estudio de caracterización aún no está autorizado. Los valores `SUPUESTO` son marcadores de posición, no datos observados del campus.
-
-La experiencia de uso y la interpretación de resultados están documentadas en [`GUIA_USUARIO.md`](GUIA_USUARIO.md). Este README conserva el detalle técnico del modelo.
 
 ## Ejecutar
 
@@ -190,9 +188,8 @@ modelo.js → no importa otros módulos
 | `arbol.js` | Construcción DFS, herencia de estado y trayectorias segmentadas. |
 | `reporte.js` | Indicadores, dependencias de supuestos y serialización CSV. |
 | `escenarios_ejemplo.js` | Árbol ordenado de tres puntos y ocho hojas. |
-| `app.js` | Asistente, conversión de unidades visibles, revisión, SVG y descargas. |
-| `GUIA_USUARIO.md` | Recorrido sin jerga, glosario, límites y lectura de salidas. |
-| `tests/suite.js` | Invariantes numéricos y cobertura del contenido de onboarding. |
+| `app.js` | Adaptación entre DOM, núcleo científico, SVG y descargas. |
+| `tests/suite.js` | Casos compartidos por Node y `tests.html`. |
 
 Todas las firmas públicas tienen JSDoc. El estado numérico usa `Float64Array`; las unidades internas son exclusivamente kg y días.
 
@@ -236,12 +233,10 @@ Pasos:
 El integrador llega exactamente a `tDia`, congela el vector del padre, crea una copia por alternativa y aplica los overrides desde ese instante. Los cambios nunca son retroactivos. Las hojas siguen DFS y conservan rutas como:
 
 ```text
-base/alta_participacion/segunda_maquina/separacion_aplicacion_ampliadas
+base/alta_participacion/segunda_maquina/bokashi_ampliado
 ```
 
-La decisión orgánica no se llama “capacidad bokashi” porque el modelo no tiene un tope máximo de fermentación.
-
-En el flujo normal, la persona construye decisiones, alternativas, valores, procedencias y fuentes con controles guiados. La spec completa solo aparece en la divulgación **Avanzado** para importación o diagnóstico experto.
+La interfaz permite editar la spec completa como JSON.
 
 ## Indicadores y exportaciones
 
@@ -258,14 +253,11 @@ Cada hoja informa:
 
 `generado − relleno` se reporta como desvío neto. Puede incluir material todavía almacenado o en proceso; por eso la interfaz muestra además el inventario pendiente y las salidas útiles realizadas.
 
-Se generan cuatro CSV:
+Se generan tres CSV:
 
 - una fila de indicadores por hoja;
 - trayectoria completa de la hoja seleccionada;
-- parámetros efectivos y fuentes por hoja e intervalo temporal;
-- diccionario de datos con nombre legible, unidades, rangos, ejemplos y exposición.
-
-Indicadores, trayectoria y parámetros incluyen la versión del modelo, commit base, periodo, pregunta, marca de corrida ilustrativa, advertencia determinista, stocks iniciales y límites de esta versión.
+- parámetros efectivos por hoja e intervalo temporal.
 
 El mapa de dependencias de supuestos es conservador. Debido a R1 y B1, PET y orgánicos quedan acoplados a través de participación; la lista indica qué parámetros pueden afectar un indicador, no una sensibilidad calibrada.
 
@@ -280,11 +272,7 @@ La suite cubre:
 5. crecimiento lineal del backlog bajo saturación;
 6. reproducibilidad exacta de indicadores y trayectorias CSV;
 7. herencia del estado, orden DFS y bloqueo de parámetros estructurales;
-8. participación acotada mediante logit;
-9. anotaciones completas para las 41 rutas y clasificación 29 U / 1 U-R / 11 A;
-10. conversión explícita `30 % ↔ 0.30`;
-11. detección de huecos y traslapes en calendarios;
-12. metadatos, fuentes y límites obligatorios en exportaciones.
+8. participación acotada mediante logit.
 
 ## Costura futura para estocasticidad
 
