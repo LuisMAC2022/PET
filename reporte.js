@@ -1,6 +1,11 @@
 import { materializarTrayectoria } from "./arbol.js";
 import { calcularErrorBalance, describirEstado, sigmoide } from "./modelo.js";
 
+export const VERSION_MODELO = "1.1.0-onboarding";
+export const COMMIT_BASE = "872ba8e84016c4193ef8ea9b11773616e2295b4c";
+export const ADVERTENCIA_METODOLOGICA = "Modelo determinista y condicionado: no es una predicción exacta, no asigna probabilidades y no representa eventos imprevistos ni incertidumbre.";
+export const LIMITES_VERSION = "PET y orgánico comparten una participación; el resto va directo a relleno; la composta conserva kg-equivalentes húmedos sin pérdidas de agua ni emisiones; todos los inventarios empiezan en cero.";
+
 const TODOS_LOS_GRUPOS = Object.freeze([
   "generacion.*",
   "composicion.*",
@@ -133,12 +138,27 @@ export function calcularIndicadores(hoja) {
 
 /**
  * @param {{hojas:Array<Object>}} resultadoArbol
- * @returns {{hojas:Array<Object>, creadoEn:string}}
+ * @param {{fechaReferencia?:string,pregunta?:string,corridaIlustrativa?:boolean}} [contexto]
+ * @returns {{hojas:Array<Object>, creadoEn:string, metadatos:Object}}
  */
-export function crearReporte(resultadoArbol) {
+export function crearReporte(resultadoArbol, contexto = {}) {
+  const metadatos = Object.freeze({
+    versionModelo: VERSION_MODELO,
+    commitBase: COMMIT_BASE,
+    fechaReferencia: contexto.fechaReferencia ?? "",
+    pregunta: contexto.pregunta ?? "",
+    corridaIlustrativa: Boolean(contexto.corridaIlustrativa),
+    tInicio: resultadoArbol.config.tInicio,
+    tFin: resultadoArbol.config.tFin,
+    horizonteDias: resultadoArbol.config.tFin - resultadoArbol.config.tInicio,
+    stocksIniciales: "Todos los inventarios materiales empiezan en 0 kg.",
+    advertenciaMetodologica: ADVERTENCIA_METODOLOGICA,
+    limitesVersion: LIMITES_VERSION,
+  });
   return {
-    hojas: resultadoArbol.hojas.map(calcularIndicadores),
+    hojas: resultadoArbol.hojas.map((hoja) => ({ ...calcularIndicadores(hoja), metadatos })),
     creadoEn: new Date(0).toISOString(),
+    metadatos,
   };
 }
 
@@ -151,13 +171,30 @@ const csv = (encabezados, filas) => [encabezados, ...filas]
   .map((fila) => fila.map(escaparCsv).join(","))
   .join("\r\n");
 
+const encabezadosMetadatos = Object.freeze([
+  "version_modelo", "commit_base", "fecha_referencia", "horizonte_dias",
+  "corrida_ilustrativa", "pregunta", "stocks_iniciales", "advertencia_metodologica", "limites_version",
+]);
+
+const valoresMetadatos = (metadatos = {}) => [
+  metadatos.versionModelo ?? VERSION_MODELO,
+  metadatos.commitBase ?? COMMIT_BASE,
+  metadatos.fechaReferencia ?? "",
+  metadatos.horizonteDias ?? "",
+  metadatos.corridaIlustrativa ? "SI" : "NO",
+  metadatos.pregunta ?? "",
+  metadatos.stocksIniciales ?? "Todos los inventarios materiales empiezan en 0 kg.",
+  metadatos.advertenciaMetodologica ?? ADVERTENCIA_METODOLOGICA,
+  metadatos.limitesVersion ?? LIMITES_VERSION,
+];
+
 /** @param {{hojas:Array<Object>}} reporte @returns {string} */
 export function aCsvIndicadores(reporte) {
   const encabezados = [
     "ruta", "generado_kg", "relleno_kg", "desvio_kg", "desvio_pct", "filamento_kg",
     "composta_aplicada_kg", "backlog_max_kg", "dia_backlog_max", "dias_saturado",
     "participacion_terminal", "inventario_pendiente_kg", "error_balance_relativo",
-    "supuestos_estructurales",
+    "supuestos_estructurales", ...encabezadosMetadatos,
   ];
   const filas = reporte.hojas.map(({ ruta, indicadores, supuestosPorIndicador }) => [
     ruta,
@@ -174,6 +211,7 @@ export function aCsvIndicadores(reporte) {
     indicadores.inventarioPendienteKg,
     indicadores.errorBalanceRelativo,
     [...new Set(supuestosPorIndicador.desvioKg.map((item) => item.ruta))].join(";"),
+    ...valoresMetadatos(reporte.metadatos),
   ]);
   return csv(encabezados, filas);
 }
@@ -188,6 +226,7 @@ export function aCsvTrayectoria(resultadoHoja) {
     ...etapas.map((_, indice) => `fermentacion_${indice + 1}_kg`),
     "composta_lista_kg", "generado_acum_kg", "relleno_acum_kg", "filamento_acum_kg",
     "composta_aplicada_acum_kg", "productividad_visible", "participacion",
+    ...encabezadosMetadatos,
   ];
   const filas = trayectoria.map((muestra) => [
     muestra.rutaActiva,
@@ -203,13 +242,17 @@ export function aCsvTrayectoria(resultadoHoja) {
     muestra.estado[layout.compostaAplicada],
     muestra.estado[layout.productividadVisible],
     sigmoide(muestra.estado[layout.logitParticipacion]),
+    ...valoresMetadatos(resultadoHoja.metadatos),
   ]);
   return csv(encabezados, filas);
 }
 
 /** @param {{hojas:Array<Object>}} reporte @returns {string} */
 export function aCsvParametrosEfectivos(reporte) {
-  const encabezados = ["ruta", "desde_dia", "hasta_dia", "parametro", "valor", "unidad", "procedencia", "fuente"];
+  const encabezados = [
+    "ruta", "desde_dia", "hasta_dia", "parametro", "nombre", "valor", "unidad_interna",
+    "unidad_entrada", "procedencia", "fuente", "exposicion", ...encabezadosMetadatos,
+  ];
   const filas = [];
   for (const resultadoHoja of reporte.hojas) {
     for (const segmento of resultadoHoja.hoja.segmentos) {
@@ -219,13 +262,52 @@ export function aCsvParametrosEfectivos(reporte) {
           segmento.tInicio,
           segmento.tFin,
           ruta,
+          parametro.onboarding?.nombre ?? parametro.descripcion,
           parametro.valor,
           parametro.unidad,
+          parametro.onboarding?.unidadEntrada ?? parametro.unidad,
           parametro.procedencia,
           parametro.fuente,
+          parametro.onboarding?.exposicion ?? "",
+          ...valoresMetadatos(reporte.metadatos),
         ]);
       });
     }
   }
+  return csv(encabezados, filas);
+}
+
+/**
+ * Diccionario legible para acompañar las exportaciones reproducibles.
+ * @param {{catalogo:Object}} params
+ * @returns {string}
+ */
+export function aCsvDiccionarioParametros(params) {
+  const encabezados = [
+    "parametro", "nombre", "explicacion", "unidad_interna", "unidad_entrada", "formato",
+    "rango_razonable", "valor_ejemplo", "procedencia_ejemplo", "origen_ejemplo", "ejemplo",
+    "consecuencia_error", "criticidad", "exposicion", "como_obtener",
+  ];
+  const filas = [];
+  recorrer(params.catalogo, (parametro, ruta) => {
+    const ayuda = parametro.onboarding ?? {};
+    filas.push([
+      ruta,
+      ayuda.nombre,
+      ayuda.explicacion,
+      parametro.unidad,
+      ayuda.unidadEntrada,
+      ayuda.formato,
+      ayuda.rangoRazonable,
+      parametro.valor,
+      parametro.procedencia,
+      parametro.fuente,
+      ayuda.ejemplo,
+      ayuda.consecuencia,
+      ayuda.criticidad,
+      ayuda.exposicion,
+      ayuda.comoObtener,
+    ]);
+  });
   return csv(encabezados, filas);
 }

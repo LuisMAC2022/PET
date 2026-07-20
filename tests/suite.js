@@ -1,4 +1,13 @@
-import { aplicarOverrides, crearParametros, extraerValores } from "../parametros.js";
+import {
+  analizarCalendario,
+  aplicarOverrides,
+  contarProcedencias,
+  crearParametros,
+  extraerValores,
+  fraccionAPorcentaje,
+  listarParametros,
+  porcentajeAFraccion,
+} from "../parametros.js";
 import {
   calcularErrorBalance,
   calcularObservables,
@@ -12,7 +21,14 @@ import {
 } from "../modelo.js";
 import { ErrorIntegracion, darPaso, integrarTramo } from "../integrador.js";
 import { materializarTrayectoria, simularArbol } from "../arbol.js";
-import { aCsvIndicadores, aCsvTrayectoria, crearReporte } from "../reporte.js";
+import {
+  COMMIT_BASE,
+  aCsvDiccionarioParametros,
+  aCsvIndicadores,
+  aCsvParametrosEfectivos,
+  aCsvTrayectoria,
+  crearReporte,
+} from "../reporte.js";
 import { ARBOL_EJEMPLO, CONFIGURACION_EJEMPLO } from "../escenarios_ejemplo.js";
 
 const afirmar = (condicion, mensaje) => {
@@ -222,14 +238,14 @@ const casoReproducibilidad = () => {
 const casoArbol = () => {
   const resultado = ejecutarEjemplo();
   const rutasEsperadas = [
-    "base/participacion_actual/maquina_actual/bokashi_actual",
-    "base/participacion_actual/maquina_actual/bokashi_ampliado",
-    "base/participacion_actual/segunda_maquina/bokashi_actual",
-    "base/participacion_actual/segunda_maquina/bokashi_ampliado",
-    "base/alta_participacion/maquina_actual/bokashi_actual",
-    "base/alta_participacion/maquina_actual/bokashi_ampliado",
-    "base/alta_participacion/segunda_maquina/bokashi_actual",
-    "base/alta_participacion/segunda_maquina/bokashi_ampliado",
+    "base/participacion_actual/maquina_actual/operacion_organica_actual",
+    "base/participacion_actual/maquina_actual/separacion_aplicacion_ampliadas",
+    "base/participacion_actual/segunda_maquina/operacion_organica_actual",
+    "base/participacion_actual/segunda_maquina/separacion_aplicacion_ampliadas",
+    "base/alta_participacion/maquina_actual/operacion_organica_actual",
+    "base/alta_participacion/maquina_actual/separacion_aplicacion_ampliadas",
+    "base/alta_participacion/segunda_maquina/operacion_organica_actual",
+    "base/alta_participacion/segunda_maquina/separacion_aplicacion_ampliadas",
   ];
   afirmar(JSON.stringify(resultado.hojas.map((hoja) => hoja.ruta)) === JSON.stringify(rutasEsperadas), "El orden DFS cambió");
   for (const hoja of resultado.hojas) {
@@ -259,6 +275,73 @@ const casoParticipacion = () => {
   }
 };
 
+const casoCoberturaOnboarding = () => {
+  const params = crearParametros();
+  const parametros = listarParametros(params);
+  afirmar(parametros.length === 41, `Se esperaban 41 parámetros y se encontraron ${parametros.length}`);
+  const campos = [
+    "nombre", "explicacion", "unidadEntrada", "formato", "rangoRazonable", "origenDefault",
+    "ejemplo", "consecuencia", "criticidad", "exposicion", "comoObtener",
+  ];
+  parametros.forEach((parametro) => {
+    campos.forEach((campo) => afirmar(parametro.onboarding?.[campo] !== undefined && parametro.onboarding[campo] !== "", `${parametro.ruta} carece de ${campo}`));
+  });
+  const exposiciones = parametros.reduce((conteo, parametro) => {
+    conteo[parametro.onboarding.exposicion] = (conteo[parametro.onboarding.exposicion] ?? 0) + 1;
+    return conteo;
+  }, {});
+  afirmar(exposiciones.U === 29, `Se esperaban 29 parámetros U; hay ${exposiciones.U}`);
+  afirmar(exposiciones["U-R"] === 1, `Se esperaba un parámetro U-R; hay ${exposiciones["U-R"]}`);
+  afirmar(exposiciones.A === 11, `Se esperaban 11 parámetros A; hay ${exposiciones.A}`);
+  const procedencias = contarProcedencias(params);
+  afirmar(procedencias.MEDIDO === 0 && procedencias.ESTIMADO === 4 && procedencias.SUPUESTO === 37, "Cambió el conteo honesto de procedencias");
+  const calendarios = parametros.filter((parametro) => parametro.onboarding.formato === "calendario");
+  afirmar(calendarios.length === 4, "Deben existir cuatro calendarios guiados");
+  const subcampos = calendarios.reduce((suma, parametro) => suma + parametro.valor.length * 3, 0);
+  afirmar(subcampos === 36, `Se esperaban 36 subcampos de calendario; hay ${subcampos}`);
+};
+
+const casoConversionPorcentajes = () => {
+  casiIgual(porcentajeAFraccion(30), 0.3, 1e-15, "Conversión visible a interna");
+  casiIgual(fraccionAPorcentaje(0.3), 30, 1e-15, "Conversión interna a visible");
+  let error = null;
+  try { porcentajeAFraccion(120); } catch (capturado) { error = capturado; }
+  afirmar(error instanceof Error && /entre 0 y 100/.test(error.message), "Un porcentaje ambiguo fuera de 0–100 debe fallar en modo normal");
+};
+
+const casoCalendariosGuiados = () => {
+  const hueco = analizarCalendario([
+    { desde: 0, hasta: 10, multiplicador: 1 },
+    { desde: 12, hasta: 20, multiplicador: 0.5 },
+  ], 20);
+  afirmar(hueco.errores.length === 0 && hueco.advertencias.some((texto) => /día 10 al 12/.test(texto)), "No se detectó el hueco de calendario");
+  const traslape = analizarCalendario([
+    { desde: 0, hasta: 10, multiplicador: 1 },
+    { desde: 9, hasta: 20, multiplicador: 1 },
+  ], 20);
+  afirmar(traslape.errores.some((texto) => /antes de que termine/.test(texto)), "No se detectó el traslape de calendario");
+};
+
+const casoExportacionTrazable = () => {
+  const resultado = ejecutarEjemplo();
+  const reporte = crearReporte(resultado, {
+    fechaReferencia: "2026-01-15",
+    pregunta: "Comparar decisiones",
+    corridaIlustrativa: true,
+  });
+  const indicadores = aCsvIndicadores(reporte);
+  const parametros = aCsvParametrosEfectivos(reporte);
+  const trayectoria = aCsvTrayectoria(reporte.hojas[0]);
+  const diccionario = aCsvDiccionarioParametros(resultado.paramsBase);
+  [indicadores, parametros, trayectoria].forEach((contenido) => {
+    afirmar(contenido.includes(COMMIT_BASE), "La exportación no incluye el commit base");
+    afirmar(contenido.includes("Modelo determinista y condicionado"), "La exportación no incluye la advertencia metodológica");
+    afirmar(contenido.includes("Todos los inventarios materiales empiezan en 0 kg"), "La exportación no declara stocks iniciales");
+  });
+  afirmar(diccionario.split("\r\n").length === 42, "El diccionario debe contener encabezado y 41 parámetros");
+  afirmar(diccionario.includes("nombre,explicacion,unidad_interna,unidad_entrada"), "El diccionario carece de campos legibles");
+};
+
 export const CASOS = Object.freeze([
   { nombre: "balance de masa y no negatividad por hoja", ejecutar: casoBalance },
   { nombre: "fallo explícito con dt excesivo", ejecutar: casoNoNegatividad },
@@ -268,6 +351,10 @@ export const CASOS = Object.freeze([
   { nombre: "reproducibilidad exacta", ejecutar: casoReproducibilidad },
   { nombre: "herencia, orden DFS y parámetros estructurales", ejecutar: casoArbol },
   { nombre: "participación acotada por construcción", ejecutar: casoParticipacion },
+  { nombre: "cobertura completa del onboarding", ejecutar: casoCoberturaOnboarding },
+  { nombre: "conversión explícita de porcentajes", ejecutar: casoConversionPorcentajes },
+  { nombre: "detección de huecos y traslapes de calendario", ejecutar: casoCalendariosGuiados },
+  { nombre: "exportaciones con versión, fuentes y límites", ejecutar: casoExportacionTrazable },
 ]);
 
 /** @returns {Array<{nombre:string,ok:boolean,error?:string,duracionMs:number}>} */

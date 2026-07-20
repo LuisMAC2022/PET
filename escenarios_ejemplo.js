@@ -57,16 +57,16 @@ export const ARBOL_EJEMPLO = Object.freeze({
     },
     {
       tDia: 135,
-      nombre: "capacidad_bokashi",
+      nombre: "operacion_organica",
       alternativas: [
         {
-          etiqueta: "bokashi_actual",
-          nombreVisible: "Bokashi actual",
+          etiqueta: "operacion_organica_actual",
+          nombreVisible: "Operación orgánica actual",
           overrides: {},
         },
         {
-          etiqueta: "bokashi_ampliado",
-          nombreVisible: "Bokashi ampliado",
+          etiqueta: "separacion_aplicacion_ampliadas",
+          nombreVisible: "Separación y aplicación orgánica ampliadas",
           overrides: {
             "organico.cobertura": {
               valor: 0.78,
