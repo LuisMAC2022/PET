@@ -1,0 +1,130 @@
+[
+  {
+    "id": "C-1",
+    "nombre": "Contenedor 1",
+    "categoria": "Contenedor de PET",
+    "x": 249.99,
+    "y": 358.84,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-1&nombre=Contenedor+1"
+  },
+  {
+    "id": "C-2",
+    "nombre": "Contenedor 2",
+    "categoria": "Contenedor de PET",
+    "x": 480.95,
+    "y": 347.84,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-2&nombre=Contenedor+2"
+  },
+  {
+    "id": "C-3",
+    "nombre": "Contenedor 3",
+    "categoria": "Contenedor de PET",
+    "x": 766.89,
+    "y": 257.66,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-3&nombre=Contenedor+3"
+  },
+  {
+    "id": "C-4",
+    "nombre": "Contenedor 4",
+    "categoria": "Contenedor de PET",
+    "x": 386.37,
+    "y": 526,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-4&nombre=Contenedor+4"
+  },
+  {
+    "id": "C-5",
+    "nombre": "Contenedor 5",
+    "categoria": "Contenedor de PET",
+    "x": 476.55,
+    "y": 504.01,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-5&nombre=Contenedor+5"
+  },
+  {
+    "id": "C-6",
+    "nombre": "Contenedor 6",
+    "categoria": "Contenedor de PET",
+    "x": 657.37,
+    "y": 436.94,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-6&nombre=Contenedor+6"
+  },
+  {
+    "id": "C-7",
+    "nombre": "Contenedor 7",
+    "categoria": "Contenedor de PET",
+    "x": 644.68,
+    "y": 370.32,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-7&nombre=Contenedor+7"
+  },
+  {
+    "id": "C-8",
+    "nombre": "Contenedor 8",
+    "categoria": "Contenedor de PET",
+    "x": 758.9,
+    "y": 509.91,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-8&nombre=Contenedor+8"
+  },
+  {
+    "id": "C-9",
+    "nombre": "Contenedor 9",
+    "categoria": "Contenedor de PET",
+    "x": 980.98,
+    "y": 468.67,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-9&nombre=Contenedor+9"
+  },
+  {
+    "id": "C-10",
+    "nombre": "Contenedor 10",
+    "categoria": "Contenedor de PET",
+    "x": 876.29,
+    "y": 535.3,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-10&nombre=Contenedor+10"
+  },
+  {
+    "id": "C-11",
+    "nombre": "Contenedor 11",
+    "categoria": "Contenedor de PET",
+    "x": 727.17,
+    "y": 655.85,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-11&nombre=Contenedor+11"
+  },
+  {
+    "id": "C-12",
+    "nombre": "Contenedor 12",
+    "categoria": "Contenedor de PET",
+    "x": 1060.3,
+    "y": 557.5,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-12&nombre=Contenedor+12"
+  },
+  {
+    "id": "C-13",
+    "nombre": "Contenedor 13",
+    "categoria": "Contenedor de PET",
+    "x": 898.49,
+    "y": 725.65,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-13&nombre=Contenedor+13"
+  },
+  {
+    "id": "C-14",
+    "nombre": "Contenedor 14",
+    "categoria": "Contenedor de PET",
+    "x": 1031.74,
+    "y": 678.06,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-14&nombre=Contenedor+14"
+  },
+  {
+    "id": "C-15",
+    "nombre": "Contenedor 15",
+    "categoria": "Contenedor de PET",
+    "x": 1034.92,
+    "y": 760.55,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-15&nombre=Contenedor+15"
+  },
+  {
+    "id": "C-16",
+    "nombre": "Contenedor 16",
+    "categoria": "Contenedor de PET",
+    "x": 1196.72,
+    "y": 541.64,
+    "simulador": "reciclaje_pet_fase1.html?contenedor=C-16&nombre=Contenedor+16"
+  }
+]

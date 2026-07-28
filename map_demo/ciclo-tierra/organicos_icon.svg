@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Ciclo Tierra: residuos orgánicos</title>
+  <desc id="desc">Contenedor verde con una hoja y una semilla.</desc>
+  <path fill="#f6f1e7" d="M12 16h40l-3.2 39H15.2L12 16Z"/>
+  <path fill="#1f5b3a" d="M9 10h46v8H9zM18 5h28v6H18z"/>
+  <path fill="#7daa56" d="M19.5 37.5c1.9-9.7 9.3-15.1 20.9-15.2-.8 11.3-6.1 18.4-15.5 19.7 3.3-5.4 7.1-9.4 11.3-12-5.2 2-9.8 5.6-13.8 10.8l-2.9-3.3Z"/>
+  <circle cx="39" cy="44" r="4" fill="#c89445"/>
+  <path fill="none" stroke="#1f5b3a" stroke-linecap="round" stroke-width="2" d="M39 44c1-3 2.7-5.1 5-6.4"/>
+</svg>

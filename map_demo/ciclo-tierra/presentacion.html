@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Modelo, propuesta y validación de Ciclo Tierra, un programa piloto de recolección de residuos orgánicos para compostaje en FES Acatlán.">
+  <title>Ciclo Tierra | Proyecto hermano de compostaje</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --paper-dark: #e7dfcf;
+      --panel: #fffdf8;
+      --ink: #183229;
+      --muted: #68736b;
+      --line: #d8d0bf;
+      --forest: #1f5b3a;
+      --forest-dark: #123d28;
+      --leaf: #7daa56;
+      --ochre: #c89445;
+      --clay: #a85c3b;
+      --red: #a33a32;
+      --blue: #426b75;
+      --shadow: 0 18px 50px rgba(24,50,41,.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; color-scheme: light; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    a { color: var(--forest); }
+    button, input { font: inherit; }
+    :focus-visible { outline: 3px solid var(--ochre); outline-offset: 3px; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: .75rem;
+      left: .75rem;
+      transform: translateY(-160%);
+      border-radius: .65rem;
+      padding: .7rem .9rem;
+      color: white;
+      background: var(--forest-dark);
+      text-decoration: none;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .wrap { width: min(1160px, calc(100% - 2rem)); margin: 0 auto; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 78vh;
+      display: grid;
+      align-items: end;
+      color: white;
+      background:
+        radial-gradient(circle at 74% 25%, rgba(200,148,69,.35), transparent 22%),
+        radial-gradient(circle at 88% 84%, rgba(125,170,86,.24), transparent 28%),
+        linear-gradient(135deg, #102f22 0%, #1f5b3a 57%, #325f3f 100%);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      right: -8vw;
+      bottom: -13vw;
+      width: 52vw;
+      height: 52vw;
+      min-width: 520px;
+      min-height: 520px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 70px rgba(255,255,255,.035),
+        0 0 0 140px rgba(255,255,255,.025);
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+      gap: 2rem;
+      align-items: end;
+      padding: clamp(4rem, 10vh, 8rem) 0 2rem;
+    }
+
+    .kicker {
+      margin: 0 0 .85rem;
+      color: #dbe8cf;
+      font-size: .75rem;
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      max-width: 820px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(3rem, 8.5vw, 7.7rem);
+      font-weight: 500;
+      line-height: .82;
+      letter-spacing: -.06em;
+    }
+
+    .hero h1 em { color: #d5b276; font-weight: 500; }
+
+    .hero-copy {
+      max-width: 590px;
+      margin: 1.4rem 0 0;
+      color: #dce9e0;
+      font-size: clamp(.92rem, 1.7vw, 1.12rem);
+      line-height: 1.55;
+    }
+
+    .hero-note {
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      background: rgba(9,40,25,.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-note strong { display: block; margin-bottom: .5rem; color: #f4d9a7; font-family: Georgia, serif; font-size: 1.4rem; }
+    .hero-note p { margin: 0; color: #dce9e0; font-size: .82rem; line-height: 1.55; }
+
+    .journey-nav {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .55rem;
+      padding: 0 0 1.25rem;
+    }
+
+    .journey-nav a {
+      display: grid;
+      gap: .15rem;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: .75rem;
+      padding: .65rem .75rem;
+      color: white;
+      background: rgba(0,0,0,.13);
+      text-decoration: none;
+    }
+
+    .journey-nav a:hover { background: rgba(255,255,255,.1); }
+    .journey-nav a[aria-current="page"] { color: var(--forest-dark); background: #f5e9ce; border-color: #f5e9ce; }
+    .journey-nav strong { font-size: .76rem; }
+    .journey-nav span { color: inherit; opacity: .78; font-size: .66rem; }
+
+    .topnav {
+      position: sticky;
+      z-index: 50;
+      top: 0;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,253,248,.94);
+      backdrop-filter: blur(10px);
+    }
+
+    .topnav .wrap { display: flex; gap: 1.25rem; align-items: center; min-height: 48px; }
+    .topnav a { flex: 0 0 auto; color: var(--muted); font-size: .72rem; font-weight: 750; text-decoration: none; }
+    .topnav a:hover { color: var(--forest); }
+
+    main > section { padding: clamp(4rem, 8vw, 7rem) 0; border-bottom: 1px solid var(--line); }
+    main > section:nth-child(even) { background: rgba(255,253,248,.62); }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, .55fr);
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 2rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 .65rem;
+      color: var(--clay);
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      font-weight: 500;
+      line-height: .98;
+      letter-spacing: -.035em;
+    }
+
+    h3 { margin: 0 0 .45rem; font-size: 1rem; }
+
+    p { color: var(--muted); line-height: 1.58; }
+    .section-aside { margin: 0; font-size: .8rem; }
+    .small { font-size: .75rem; }
+    .muted { color: var(--muted); }
+
+    .intro-grid, .proposal-grid, .evaluation-grid, .phase-grid, .protocol {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .8rem;
+    }
+
+    .card, .protocol article, .evaluation-grid article, .phase-grid > div {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.15rem;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .card p, .protocol p, .evaluation-grid p, .phase-grid p { margin: 0; font-size: .79rem; }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .7rem;
+      margin-top: 1rem;
+    }
+
+    .metric {
+      border-top: 3px solid var(--leaf);
+      padding: .8rem 0;
+    }
+
+    .metric strong { display: block; font-family: Georgia, serif; font-size: 1.55rem; }
+    .metric span { color: var(--muted); font-size: .69rem; line-height: 1.3; }
+
+    .equation-card {
+      border-radius: var(--radius);
+      padding: clamp(1.2rem, 3vw, 2rem);
+      color: white;
+      background: var(--forest-dark);
+      box-shadow: var(--shadow);
+    }
+
+    .equation-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, .7fr);
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .equation-main code {
+      display: block;
+      color: #f4d9a7;
+      font: 600 clamp(1.35rem, 3.5vw, 2.7rem)/1.25 Georgia, serif;
+    }
+
+    .symbols { display: grid; gap: .5rem; }
+    .symbol { display: grid; grid-template-columns: 62px 1fr; gap: .55rem; align-items: baseline; }
+    .symbol b { color: #f4d9a7; }
+    .symbol span { color: #dbe8df; font-size: .72rem; line-height: 1.4; }
+
+    .equation-sub {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .7rem;
+      margin-top: 1rem;
+    }
+
+    .equation-sub > div { border: 1px solid rgba(255,255,255,.16); border-radius: .8rem; padding: .8rem; }
+    .equation-sub h3 { color: #f4d9a7; font-size: .8rem; }
+    .equation-sub p { margin: 0 0 .45rem; color: #dbe8df; font-size: .68rem; }
+    .equation-sub code { color: white; font-size: .8rem; }
+
+    .corrections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .correction { border: 1px solid var(--line); border-radius: .8rem; padding: .9rem; background: var(--panel); }
+    .before, .after { display: block; font-size: .74rem; font-weight: 800; }
+    .before { color: var(--red); text-decoration: line-through; }
+    .after { margin-top: .28rem; color: var(--forest); }
+    .correction p { margin: .45rem 0 0; font-size: .7rem; }
+
+    .lab-shell { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
+    .lab-head { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1rem; border-bottom: 1px solid var(--line); }
+    .lab-head h3 { margin: 0; font-family: Georgia, serif; font-size: 1.25rem; }
+    .lab-head .eyebrow { margin-bottom: .28rem; }
+
+    .scenario-buttons { display: flex; gap: .35rem; }
+    .scenario-buttons button, .quiz button, #copy-task-selection {
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      padding: .55rem .7rem;
+      color: var(--ink);
+      background: white;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .scenario-buttons button[aria-pressed="true"] { color: white; background: var(--forest); border-color: var(--forest); }
+
+    .lab-grid { display: grid; grid-template-columns: minmax(300px, .8fr) minmax(360px, 1.2fr); }
+    .controls { padding: 1rem; border-right: 1px solid var(--line); }
+    .control { margin-bottom: .85rem; }
+    .control-top { display: flex; justify-content: space-between; gap: .7rem; align-items: baseline; }
+    .control label { font-size: .73rem; font-weight: 800; }
+    .control output { color: var(--forest); font-size: .7rem; font-weight: 850; text-align: right; }
+    .control input[type="range"] { width: 100%; accent-color: var(--forest); }
+    .control small, details small { display: block; color: var(--muted); font-size: .63rem; line-height: 1.4; }
+    .source { color: var(--clay); font-weight: 800; }
+
+    details { margin-top: .75rem; border: 1px solid var(--line); border-radius: .7rem; background: #faf7ef; }
+    summary { cursor: pointer; padding: .65rem .75rem; font-size: .72rem; font-weight: 850; }
+    .detail-inner { padding: 0 .75rem .75rem; }
+    .period-label { margin: .6rem 0 .35rem; color: var(--clay); font-size: .63rem; font-weight: 850; text-transform: uppercase; }
+
+    .readout { display: grid; gap: 1rem; align-content: start; padding: 1rem; background: #f7f4eb; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+    .stat { border: 1px solid var(--line); border-radius: .75rem; padding: .75rem; background: white; }
+    .stat span { display: block; color: var(--muted); font-size: .63rem; }
+    .stat strong { display: block; margin: .28rem 0; font-family: Georgia, serif; font-size: 1.3rem; }
+    .stat small { color: var(--muted); font-size: .6rem; line-height: 1.3; }
+
+    .model-live, .balance, .uncertainty { border: 1px solid var(--line); border-radius: .75rem; padding: .8rem; background: white; }
+    .balance-title, .uncertainty-title { display: flex; justify-content: space-between; gap: .8rem; color: var(--muted); font-size: .66rem; font-weight: 800; }
+    .model-live code { display: block; margin-top: .55rem; color: var(--forest-dark); font-size: .75rem; white-space: normal; }
+    .model-live code + code { color: var(--muted); font-size: .62rem; }
+
+    .balance .bar { display: flex; height: 34px; margin-top: .65rem; overflow: hidden; border-radius: .5rem; background: #e7e1d5; }
+    .bar-part { display: grid; place-items: center; min-width: 0; color: white; font-size: .6rem; font-weight: 850; }
+    .bar-part.recovered { background: var(--forest); }
+    .bar-part.lost { background: #b9b1a3; color: var(--ink); }
+    .legend { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .55rem; color: var(--muted); font-size: .62rem; }
+    .legend i { display: inline-block; width: .55rem; height: .55rem; margin-right: .25rem; border-radius: 50%; }
+    .rec-swatch { background: var(--forest); }
+    .lost-swatch { background: #b9b1a3; }
+
+    .whisker { position: relative; height: 72px; margin-top: .7rem; }
+    .whisker-track, .whisker-range { position: absolute; top: 30px; height: 4px; border-radius: 999px; }
+    .whisker-track { left: 0; right: 0; background: var(--paper-dark); }
+    .whisker-range { left: 10%; width: 70%; background: var(--forest); }
+    .whisker-dot { position: absolute; top: 24px; left: 50%; width: 16px; height: 16px; border: 3px solid white; border-radius: 50%; background: var(--ochre); box-shadow: 0 0 0 1px var(--ochre); transform: translateX(-50%); }
+    .whisker-label { position: absolute; top: 43px; font-size: .58rem; transform: translateX(-50%); }
+    .whisker-label.low { left: 10%; }
+    .whisker-label.mid { left: 50%; font-weight: 850; }
+    .whisker-label.high { left: 80%; }
+    .uncertainty-note { margin: .2rem 0 0; }
+
+    .status { border-left: 4px solid var(--leaf); border-radius: 0 .6rem .6rem 0; padding: .7rem; color: #31523f; background: #edf5ed; font-size: .7rem; line-height: 1.45; }
+    .status.warning { border-color: var(--red); color: #76342d; background: #fff0ed; }
+
+    .quiz { padding: 1rem; border-top: 1px solid var(--line); }
+    .quiz-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
+    fieldset { border: 1px solid var(--line); border-radius: .75rem; padding: .75rem; }
+    legend { padding: 0 .25rem; font-size: .69rem; font-weight: 850; }
+    fieldset label { display: block; margin-top: .4rem; color: var(--muted); font-size: .67rem; }
+    .quiz-actions { display: flex; align-items: center; gap: .8rem; margin-top: .7rem; }
+    #quiz-feedback { color: var(--muted); font-size: .7rem; }
+
+    .protocol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .protocol article { box-shadow: none; }
+
+    .callout { margin-top: 1rem; border-left: 4px solid var(--forest); border-radius: 0 .75rem .75rem 0; padding: .9rem 1rem; background: #edf5ed; font-size: .75rem; line-height: 1.5; }
+    .callout.warning { border-color: var(--ochre); color: #65491d; background: #fbf0d9; }
+
+    .audit-title { margin-top: 2rem; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: .8rem; background: var(--panel); }
+    table { width: 100%; border-collapse: collapse; font-size: .7rem; }
+    th, td { padding: .7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; line-height: 1.4; }
+    th { color: var(--forest-dark); background: #f4f0e7; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .state { display: inline-block; border-radius: 999px; padding: .2rem .45rem; font-size: .58rem; font-weight: 850; }
+    .state.ok { color: #1b603b; background: #e4f2e7; }
+    .state.pending { color: #78531b; background: #f8ecd3; }
+
+    .blueprint {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .6rem;
+      counter-reset: step;
+    }
+
+    .blueprint article { position: relative; border-top: 3px solid var(--leaf); padding: 1rem .8rem .8rem; background: var(--panel); }
+    .blueprint article::before { counter-increment: step; content: "0" counter(step); display: block; margin-bottom: .65rem; color: var(--ochre); font-family: Georgia, serif; font-size: 1.6rem; }
+    .blueprint p { margin: 0; font-size: .73rem; }
+
+    .proposal-grid { grid-template-columns: 1fr 1fr; margin-top: 1rem; }
+    .proposal-card { display: grid; grid-template-columns: 56px 1fr; gap: .8rem; align-items: start; border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; color: inherit; background: var(--panel); text-decoration: none; box-shadow: var(--shadow); }
+    .proposal-card:hover { border-color: var(--forest); }
+    .proposal-card .icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; color: white; background: var(--forest); font-family: Georgia, serif; font-size: 1.4rem; }
+    .proposal-card p { margin: 0; font-size: .75rem; }
+
+    .process-line { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; }
+    .process-line article { border: 1px solid var(--line); border-radius: .8rem; padding: .8rem; background: var(--panel); }
+    .process-line span { display: block; margin-bottom: .5rem; color: var(--ochre); font-family: Georgia, serif; font-size: 1.4rem; }
+    .process-line p { margin: 0; font-size: .7rem; }
+
+    .task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+    .task-card { border: 1px solid var(--line); border-radius: .8rem; padding: .9rem; background: var(--panel); }
+    .task-card header { display: flex; justify-content: space-between; gap: .7rem; align-items: baseline; }
+    .task-card h3 { font-size: .85rem; }
+    .task-id { color: var(--clay); font-size: .62rem; font-weight: 900; }
+    .task-card p { margin: .35rem 0; font-size: .69rem; }
+    .task-choice { display: flex; gap: .45rem; align-items: center; margin-top: .6rem; color: var(--forest); font-size: .69rem; font-weight: 800; }
+
+    .task-selection { margin-top: 1rem; border: 1px solid var(--line); border-radius: .8rem; padding: 1rem; background: #f7f4eb; }
+    .task-selection ul { margin: .5rem 0; padding-left: 1.2rem; color: var(--muted); font-size: .72rem; }
+    #copy-task-selection:disabled { opacity: .4; cursor: not-allowed; }
+    #copy-status { margin-left: .6rem; color: var(--muted); font-size: .67rem; }
+
+    .references { padding-left: 1.2rem; columns: 2; column-gap: 2rem; }
+    .references li { break-inside: avoid; margin-bottom: .7rem; color: var(--muted); font-size: .7rem; line-height: 1.45; }
+
+    footer { padding: 2rem 0; color: var(--muted); background: var(--forest-dark); }
+    footer p { margin: 0; color: #cbd9cf; font-size: .72rem; }
+
+    @media (max-width: 900px) {
+      .hero-inner, .section-head, .equation-main { grid-template-columns: 1fr; }
+      .journey-nav, .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lab-grid { grid-template-columns: 1fr; }
+      .controls { border-right: 0; border-bottom: 1px solid var(--line); }
+      .intro-grid, .protocol, .evaluation-grid, .phase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .blueprint, .process-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .quiz-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .wrap { width: min(100% - 1.2rem, 1160px); }
+      .hero { min-height: auto; }
+      .hero-inner { padding-top: 4rem; }
+      .hero h1 { font-size: clamp(3.25rem, 20vw, 5rem); }
+      .journey-nav, .intro-grid, .protocol, .evaluation-grid, .phase-grid, .metric-strip,
+      .equation-sub, .corrections, .proposal-grid, .blueprint, .process-line, .task-grid,
+      .stats { grid-template-columns: 1fr; }
+      .lab-head { align-items: flex-start; flex-direction: column; }
+      .references { columns: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="hero">
+    <div class="wrap hero-inner">
+      <div>
+        <p class="kicker">Ciclo Tierra · programa piloto de orgánicos</p>
+        <h1>Estimar antes de <em>recolectar</em>; medir antes de escalar.</h1>
+        <p class="hero-copy">Una versión isomórfica del proyecto original: transforma datos, puntos de acopio y decisiones de preparación en un recorrido verificable hacia el compostaje.</p>
+      </div>
+      <aside class="hero-note">
+        <strong>La separación es el inicio, no el resultado.</strong>
+        <p>Recolectar orgánicos no equivale a producir composta. Entre ambos hay control de impropios, mezcla, aireación, humedad, temperatura, tiempo y curado.</p>
+      </aside>
+    </div>
+    <nav class="wrap journey-nav" aria-label="Recorrido del proyecto Ciclo Tierra">
+      <a href="#estimacion" aria-current="page"><strong>1 · Estimación</strong><span>Balance de masa y supuestos.</span></a>
+      <a href="#propuesta"><strong>2 · Propuesta</strong><span>Servicio, protocolo y validación.</span></a>
+      <a href="index.html"><strong>3 · Mapa</strong><span>Red operativa del piloto.</span></a>
+      <a href="compostaje_fase1.html"><strong>4 · Simulación</strong><span>Practica el ciclo de preparación.</span></a>
+      <a href="../proyectos.html"><strong>Proyectos hermanos</strong><span>Selector común con el proyecto PET.</span></a>
+    </nav>
+  </header>
+
+  <nav class="topnav" aria-label="Contenido de la presentación">
+    <div class="wrap">
+      <a href="#estimacion">Estimación</a>
+      <a href="#modelo">Modelo</a>
+      <a href="#laboratorio">Laboratorio</a>
+      <a href="#validacion">Validación</a>
+      <a href="#propuesta">Propuesta</a>
+      <a href="#cadena">Cadena</a>
+      <a href="#fase-4">Fase 4</a>
+      <a href="#referencias">Fuentes</a>
+      <a href="#colaborar">Colaborar</a>
+    </div>
+  </nav>
+
+  <main id="contenido">
+    <section id="estimacion">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 · estimación</p>
+            <h2>La operación cuenta kilos; el modelo impide confundirlos.</h2>
+          </div>
+          <p class="section-aside">La cifra nacional sirve como contexto, no como sustituto de una caracterización local. En campus se necesitan pesajes por fuente, día y turno.</p>
+        </div>
+
+        <div class="intro-grid">
+          <article class="card">
+            <h3>Problema operativo</h3>
+            <p>Los residuos de alimentos y jardinería se mezclan con impropios, pierden trazabilidad y llegan a disposición final sin una ruta de aprovechamiento comprobable.</p>
+          </article>
+          <article class="card">
+            <h3>Pregunta de diseño</h3>
+            <p>¿Cuánto se genera, cuánto puede recolectarse sin desbordar la red y qué fracción terminaría como composta madura bajo un proceso definido?</p>
+          </article>
+          <article class="card">
+            <h3>Objetivo de aprendizaje</h3>
+            <p>Distinguir orgánicos generados, recolectados, aceptados y convertidos; anticipar cómo los impropios y la preparación afectan la salida potencial.</p>
+          </article>
+        </div>
+
+        <div class="metric-strip" aria-label="Cuatro magnitudes que no deben confundirse">
+          <div class="metric"><strong>G</strong><span>Orgánicos generados dentro del alcance.</span></div>
+          <div class="metric"><strong>R</strong><span>Masa efectivamente recolectada y pesada.</span></div>
+          <div class="metric"><strong>A</strong><span>Masa aceptada después de retirar impropios.</span></div>
+          <div class="metric"><strong>C</strong><span>Composta madura obtenida después del proceso.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="modelo">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 · modelo de masa</p>
+            <h2>Primero se estima la exposición; después la generación y el rendimiento.</h2>
+          </div>
+          <p class="section-aside">Todas las tasas deben compartir población, periodo, zonas y materiales aceptados. Si no, el cociente de recuperación deja de ser interpretable.</p>
+        </div>
+
+        <div class="equation-card">
+          <div class="equation-main">
+            <code>G = N · Σ(a<sub>p</sub>d<sub>p</sub>) · g</code>
+            <div class="symbols">
+              <div class="symbol"><b>N</b><span>Población del estrato incluido.</span></div>
+              <div class="symbol"><b>a<sub>p</sub></b><span>Fracción media presente en el periodo p.</span></div>
+              <div class="symbol"><b>d<sub>p</sub></b><span>Días operativos incluidos en el periodo.</span></div>
+              <div class="symbol"><b>g</b><span>kg de orgánicos por día-persona.</span></div>
+              <div class="symbol"><b>R, q, η</b><span>Recolectado, fracción aceptada y rendimiento a composta madura.</span></div>
+            </div>
+          </div>
+          <div class="equation-sub">
+            <div><h3>Exposición</h3><p>Días-persona presentes.</p><code>E = N · Σ(a<sub>p</sub>d<sub>p</sub>)</code></div>
+            <div><h3>Recuperación</h3><p>Porción de G que fue pesada como R.</p><code>ρ = R / G</code></div>
+            <div><h3>Composta potencial</h3><p>Salida de masa bajo q y η demostrativos.</p><code>C = R · q · η</code></div>
+          </div>
+        </div>
+
+        <div class="corrections" aria-label="Límites e interpretaciones del modelo">
+          <div class="correction"><span class="before">“Orgánico recolectado = composta.”</span><span class="after">La recolección solo alimenta el proceso.</span><p>q descuenta impropios y η representa pérdidas de agua, carbono y material durante compostaje y cribado.</p></div>
+          <div class="correction"><span class="before">“El porcentaje nacional aplica al campus.”</span><span class="after">La composición local se mide.</span><p>Oferta de alimentos, calendario, poda y hábitos hacen que la mezcla del campus sea específica.</p></div>
+          <div class="correction"><span class="before">“R mayor que G se corrige con un mínimo.”</span><span class="after">R &gt; G exige una auditoría.</span><p>Puede indicar periodos distintos, orgánicos externos, doble conteo o una estimación insuficiente de g.</p></div>
+          <div class="correction"><span class="before">“Una pila caliente ya está terminada.”</span><span class="after">Temperatura y estabilidad se siguen en el tiempo.</span><p>La fase activa debe ir seguida de curado y criterios de madurez antes del uso.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="laboratorio">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">03 · laboratorio interactivo</p>
+            <h2>Mueve un supuesto y observa qué parte del balance cambia.</h2>
+          </div>
+          <p class="section-aside">Solo <strong>N = 22 470</strong> parte de la Agenda Estadística UNAM 2025 para licenciatura en FES Acatlán, ciclo 2024–2025. Los demás valores son demostrativos hasta contar con pesajes y operación local.</p>
+        </div>
+
+        <div class="lab-shell" id="organics-lab">
+          <div class="lab-head">
+            <div><p class="eyebrow">Balance anual · estrato estudiantil</p><h3>¿Cuánto se genera, se recupera y podría convertirse?</h3></div>
+            <div class="scenario-buttons" role="group" aria-label="Escenarios demostrativos">
+              <button type="button" data-scenario="low" aria-pressed="false">Bajo</button>
+              <button type="button" data-scenario="base" aria-pressed="true">Base</button>
+              <button type="button" data-scenario="high" aria-pressed="false">Alto</button>
+            </div>
+          </div>
+
+          <div class="lab-grid">
+            <div class="controls">
+              <div class="control">
+                <div class="control-top"><label for="n">Matrícula N</label><output id="n-out" for="n">22 470 personas</output></div>
+                <input id="n" type="range" min="10000" max="30000" step="10" value="22470">
+                <small><span class="source">Fuente inicial:</span> Agenda Estadística UNAM 2025.</small>
+              </div>
+              <div class="control">
+                <div class="control-top"><label for="g">Generación g</label><output id="g-out" for="g">0.080 kg/día-persona</output></div>
+                <input id="g" type="range" min="0.01" max="0.25" step="0.005" value="0.08">
+                <small>Pésala por fuente, día y turno; no la importes de una composición nacional.</small>
+              </div>
+              <div class="control">
+                <div class="control-top"><label for="r">Orgánicos recolectados R</label><output id="r-out" for="r">70 000 kg/año</output></div>
+                <input id="r" type="range" min="0" max="250000" step="1000" value="70000">
+                <small><span class="source">Pendiente:</span> tickets o pesajes netos con tara y el mismo alcance de G.</small>
+              </div>
+
+              <details open>
+                <summary>Periodos: asistencia a<sub>p</sub> y días d<sub>p</sub></summary>
+                <div class="detail-inner">
+                  <p class="period-label">Clases regulares</p>
+                  <div class="control"><div class="control-top"><label for="d1">Días d₁</label><output id="d1-out" for="d1">160 días</output></div><input id="d1" type="range" min="0" max="220" step="1" value="160"></div>
+                  <div class="control"><div class="control-top"><label for="a1">Asistencia a₁</label><output id="a1-out" for="a1">0.72</output></div><input id="a1" type="range" min="0" max="1" step="0.01" value="0.72"></div>
+                  <p class="period-label">Exámenes y trámites</p>
+                  <div class="control"><div class="control-top"><label for="d2">Días d₂</label><output id="d2-out" for="d2">20 días</output></div><input id="d2" type="range" min="0" max="60" step="1" value="20"></div>
+                  <div class="control"><div class="control-top"><label for="a2">Asistencia a₂</label><output id="a2-out" for="a2">0.35</output></div><input id="a2" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+                  <p class="period-label">Intersemestral</p>
+                  <div class="control"><div class="control-top"><label for="d3">Días d₃</label><output id="d3-out" for="d3">30 días</output></div><input id="d3" type="range" min="0" max="100" step="1" value="30"></div>
+                  <div class="control"><div class="control-top"><label for="a3">Asistencia a₃</label><output id="a3-out" for="a3">0.10</output></div><input id="a3" type="range" min="0" max="1" step="0.01" value="0.10"></div>
+                  <small>Reconstruye estos periodos con calendario y registros de acceso.</small>
+                </div>
+              </details>
+
+              <details>
+                <summary>Calidad y rendimiento: q y η</summary>
+                <div class="detail-inner">
+                  <div class="control"><div class="control-top"><label for="q">Fracción aceptada q</label><output id="q-out" for="q">85%</output></div><input id="q" type="range" min="0" max="100" step="1" value="85"><small>Porción que queda después de impropios y rechazos.</small></div>
+                  <div class="control"><div class="control-top"><label for="eta">Rendimiento a composta η</label><output id="eta-out" for="eta">38%</output></div><input id="eta" type="range" min="10" max="70" step="1" value="38"><small>Masa de composta madura respecto de la alimentación aceptada.</small></div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Incertidumbre: coeficientes de variación</summary>
+                <div class="detail-inner">
+                  <div class="control"><div class="control-top"><label for="ug">CV de g</label><output id="ug-out" for="ug">35%</output></div><input id="ug" type="range" min="1" max="70" step="1" value="35"></div>
+                  <div class="control"><div class="control-top"><label for="ua">CV de exposición E</label><output id="ua-out" for="ua">12%</output></div><input id="ua" type="range" min="1" max="40" step="1" value="12"></div>
+                  <small>Supuesto didáctico: factores positivos, lognormales e independientes. Una evaluación real debe revisar correlaciones y el diseño de muestreo.</small>
+                </div>
+              </details>
+            </div>
+
+            <div class="readout">
+              <div class="stats" aria-live="polite">
+                <div class="stat"><span>Generación central G₅₀</span><strong id="g-stat">—</strong><small id="exposure-stat">— días-persona/año</small></div>
+                <div class="stat"><span>Tasa de recuperación ρ</span><strong id="rho-stat">—</strong><small id="lost-stat">— no recolectados</small></div>
+                <div class="stat"><span>Composta potencial C</span><strong id="c-stat">—</strong><small>No equivale a composta ya producida.</small></div>
+              </div>
+
+              <div class="model-live">
+                <div class="balance-title"><span>Sustitución en el modelo</span><span id="exposure-label">— días-persona</span></div>
+                <code id="formula-live">—</code>
+                <code id="units-live">[personas] × [días-persona/persona] × [kg/día-persona] = [kg]</code>
+              </div>
+
+              <div class="balance">
+                <div class="balance-title"><span>Balance de lo generado</span><span id="balance-summary">—</span></div>
+                <div class="bar" role="img" aria-labelledby="balance-summary">
+                  <div class="bar-part recovered" id="recovered-bar"><span id="recovered-label">—</span></div>
+                  <div class="bar-part lost" id="lost-bar"><span id="lost-label">—</span></div>
+                </div>
+                <div class="legend"><span><i class="rec-swatch"></i>Recolectado: <b id="recovered-legend">—</b></span><span><i class="lost-swatch"></i>No recolectado: <b id="lost-legend">—</b></span></div>
+              </div>
+
+              <div class="uncertainty">
+                <div class="uncertainty-title"><span>Intervalo central del 80% para G</span><span id="unc-source">—</span></div>
+                <div class="whisker" role="img" id="unc-chart" aria-label="Percentiles diez, cincuenta y noventa de la generación">
+                  <div class="whisker-track"></div><div class="whisker-range"></div><div class="whisker-dot"></div>
+                  <span class="whisker-label low" id="p10-label">P10 —</span><span class="whisker-label mid" id="p50-label">P50 —</span><span class="whisker-label high" id="p90-label">P90 —</span>
+                </div>
+                <p class="small uncertainty-note">No es un intervalo empírico. La tasa compatible con sus extremos es <strong id="rho-range">—</strong>.</p>
+              </div>
+
+              <div class="status" id="status" role="status" aria-live="polite">—</div>
+            </div>
+          </div>
+
+          <div class="quiz">
+            <h3>Comprobación rápida</h3>
+            <div class="quiz-grid">
+              <fieldset data-correct="double"><legend>1. Si g se duplica y lo demás queda igual, G…</legend><label><input type="radio" name="q1" value="same"> no cambia</label><label><input type="radio" name="q1" value="double"> se duplica</label><label><input type="radio" name="q1" value="quad"> se cuadruplica</label></fieldset>
+              <fieldset data-correct="process"><legend>2. ¿Qué representa C?</legend><label><input type="radio" name="q2" value="collected"> todo lo recolectado</label><label><input type="radio" name="q2" value="process"> salida potencial después de q y η</label><label><input type="radio" name="q2" value="instant"> composta instantánea</label></fieldset>
+              <fieldset data-correct="audit"><legend>3. Si R &gt; G, ¿qué corresponde?</legend><label><input type="radio" name="q3" value="clamp"> limitar R a G</label><label><input type="radio" name="q3" value="audit"> auditar datos y alcances</label><label><input type="radio" name="q3" value="ignore"> ignorar R</label></fieldset>
+            </div>
+            <div class="quiz-actions"><button type="button" id="check-quiz">Comprobar</button><span id="quiz-feedback" role="status" aria-live="polite">Responde las tres preguntas.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="validacion">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">04 · validación y evaluación</p><h2>El laboratorio explica el balance; el piloto decide si es operable.</h2></div>
+          <p class="section-aside">El éxito no es abrir contenedores ni completar el juego: es mantener separación, frecuencia, trazabilidad y un proceso que produzca material maduro utilizable.</p>
+        </div>
+
+        <div class="protocol">
+          <article><h3>Fijar el alcance</h3><p>Define fuentes, materiales aceptados, periodo, responsables, destino y qué queda fuera.</p></article>
+          <article><h3>Caracterizar la línea base</h3><p>Pesa orgánicos, impropios y poda por zona, día y turno; registra tara y método.</p></article>
+          <article><h3>Dimensionar la red</h3><p>Ajusta capacidad y frecuencia para que el tiempo de permanencia no deteriore la operación.</p></article>
+          <article><h3>Cerrar el balance</h3><p>Registra entrada, rechazo, agua, pérdidas, material en proceso y composta madura.</p></article>
+          <article><h3>Controlar el proceso</h3><p>Define humedad, aireación, temperatura, volteos, tiempo y criterios de madurez.</p></article>
+          <article><h3>Evaluar la intervención</h3><p>Compara línea base y piloto, preservando una zona o periodo de referencia cuando sea viable.</p></article>
+        </div>
+
+        <div class="callout warning"><strong>Criterio mínimo de publicación:</strong> no presentar las ubicaciones, tasas, capacidades ni rendimientos de esta demo como datos institucionales. Son parámetros de diseño hasta que existan levantamientos, responsables y bitácoras.</div>
+
+        <h3 class="audit-title">Auditoría de datos</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Variable o afirmación</th><th>Estado</th><th>Fuente o acción requerida</th><th>Uso permitido</th></tr></thead>
+            <tbody>
+              <tr><td>N = 22 470 estudiantes de licenciatura</td><td><span class="state ok">Respaldada</span></td><td>Agenda Estadística UNAM 2025, población 2024–2025.</td><td>Valor inicial con ciclo y alcance.</td></tr>
+              <tr><td>d<sub>p</sub> y a<sub>p</sub></td><td><span class="state pending">Por reconstruir</span></td><td>Calendario + días operativos + aforo o accesos.</td><td>Análisis de sensibilidad.</td></tr>
+              <tr><td>g, kg de orgánicos/día-persona</td><td><span class="state pending">Crítica</span></td><td>Caracterización estratificada y pesaje neto.</td><td>Hipótesis explícita.</td></tr>
+              <tr><td>R, orgánicos recolectados</td><td><span class="state pending">Por medir</span></td><td>Tickets o bitácora por estación, fecha, turno y fuente.</td><td>Solo valor demostrativo.</td></tr>
+              <tr><td>q, fracción aceptada</td><td><span class="state pending">Por pilotear</span></td><td>Separación y pesaje de impropios por carga.</td><td>Escenario de calidad.</td></tr>
+              <tr><td>η, rendimiento a composta</td><td><span class="state pending">Por pilotear</span></td><td>Balance de masa hasta madurez y cribado.</td><td>Escenario de proceso.</td></tr>
+              <tr><td>10 nodos demostrativos del mapa</td><td><span class="state pending">Diseño</span></td><td>Seis acopios y cuatro etapas de procesamiento sin ubicación real asignada.</td><td>Demostración de interfaz.</td></tr>
+              <tr><td>Criterios de materiales aceptados</td><td><span class="state pending">Por acordar</span></td><td>Capacidad y tecnología del centro piloto.</td><td>Regla conservadora de la demo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="propuesta">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">05 · propuesta</p><h2>Un servicio de recolección que empieza con prevención y termina con evidencia.</h2></div>
+          <p class="section-aside">Ciclo Tierra coordina información, separación, recolección y trazabilidad. No promete que todo material “compostable” sea aceptable para cualquier proceso.</p>
+        </div>
+
+        <div class="blueprint">
+          <article><h3>Prevenir</h3><p>Medir merma evitable y ajustar compras, preparación y porciones antes de diseñar capacidad.</p></article>
+          <article><h3>Separar</h3><p>Usar reglas visuales ligadas a lo que el proceso local realmente acepta.</p></article>
+          <article><h3>Recolectar</h3><p>Definir ventanas, responsables, capacidad, ruta y contingencias para cada estación.</p></article>
+          <article><h3>Compostar y devolver</h3><p>Cerrar el balance hasta composta madura y documentar su uso en suelo o áreas verdes.</p></article>
+        </div>
+
+        <div class="proposal-grid">
+          <a class="proposal-card" href="index.html"><span class="icon">03</span><div><h3>Mapa demostrativo</h3><p>Explora seis puntos de acopio y cuatro puntos de procesamiento. Los seis acopios abren una simulación persistente; ninguna coordenada representa todavía una ubicación propuesta.</p></div></a>
+          <a class="proposal-card" href="compostaje_fase1.html"><span class="icon">04</span><div><h3>Simulador de preparación</h3><p>Practica una ruta limpia y una contaminada; observa la penalización didáctica de impropios, falta de secos, humedad y aireación.</p></div></a>
+        </div>
+
+        <div class="callout"><strong>Hipótesis de cambio:</strong> si las personas comprenden las consecuencias operativas y encuentran estaciones coherentes con el protocolo, la contaminación puede disminuir. Esa relación debe evaluarse; no se declara como efecto demostrado.</div>
+      </div>
+    </section>
+
+    <section id="cadena">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">06 · cadena técnica</p><h2>La pila es un proceso biológico, no un contenedor final.</h2></div>
+          <p class="section-aside">FAO describe como referencias de proceso una humedad de 40–65% y una relación C:N inicial óptima cercana a 25:1–30:1. Son objetivos técnicos, no reglas que el juego pueda verificar sin medición.</p>
+        </div>
+
+        <div class="process-line">
+          <article><span>01</span><h3>Recepción</h3><p>Pesar, inspeccionar, retirar impropios y registrar la fuente.</p></article>
+          <article><span>02</span><h3>Formulación</h3><p>Combinar verdes y marrones con porosidad y humedad adecuadas.</p></article>
+          <article><span>03</span><h3>Fase activa</h3><p>Seguir temperatura, humedad, oxígeno y volteos conforme al método.</p></article>
+          <article><span>04</span><h3>Curado</h3><p>Dar tiempo para estabilizar antes de declarar el producto terminado.</p></article>
+          <article><span>05</span><h3>Uso y retorno</h3><p>Cribar, evaluar calidad, registrar masa y destino de la composta.</p></article>
+        </div>
+
+        <div class="callout warning"><strong>Límite de aceptación:</strong> carne, lácteos, grasa, residuos sanitarios y utensilios o bolsas “compostables” quedan fuera del piloto de esta demo hasta que la tecnología, permisos y protocolo local indiquen lo contrario.</div>
+      </div>
+    </section>
+
+    <section id="evaluacion">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">07 · evaluación</p><h2>Primero se prueba comprensión; después, desempeño en campus.</h2></div>
+          <p class="section-aside">La finalización del simulador es una señal de uso, no una prueba de cambio de hábito ni de mejora ambiental.</p>
+        </div>
+        <div class="evaluation-grid">
+          <article><h3>Comprensión pre/post</h3><p>Distinguir G, R, A y C; explicar por qué la recolección no equivale al producto final.</p></article>
+          <article><h3>Desempeño en el MVP</h3><p>Registrar decisiones, bloqueos, impropios, orden, tiempo y finalización de una ruta.</p></article>
+          <article><h3>Línea base física</h3><p>Pesar orgánicos e impropios antes de difundir la intervención.</p></article>
+          <article><h3>Operación</h3><p>Seguir desbordes, tiempos de permanencia, incidencias y cumplimiento de ruta.</p></article>
+          <article><h3>Proceso</h3><p>Cerrar balances por lote y criterios de madurez, no solo temperatura máxima.</p></article>
+          <article><h3>Decisión</h3><p>Definir antes del piloto qué umbrales justifican iterar, escalar o detener.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="estado-proyecto">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">08 · estado del proyecto</p><h2>La experiencia está integrada; la evidencia local sigue pendiente.</h2></div><p class="section-aside">El software es un MVP funcional. La red física, las tasas, el protocolo y el rendimiento permanecen como hipótesis.</p></div>
+        <div class="phase-grid">
+          <div><h3>1 · Modelo</h3><p><strong>Implementado.</strong> Balance de generación, recuperación, aceptación y rendimiento con incertidumbre didáctica.</p></div>
+          <div><h3>2 · Propuesta</h3><p><strong>Documentada.</strong> Prevención, separación, ruta, proceso y retorno con límites explícitos.</p></div>
+          <div><h3>3 · Mapa</h3><p><strong>Funcional; ubicaciones no definidas.</strong> Filtros, búsqueda, fichas, seis instancias de acopio y cuatro etapas de procesamiento.</p></div>
+          <div><h3>4 · Simulación</h3><p><strong>Mínimo funcional cumplido.</strong> Rutas limpia y contaminada, estado persistente y llegadas horarias.</p></div>
+          <div><h3>5 · Piloto físico</h3><p><strong>No iniciado.</strong> Requiere permisos, responsables, línea base, seguridad, equipo y destino.</p></div>
+          <div><h3>6 · Escalamiento</h3><p><strong>Fuera de alcance.</strong> Solo procede después de cumplir umbrales operativos y de calidad predefinidos.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fase-4">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">09 · validación del MVP</p><h2>El simulador cumple el ciclo mínimo; falta comprobar aprendizaje y transferencia.</h2></div><p class="section-aside">La aceptación debe incluir navegación, persistencia, rutas, consecuencias, accesibilidad y coherencia con el documento.</p></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Criterio</th><th>Estado</th><th>Evidencia actual</th><th>Pendiente</th></tr></thead>
+            <tbody>
+              <tr><td>Recorrido completo</td><td><span class="state ok">Cumple</span></td><td>Estimación → propuesta → mapa → simulación.</td><td>Prueba automatizada.</td></tr>
+              <tr><td>Ruta limpia y contaminada</td><td><span class="state ok">Cumple</span></td><td>Impropios y cinco acciones con dependencias.</td><td>Ensayo con usuarios.</td></tr>
+              <tr><td>Consecuencia visible</td><td><span class="state ok">Cumple</span></td><td>Composta potencial o rechazo.</td><td>Calibrar reglas con balances.</td></tr>
+              <tr><td>Mapa vinculado</td><td><span class="state ok">Cumple</span></td><td>Seis estados persistentes de acopio y cuatro puntos conceptuales de procesamiento.</td><td>Definir ubicaciones y responsables reales.</td></tr>
+              <tr><td>Accesibilidad</td><td><span class="state pending">Parcial</span></td><td>Teclado, foco, regiones vivas y movimiento reducido.</td><td>Lector de pantalla y contraste formal.</td></tr>
+              <tr><td>Aprendizaje</td><td><span class="state pending">Pendiente</span></td><td>Hipótesis e instrumento por diseñar.</td><td>Pre/post y umbral previo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small muted">El seguimiento versionable de tareas, dependencias y evidencias está en <a href="TAREAS_PROYECTO.md">TAREAS_PROYECTO.md</a>.</p>
+      </div>
+    </section>
+
+    <section id="referencias">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">10 · referencias</p><h2>Fuentes para contexto, proceso y límites.</h2></div><p class="section-aside">Las fuentes nacionales e internacionales orientan el diseño. Ninguna reemplaza la medición local del campus.</p></div>
+        <ol class="references">
+          <li>SEMARNAT. (2020). <em>Diagnóstico Básico para la Gestión Integral de los Residuos</em>. <a href="https://www.gob.mx/cms/uploads/attachment/file/554385/DBGIR-15-mayo-2020.pdf">Documento oficial</a>.</li>
+          <li>SEMARNAT. (2022). <em>Programa Nacional para la Prevención y Gestión Integral de los Residuos 2022–2024</em>. <a href="https://dsiappsdev.semarnat.gob.mx/datos/portal/publicaciones/2022/PNPGIR_2022.pdf">Documento oficial</a>.</li>
+          <li>Coordinación de Planeación, Evaluación y Simplificación de la Gestión Institucional, UNAM. (2025). <em>Agenda Estadística UNAM 2025</em>. <a href="https://web.planeacion.unam.mx/Agenda/2025/pdf/AgendaUNAM2025.pdf">Documento oficial</a>.</li>
+          <li>DGAE, UNAM. (2025). <em>Calendario escolar: Plan semestral 2026</em>. <a href="https://repositorio.dgae.unam.mx/pdfs/calendario_semestral2026.pdf">Documento oficial</a>.</li>
+          <li>FAO. <em>On-farm composting methods: Composting process and techniques</em>. <a href="https://www.fao.org/4/y5104e/y5104e05.htm">Documento técnico</a>.</li>
+          <li>US EPA. <em>Composting at Home</em>. <a href="https://www.epa.gov/recycle/composting-home">Guía oficial</a>.</li>
+          <li>US EPA. <em>Approaches to Composting</em>. <a href="https://www.epa.gov/sustainable-management-food/approaches-composting">Guía oficial</a>.</li>
+          <li>UNAM. (2019). <em>Programa de Cuautitlán para elaborar composta con desechos orgánicos</em>. <a href="https://www.gaceta.unam.mx/programa-de-cuautitlan-para-elaborar-composta-con-desechos-organicos/">Gaceta UNAM</a>.</li>
+          <li>UNAM. (2022). <em>La ONU reconoce programa de la UNAM para disminuir basura</em>. <a href="https://www.dgcs.unam.mx/boletin/bdboletin/2022_687.html">Boletín oficial</a>.</li>
+          <li>Joint Committee for Guides in Metrology. (2008). <em>Guide to the Expression of Uncertainty in Measurement</em>. <a href="https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf">BIPM</a>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="colaborar">
+      <div class="wrap">
+        <div class="section-head"><div><p class="eyebrow">11 · colaborar</p><h2>Elige una tarea y convierte la demo en un piloto verificable.</h2></div><p class="section-aside">Marcar interés no equivale a una asignación. Coordinación debe confirmar responsable, fecha, dependencias y revisión cruzada.</p></div>
+
+        <div class="task-grid">
+          <article class="task-card"><header><h3>Fuentes y alcance institucional</h3><span class="task-id">T01 · P0</span></header><p>Confirmar responsables, permisos, fuentes, materiales aceptados y destino de la composta.</p><label class="task-choice"><input type="checkbox" data-task-id="T01" data-task-title="Fuentes y alcance institucional"> Quiero colaborar en T01</label></article>
+          <article class="task-card"><header><h3>Auditoría del modelo</h3><span class="task-id">T02 · P0</span></header><p>Revisar fórmulas, unidades, escenarios, incertidumbre y cierre de masa.</p><label class="task-choice"><input type="checkbox" data-task-id="T02" data-task-title="Auditoría del modelo"> Quiero colaborar en T02</label></article>
+          <article class="task-card"><header><h3>Línea base de orgánicos</h3><span class="task-id">T03 · P0</span></header><p>Diseñar y ejecutar pesajes de orgánicos, impropios y poda por estrato.</p><label class="task-choice"><input type="checkbox" data-task-id="T03" data-task-title="Línea base de orgánicos"> Quiero colaborar en T03</label></article>
+          <article class="task-card"><header><h3>Evaluación de aprendizaje</h3><span class="task-id">T04 · P0</span></header><p>Crear pre/post sobre balance, impropios, condiciones de proceso y madurez.</p><label class="task-choice"><input type="checkbox" data-task-id="T04" data-task-title="Evaluación de aprendizaje"> Quiero colaborar en T04</label></article>
+          <article class="task-card"><header><h3>Instrumentación del recorrido</h3><span class="task-id">T05 · P0</span></header><p>Registrar navegación, decisiones, bloqueos, tiempos y finalización sin datos personales innecesarios.</p><label class="task-choice"><input type="checkbox" data-task-id="T05" data-task-title="Instrumentación del recorrido"> Quiero colaborar en T05</label></article>
+          <article class="task-card"><header><h3>QA y accesibilidad</h3><span class="task-id">T06 · P0</span></header><p>Automatizar rutas y comprobar móvil, teclado, lector y movimiento reducido.</p><label class="task-choice"><input type="checkbox" data-task-id="T06" data-task-title="QA y accesibilidad"> Quiero colaborar en T06</label></article>
+          <article class="task-card"><header><h3>Diseño de la red y ruta</h3><span class="task-id">T07 · P1</span></header><p>Validar ubicaciones, capacidad, frecuencia, ventanas, responsables y contingencias.</p><label class="task-choice"><input type="checkbox" data-task-id="T07" data-task-title="Diseño de la red y ruta"> Quiero colaborar en T07</label></article>
+          <article class="task-card"><header><h3>Protocolo de compostaje</h3><span class="task-id">T08 · P1</span></header><p>Definir formulación, monitoreo, volteos, curado, cribado y criterios de madurez.</p><label class="task-choice"><input type="checkbox" data-task-id="T08" data-task-title="Protocolo de compostaje"> Quiero colaborar en T08</label></article>
+          <article class="task-card"><header><h3>Seguridad y operación</h3><span class="task-id">T09 · P1</span></header><p>Evaluar higiene, vectores, olores, lixiviados, EPP, capacitación e incidencias.</p><label class="task-choice"><input type="checkbox" data-task-id="T09" data-task-title="Seguridad y operación"> Quiero colaborar en T09</label></article>
+          <article class="task-card"><header><h3>Piloto y regla de decisión</h3><span class="task-id">T10 · P1</span></header><p>Integrar calendario, RACI, comparación y umbrales para iterar, escalar o detener.</p><label class="task-choice"><input type="checkbox" data-task-id="T10" data-task-title="Piloto y regla de decisión"> Quiero colaborar en T10</label></article>
+        </div>
+
+        <div class="task-selection">
+          <h3>Tu selección</h3>
+          <p class="small muted" id="task-empty">No has marcado tareas.</p>
+          <ul id="task-summary"></ul>
+          <button id="copy-task-selection" type="button" disabled>Copiar mensaje de colaboración</button><span id="copy-status" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="wrap"><p>Ciclo Tierra · MVP educativo. Parámetros de red y proceso pendientes de validación local. Última adaptación: julio de 2026.</p></div></footer>
+
+  <script>
+    (function () {
+      const root = document.getElementById("organics-lab");
+      const ids = ["n","g","r","d1","a1","d2","a2","d3","a3","q","eta","ug","ua"];
+      const el = {};
+      ids.forEach(id => { el[id] = document.getElementById(id); });
+
+      const scenarios = {
+        low:  { n:22470,g:.04,r:30000,d1:150,a1:.62,d2:18,a2:.25,d3:25,a3:.08,q:70,eta:30,ug:45,ua:18 },
+        base: { n:22470,g:.08,r:70000,d1:160,a1:.72,d2:20,a2:.35,d3:30,a3:.10,q:85,eta:38,ug:35,ua:12 },
+        high: { n:22470,g:.14,r:140000,d1:175,a1:.82,d2:25,a2:.45,d3:40,a3:.16,q:92,eta:42,ug:25,ua:9 }
+      };
+
+      function number(value, digits = 0) {
+        return new Intl.NumberFormat("es-MX", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
+      }
+
+      function kg(value) {
+        if (Math.abs(value) >= 1000) return `${number(value / 1000, value >= 100000 ? 0 : 1)} t`;
+        return `${number(value, 0)} kg`;
+      }
+
+      function percent(value, digits = 1) { return `${number(value * 100, digits)}%`; }
+
+      function values() {
+        const output = {};
+        ids.forEach(id => { output[id] = Number(el[id].value); });
+        return output;
+      }
+
+      function updateOutputs(v) {
+        document.getElementById("n-out").textContent = `${number(v.n)} personas`;
+        document.getElementById("g-out").textContent = `${number(v.g, 3)} kg/día-persona`;
+        document.getElementById("r-out").textContent = `${number(v.r)} kg/año`;
+        [1,2,3].forEach(i => {
+          document.getElementById(`d${i}-out`).textContent = `${number(v[`d${i}`])} días`;
+          document.getElementById(`a${i}-out`).textContent = number(v[`a${i}`], 2);
+        });
+        document.getElementById("q-out").textContent = `${number(v.q)}%`;
+        document.getElementById("eta-out").textContent = `${number(v.eta)}%`;
+        document.getElementById("ug-out").textContent = `${number(v.ug)}%`;
+        document.getElementById("ua-out").textContent = `${number(v.ua)}%`;
+      }
+
+      function simulate() {
+        const v = values();
+        updateOutputs(v);
+        const daysPerPerson = v.a1 * v.d1 + v.a2 * v.d2 + v.a3 * v.d3;
+        const exposure = v.n * daysPerPerson;
+        const generation = exposure * v.g;
+        const recovery = generation > 0 ? v.r / generation : 0;
+        const compost = v.r * v.q / 100 * v.eta / 100;
+        const notRecovered = Math.max(0, generation - v.r);
+
+        const sigma = Math.sqrt(Math.log1p(Math.pow(v.ug / 100, 2)) + Math.log1p(Math.pow(v.ua / 100, 2)));
+        const p10 = generation * Math.exp(-1.2815515655 * sigma);
+        const p90 = generation * Math.exp(1.2815515655 * sigma);
+        const compatibleLow = p90 > 0 ? v.r / p90 : 0;
+        const compatibleHigh = p10 > 0 ? v.r / p10 : 0;
+
+        document.getElementById("g-stat").textContent = kg(generation);
+        document.getElementById("exposure-stat").textContent = `${number(exposure)} días-persona/año`;
+        document.getElementById("rho-stat").textContent = percent(recovery);
+        document.getElementById("lost-stat").textContent = `${kg(notRecovered)} no recolectados`;
+        document.getElementById("c-stat").textContent = kg(compost);
+        document.getElementById("exposure-label").textContent = `${number(exposure)} días-persona`;
+        document.getElementById("formula-live").textContent = `${number(v.n)} × ${number(daysPerPerson, 1)} × ${number(v.g, 3)} = ${number(generation)} kg/año`;
+
+        const recoveredShare = generation > 0 ? Math.min(1, v.r / generation) : 0;
+        const lostShare = 1 - recoveredShare;
+        document.getElementById("recovered-bar").style.width = `${recoveredShare * 100}%`;
+        document.getElementById("lost-bar").style.width = `${lostShare * 100}%`;
+        document.getElementById("recovered-label").textContent = recoveredShare > .12 ? percent(recoveredShare, 0) : "";
+        document.getElementById("lost-label").textContent = lostShare > .12 ? percent(lostShare, 0) : "";
+        document.getElementById("recovered-legend").textContent = kg(v.r);
+        document.getElementById("lost-legend").textContent = kg(notRecovered);
+        document.getElementById("balance-summary").textContent = `${kg(v.r)} de ${kg(generation)}`;
+
+        const scaleMax = Math.max(p90 * 1.08, 1);
+        const left = Math.max(0, Math.min(100, p10 / scaleMax * 100));
+        const middle = Math.max(0, Math.min(100, generation / scaleMax * 100));
+        const right = Math.max(0, Math.min(100, p90 / scaleMax * 100));
+        root.querySelector(".whisker-range").style.left = `${left}%`;
+        root.querySelector(".whisker-range").style.width = `${right - left}%`;
+        root.querySelector(".whisker-dot").style.left = `${middle}%`;
+        document.getElementById("p10-label").style.left = `${left}%`;
+        document.getElementById("p50-label").style.left = `${middle}%`;
+        document.getElementById("p90-label").style.left = `${right}%`;
+        document.getElementById("p10-label").textContent = `P10 ${kg(p10)}`;
+        document.getElementById("p50-label").textContent = `P50 ${kg(generation)}`;
+        document.getElementById("p90-label").textContent = `P90 ${kg(p90)}`;
+        document.getElementById("unc-source").textContent = `CV combinado ${percent(Math.sqrt(Math.exp(sigma * sigma) - 1), 0)}`;
+        document.getElementById("rho-range").textContent = `${percent(compatibleLow)}–${percent(compatibleHigh)}`;
+        document.getElementById("unc-chart").setAttribute("aria-label", `Generación P10 ${kg(p10)}, P50 ${kg(generation)} y P90 ${kg(p90)}`);
+
+        const status = document.getElementById("status");
+        status.classList.toggle("warning", v.r > generation);
+        if (v.r > generation) {
+          status.innerHTML = `<strong>Inconsistencia:</strong> R supera G por ${kg(v.r - generation)}. Revisa alcance, periodos, fuentes externas y doble conteo.`;
+        } else {
+          const dominant = v.ug >= v.ua ? "la generación por día-persona g" : "la exposición E";
+          status.innerHTML = `<strong>Lectura:</strong> el escenario recupera ${percent(recovery)} de G y proyecta ${kg(compost)} de salida potencial. La incertidumbre dominante es ${dominant}.`;
+        }
+      }
+
+      function applyScenario(name) {
+        const scenario = scenarios[name];
+        ids.forEach(id => { el[id].value = scenario[id]; });
+        root.querySelectorAll("[data-scenario]").forEach(button => button.setAttribute("aria-pressed", button.dataset.scenario === name ? "true" : "false"));
+        simulate();
+      }
+
+      ids.forEach(id => el[id].addEventListener("input", () => {
+        root.querySelectorAll("[data-scenario]").forEach(button => button.setAttribute("aria-pressed", "false"));
+        simulate();
+      }));
+      root.querySelectorAll("[data-scenario]").forEach(button => button.addEventListener("click", () => applyScenario(button.dataset.scenario)));
+
+      document.getElementById("check-quiz").addEventListener("click", () => {
+        const fieldsets = Array.from(root.querySelectorAll("fieldset[data-correct]"));
+        let correct = 0;
+        let answered = 0;
+        fieldsets.forEach(fieldset => {
+          const selected = fieldset.querySelector("input:checked");
+          if (selected) { answered += 1; if (selected.value === fieldset.dataset.correct) correct += 1; }
+        });
+        document.getElementById("quiz-feedback").textContent = answered < fieldsets.length ? `Faltan ${fieldsets.length - answered} respuestas.` : `${correct} de ${fieldsets.length} correctas.`;
+      });
+
+      simulate();
+    }());
+
+    (function () {
+      const storageKey = "cicloTierra:tareas:v1";
+      const checkboxes = Array.from(document.querySelectorAll("[data-task-id]"));
+      const summary = document.getElementById("task-summary");
+      const empty = document.getElementById("task-empty");
+      const copyButton = document.getElementById("copy-task-selection");
+      const copyStatus = document.getElementById("copy-status");
+
+      function selectedTasks() {
+        return checkboxes.filter(checkbox => checkbox.checked).map(checkbox => ({ id: checkbox.dataset.taskId, title: checkbox.dataset.taskTitle }));
+      }
+
+      function renderSelection(persist = true) {
+        const tasks = selectedTasks();
+        summary.replaceChildren(...tasks.map(task => { const item = document.createElement("li"); item.textContent = `${task.id} · ${task.title}`; return item; }));
+        empty.hidden = tasks.length > 0;
+        copyButton.disabled = tasks.length === 0;
+        copyStatus.textContent = "";
+        if (persist) {
+          try { localStorage.setItem(storageKey, JSON.stringify(tasks.map(task => task.id))); } catch (error) { /* La selección sigue disponible en la página. */ }
+        }
+      }
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        checkboxes.forEach(checkbox => { checkbox.checked = saved.includes(checkbox.dataset.taskId); });
+      } catch (error) { /* Ignorar estado inválido. */ }
+
+      function collaborationMessage() {
+        const lines = ["Me interesa colaborar en Ciclo Tierra:"];
+        selectedTasks().forEach(task => lines.push(`- ${task.id} · ${task.title}`));
+        lines.push("", "Propongo acordar alcance, responsable, fecha, dependencias y evidencia de aceptación.");
+        return lines.join("\n");
+      }
+
+      function fallbackCopy(text) {
+        const area = document.createElement("textarea");
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand("copy");
+        area.remove();
+        return ok;
+      }
+
+      checkboxes.forEach(checkbox => checkbox.addEventListener("change", () => renderSelection(true)));
+      copyButton.addEventListener("click", async () => {
+        const text = collaborationMessage();
+        try {
+          if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+          else if (!fallbackCopy(text)) throw new Error("copy failed");
+          copyStatus.textContent = "Mensaje copiado.";
+        } catch (error) { copyStatus.textContent = "No se pudo copiar; selecciona el texto manualmente."; }
+      });
+      renderSelection(false);
+    }());
+  </script>
+</body>
+</html>

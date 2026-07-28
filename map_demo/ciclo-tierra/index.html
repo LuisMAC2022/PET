@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mapa operativo y simulador de una red piloto de recolección de residuos orgánicos para compostaje en FES Acatlán.">
+  <title>3 · Mapa de recolección orgánica | Ciclo Tierra</title>
+  <style>
+    :root {
+      --paper: #f6f1e7;
+      --panel: #fffdf8;
+      --ink: #183229;
+      --muted: #647169;
+      --line: #d9d3c4;
+      --forest: #1f5b3a;
+      --forest-dark: #123d28;
+      --leaf: #7daa56;
+      --ochre: #c89445;
+      --clay: #a85c3b;
+      --sky: #dbe9df;
+      --shadow: 0 20px 50px rgba(28, 53, 41, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    button, input { font: inherit; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    :focus-visible {
+      outline: 3px solid var(--ochre);
+      outline-offset: 2px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: .75rem;
+      left: .75rem;
+      z-index: 20;
+      transform: translateY(-160%);
+      border-radius: .65rem;
+      padding: .7rem .9rem;
+      color: white;
+      background: var(--forest-dark);
+      text-decoration: none;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      min-height: 100vh;
+    }
+
+    .map-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 1.25rem;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(125,170,86,.18), transparent 30%),
+        linear-gradient(135deg, #e8eee4 0%, #dbe5d9 48%, #e6dfd0 100%);
+    }
+
+    .map-stage::before {
+      content: "Red piloto · ubicaciones por validar";
+      position: fixed;
+      z-index: 2;
+      left: 1.8rem;
+      bottom: 1.6rem;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 999px;
+      padding: .55rem .8rem;
+      color: white;
+      background: rgba(18,61,40,.88);
+      box-shadow: 0 8px 24px rgba(18,61,40,.18);
+      backdrop-filter: blur(8px);
+      font-size: .76rem;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+
+    .map-stage svg {
+      width: min(100%, 1180px);
+      height: auto;
+      max-height: calc(100vh - 2.5rem);
+      background: transparent url("../acatlan.png") center / 100% 100% no-repeat;
+      border: 1px solid rgba(24,50,41,.2);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      touch-action: manipulation;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 100vh;
+      overflow: auto;
+      padding: 1.15rem;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+    }
+
+    .project-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .45rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project-nav a {
+      display: grid;
+      gap: .12rem;
+      min-height: 62px;
+      align-content: center;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: .65rem .7rem;
+      color: var(--ink);
+      background: white;
+      text-decoration: none;
+    }
+
+    .project-nav a:hover { border-color: var(--forest); }
+
+    .project-nav a[aria-current="page"] {
+      border-color: var(--forest-dark);
+      color: white;
+      background: var(--forest-dark);
+    }
+
+    .project-nav strong { font-size: .78rem; }
+    .project-nav span { color: var(--muted); font-size: .68rem; line-height: 1.25; }
+    .project-nav a[aria-current="page"] span { color: #dce9e0; }
+
+    .eyebrow {
+      margin: 0 0 .45rem;
+      color: var(--clay);
+      font-size: .7rem;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: .45rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.65rem, 4vw, 2.25rem);
+      line-height: .98;
+      letter-spacing: -.025em;
+    }
+
+    h2 {
+      margin-bottom: .55rem;
+      font-size: .86rem;
+      letter-spacing: .02em;
+    }
+
+    p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.48;
+    }
+
+    .notice {
+      border-left: 4px solid var(--ochre);
+      border-radius: 0 .7rem .7rem 0;
+      padding: .7rem .8rem;
+      color: #684819;
+      background: #fbf1dc;
+      font-size: .76rem;
+      line-height: 1.42;
+    }
+
+    label {
+      display: grid;
+      gap: .4rem;
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 750;
+    }
+
+    input, button, .link-button {
+      border: 1px solid var(--line);
+      border-radius: .7rem;
+      padding: .7rem .78rem;
+      color: var(--ink);
+      background: white;
+    }
+
+    input { width: 100%; }
+
+    button, .link-button { cursor: pointer; }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      color: white;
+      background: var(--forest);
+      border-color: var(--forest);
+      font-size: .78rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .filter-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .42rem;
+    }
+
+    .filter-list button {
+      padding: .48rem .62rem;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .filter-list button:hover { border-color: var(--forest); }
+
+    button[data-active="true"] {
+      border-color: var(--forest);
+      color: white;
+      background: var(--forest);
+    }
+
+    .info-card {
+      display: grid;
+      gap: .45rem;
+      min-height: 8rem;
+      border: 1px solid var(--line);
+      border-radius: .85rem;
+      padding: .85rem;
+      background: #f9f7f0;
+    }
+
+    .info-card h2 { margin: 0; font-size: 1rem; }
+    .info-card p { font-size: .78rem; }
+    .info-card b { color: var(--ink); }
+
+    .result-list { display: grid; gap: .5rem; }
+
+    .result-card {
+      display: grid;
+      gap: .22rem;
+      width: 100%;
+      text-align: left;
+      background: white;
+    }
+
+    .result-card:hover,
+    .result-card[data-active="true"] { border-color: var(--forest); }
+
+    .result-card[data-active="true"] {
+      box-shadow: inset 4px 0 0 var(--forest);
+      color: var(--ink);
+      background: #f3f8f3;
+    }
+
+    .result-card strong { font-size: .82rem; }
+    .result-card span { color: var(--muted); font-size: .71rem; line-height: 1.35; }
+    .result-card .linked { color: var(--forest); font-weight: 750; }
+
+    .marker { cursor: pointer; }
+
+    .marker circle {
+      stroke: white;
+      stroke-width: 4;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 3px 3px rgba(18,61,40,.3));
+    }
+
+    .marker--organics circle { fill: var(--forest); }
+    .marker--structure circle { fill: var(--ochre); }
+    .marker--plant circle { fill: var(--clay); }
+
+    .marker text {
+      fill: white;
+      font: 900 13px system-ui, sans-serif;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+
+    .marker image { pointer-events: none; }
+
+    .marker:focus-visible circle,
+    .marker[data-active="true"] circle {
+      stroke: #ffd77a;
+      stroke-width: 7;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem .75rem;
+      color: var(--muted);
+      font-size: .68rem;
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: .28rem; }
+    .legend i { width: .65rem; height: .65rem; border-radius: 50%; }
+    .legend .org { background: var(--forest); }
+    .legend .process { background: var(--clay); }
+
+    .empty-state {
+      border: 1px dashed var(--line);
+      border-radius: .8rem;
+      padding: 1rem;
+      color: var(--muted);
+      font-size: .78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .map-stage { min-height: 58vh; }
+      .map-stage::before { position: absolute; }
+      .control-panel { max-height: none; border-top: 1px solid var(--line); border-left: 0; }
+    }
+
+    @media (max-width: 520px) {
+      .map-stage { padding: .65rem; }
+      .map-stage::before { left: 1rem; bottom: 1rem; }
+      .control-panel { padding: .9rem; }
+      .project-nav { grid-template-columns: 1fr; }
+      .project-nav a { min-height: 50px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al mapa</a>
+
+  <div class="app-shell">
+    <main id="contenido" class="map-stage" aria-label="Mapa operativo de la red piloto" tabindex="-1"></main>
+
+    <aside class="control-panel" aria-labelledby="map-title">
+      <nav class="project-nav" aria-label="Recorrido del proyecto Ciclo Tierra">
+        <a href="presentacion.html#estimacion"><strong>1 · Estimación</strong><span>Balance de masa y supuestos.</span></a>
+        <a href="presentacion.html#propuesta"><strong>2 · Propuesta</strong><span>Servicio, protocolo y validación.</span></a>
+        <a href="index.html" aria-current="page"><strong>3 · Mapa</strong><span>Red operativa del piloto.</span></a>
+        <a href="compostaje_fase1.html"><strong>4 · Simulación</strong><span>Practica el ciclo de preparación.</span></a>
+        <a href="../proyectos.html"><strong>Proyectos hermanos</strong><span>Selector de PET y Ciclo Tierra.</span></a>
+      </nav>
+
+      <header>
+        <p class="eyebrow">Ciclo Tierra · fase 3</p>
+        <h1 id="map-title">De cada punto a una pila trazable.</h1>
+        <p>Explora seis puntos de acopio y cuatro puntos de procesamiento colocados únicamente para demostrar la interfaz.</p>
+      </header>
+
+      <div class="notice"><strong>Prototipo operativo:</strong> nombres, horarios, capacidades, tasas y ubicaciones son hipótesis de diseño. Deben validarse con un recorrido de campo y responsables del campus.</div>
+
+      <label for="search">Buscar punto o material
+        <input id="search" type="search" placeholder="Ej. café, procesamiento, A-05" autocomplete="off">
+      </label>
+
+      <section aria-labelledby="filters-title">
+        <h2 id="filters-title">Filtrar la red</h2>
+        <div class="filter-list" id="filters"></div>
+      </section>
+
+      <div class="legend" aria-label="Leyenda del mapa">
+        <span><i class="org"></i>Acopio demostrativo</span>
+        <span><i class="process"></i>Procesamiento demostrativo</span>
+      </div>
+
+      <section class="info-card" id="info" aria-live="polite">
+        <h2>Selecciona un punto</h2>
+        <p>Usa un marcador o la lista. Las estaciones de acopio abren una simulación independiente con su tasa y perfil horario.</p>
+      </section>
+
+      <section aria-labelledby="results-title">
+        <h2 id="results-title">Puntos visibles <span id="result-count" aria-live="polite"></span></h2>
+        <div class="result-list" id="results"></div>
+      </section>
+    </aside>
+  </div>
+
+  <script>
+    const SVG_FILE = "../mapa_vectorizado.svg";
+    const POINT_FILE = "puntos.json";
+    const ICON_FILE = "organicos_icon.svg";
+    const SIMULATOR_FILE = "compostaje_fase1.html";
+
+    const stage = document.querySelector("#contenido");
+    const search = document.querySelector("#search");
+    const filters = document.querySelector("#filters");
+    const results = document.querySelector("#results");
+    const info = document.querySelector("#info");
+    const resultCount = document.querySelector("#result-count");
+
+    let svg;
+    let markerLayer;
+    let points = [];
+    let activeCategory = "todas";
+    let activePointId = null;
+
+    start().catch(error => {
+      stage.innerHTML = '<div class="empty-state">No se pudo cargar el mapa. Sirve esta carpeta con un servidor local, por ejemplo <code>python3 -m http.server</code>.</div>';
+      console.error(error);
+    });
+
+    async function start() {
+      const [svgText, rawPoints] = await Promise.all([
+        fetch(SVG_FILE).then(readTextResponse),
+        fetch(POINT_FILE).then(readJSONResponse)
+      ]);
+
+      points = normalizePoints(rawPoints);
+      const documentSVG = new DOMParser().parseFromString(svgText, "image/svg+xml");
+      svg = documentSVG.documentElement;
+
+      if (svg.nodeName.toLowerCase() === "parsererror") throw new Error("El SVG del mapa no es válido.");
+      ensureViewBox(svg);
+      revealCampusBackground(svg);
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "Mapa de FES Acatlán con puntos propuestos para la red de orgánicos");
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+
+      markerLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      markerLayer.setAttribute("id", "poi-markers");
+      markerLayer.setAttribute("aria-label", "Puntos del programa de compostaje");
+      svg.appendChild(markerLayer);
+      stage.replaceChildren(svg);
+
+      renderFilters();
+      renderAll();
+      search.addEventListener("input", renderAll);
+    }
+
+    function readTextResponse(response) {
+      if (!response.ok) throw new Error(`No se pudo cargar ${response.url}`);
+      return response.text();
+    }
+
+    function readJSONResponse(response) {
+      if (!response.ok) throw new Error(`No se pudo cargar ${response.url}`);
+      return response.json();
+    }
+
+    function normalizePoints(rawPoints) {
+      return (Array.isArray(rawPoints) ? rawPoints : []).map((point, index) => {
+        const normalized = {
+          id: String(point.id || `P-${index + 1}`),
+          nombre: String(point.nombre || `Punto ${index + 1}`),
+          categoria: String(point.categoria || "Sin clasificar"),
+          zona: String(point.zona || "Ubicación por validar"),
+          horario: String(point.horario || "Horario por definir"),
+          acepta: String(point.acepta || "Criterio por definir"),
+          evita: String(point.evita || "Criterio por definir"),
+          capacidadKg: Number(point.capacidad_kg),
+          tasaKgHora: Number(point.tasa_kg_hora),
+          perfil: String(point.perfil_organicos || "campus"),
+          x: Number(point.x),
+          y: Number(point.y),
+          simulador: String(point.simulador || "")
+        };
+
+        if (isOrganicsPoint(normalized) && !normalized.simulador) {
+          normalized.simulador = buildSimulatorURL(normalized);
+        }
+        return normalized;
+      }).filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
+    }
+
+    function ensureViewBox(svgElement) {
+      if (svgElement.hasAttribute("viewBox")) return;
+      const width = parseFloat(svgElement.getAttribute("width"));
+      const height = parseFloat(svgElement.getAttribute("height"));
+      if (Number.isFinite(width) && Number.isFinite(height)) {
+        svgElement.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      }
+    }
+
+    function revealCampusBackground(svgElement) {
+      svgElement.querySelectorAll("[fill]").forEach(element => {
+        if (isNearWhite(element.getAttribute("fill"))) element.setAttribute("fill-opacity", "0");
+      });
+    }
+
+    function isNearWhite(color) {
+      const match = String(color).trim().match(/^#([0-9a-f]{6})$/i);
+      if (!match) return false;
+      const channels = match[1].match(/.{2}/g).map(value => parseInt(value, 16));
+      return channels.every(channel => channel >= 248);
+    }
+
+    function renderFilters() {
+      const categories = ["todas", ...new Set(points.map(point => point.categoria))];
+      filters.replaceChildren(...categories.map(category => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = category === "todas" ? "Toda la red" : category;
+        button.dataset.active = String(category === activeCategory);
+        button.setAttribute("aria-pressed", String(category === activeCategory));
+        button.addEventListener("click", () => {
+          activeCategory = category;
+          [...filters.children].forEach(child => {
+            const selected = child === button;
+            child.dataset.active = String(selected);
+            child.setAttribute("aria-pressed", String(selected));
+          });
+          renderAll();
+        });
+        return button;
+      }));
+    }
+
+    function renderAll() {
+      if (!markerLayer) return;
+      renderMarkers();
+      renderResults();
+    }
+
+    function renderMarkers() {
+      markerLayer.replaceChildren();
+      points.filter(matches).forEach(point => {
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        marker.classList.add("marker", markerClass(point));
+        marker.dataset.id = point.id;
+        marker.dataset.active = String(point.id === activePointId);
+        marker.setAttribute("transform", `translate(${point.x} ${point.y})`);
+        marker.setAttribute("tabindex", "0");
+        marker.setAttribute("role", "button");
+        marker.setAttribute("aria-label", `${point.nombre}, ${point.categoria}`);
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "23");
+        marker.append(circle, markerIcon(point));
+        marker.addEventListener("click", () => selectPoint(point.id));
+        marker.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectPoint(point.id);
+          }
+        });
+        markerLayer.appendChild(marker);
+      });
+    }
+
+    function renderResults() {
+      const visible = points.filter(matches);
+      resultCount.textContent = `(${visible.length})`;
+      if (!visible.length) {
+        results.innerHTML = '<div class="empty-state">No hay puntos que coincidan con la búsqueda y el filtro.</div>';
+        return;
+      }
+
+      results.replaceChildren(...visible.map(point => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "result-card";
+        card.dataset.active = String(point.id === activePointId);
+        card.innerHTML = `
+          <strong>${escapeHTML(point.nombre)}</strong>
+          <span>${escapeHTML(point.id)} · ${escapeHTML(point.categoria)}</span>
+          <span>${escapeHTML(point.zona)}</span>
+          ${point.simulador ? '<span class="linked">Simulación vinculada →</span>' : ""}
+        `;
+        card.addEventListener("click", () => selectPoint(point.id));
+        return card;
+      }));
+    }
+
+    function selectPoint(id) {
+      activePointId = id;
+      const point = points.find(candidate => candidate.id === id);
+      if (!point) return;
+
+      const capacity = Number.isFinite(point.capacidadKg) ? `${point.capacidadKg} kg (hipótesis)` : "Por dimensionar";
+      const rate = Number.isFinite(point.tasaKgHora) ? `${point.tasaKgHora} kg/h simulada` : "No aplica";
+      info.innerHTML = `
+        <h2>${escapeHTML(point.nombre)}</h2>
+        <p><b>${escapeHTML(point.id)} · ${escapeHTML(point.categoria)}</b></p>
+        <p>${escapeHTML(point.zona)}<br>${escapeHTML(point.horario)}</p>
+        <p><b>Acepta:</b> ${escapeHTML(point.acepta)}</p>
+        <p><b>Evita:</b> ${escapeHTML(point.evita)}</p>
+        <p><b>Capacidad propuesta:</b> ${escapeHTML(capacity)}<br><b>Tasa del demo:</b> ${escapeHTML(rate)}</p>
+        ${point.simulador ? `<a class="link-button" href="${escapeHTML(point.simulador)}">Simular esta estación</a>` : ""}
+      `;
+
+      renderAll();
+      const marker = markerLayer.querySelector(`[data-id="${CSS.escape(id)}"]`);
+      marker?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    }
+
+    function markerClass(point) {
+      const category = normalizeSearchText(point.categoria);
+      if (category.includes("procesamiento")) return "marker--plant";
+      return "marker--organics";
+    }
+
+    function markerIcon(point) {
+      if (isOrganicsPoint(point)) {
+        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        image.setAttribute("href", ICON_FILE);
+        image.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", ICON_FILE);
+        image.setAttribute("x", "-13");
+        image.setAttribute("y", "-13");
+        image.setAttribute("width", "26");
+        image.setAttribute("height", "26");
+        return image;
+      }
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.textContent = "P";
+      return text;
+    }
+
+    function isOrganicsPoint(point) {
+      return normalizeSearchText(point.categoria).includes("acopio");
+    }
+
+    function buildSimulatorURL(point) {
+      const params = new URLSearchParams({ contenedor: point.id, nombre: point.nombre });
+      if (Number.isFinite(point.tasaKgHora)) params.set("tasa", point.tasaKgHora);
+      if (point.perfil) params.set("perfil", point.perfil);
+      return `${SIMULATOR_FILE}?${params.toString()}`;
+    }
+
+    function matches(point) {
+      if (activeCategory !== "todas" && point.categoria !== activeCategory) return false;
+      const query = normalizeSearchText(search.value.trim());
+      if (!query) return true;
+      return normalizeSearchText([
+        point.id, point.nombre, point.categoria, point.zona, point.horario,
+        point.acepta, point.evita
+      ].join(" ")).includes(query);
+    }
+
+    function normalizeSearchText(value) {
+      return String(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[character]));
+    }
+  </script>
+</body>
+</html>
