@@ -24,7 +24,7 @@ jobs:
           set -euo pipefail
           rm -rf map_demo
           mkdir -p map_demo
-          rsync -a --delete --exclude='.git' /tmp/map-demo/ map_demo/
+          (cd /tmp/map-demo && tar --exclude='.git' -cf - .) | (cd map_demo && tar -xf -)
 
           python3 - <<'PY'
           from pathlib import Path
@@ -35,29 +35,19 @@ jobs:
           old_css = '  .ayuda menu{ list-style:none; display:flex; gap:8px; padding:0; }'
           new_css = '''  .ayuda menu{ list-style:none; display:grid; gap:8px; padding:0; }
           .ayuda menu li{ display:flex; gap:8px; }'''
-
-          old_menu = '''  <menu>
-            <li><a class="enlace-simulador" href="simulador.html">↗ Abrir simulador</a></li>
-            <li><button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button></li>
-            <li><button type="button" id="btn-imprimir">⎙ Imprimir</button></li>
-          </menu>'''
-          new_menu = '''  <menu>
-            <li class="fila-enlaces">
+          old_link = '    <li><a class="enlace-simulador" href="simulador.html">↗ Abrir simulador</a></li>'
+          new_link = '''    <li class="fila-enlaces">
               <a class="enlace-simulador" href="map_demo/presentacion.html#modelo">Explorar modelo</a>
               <a class="enlace-simulador" href="simulador.html">Ver simulación</a>
-            </li>
-            <li class="fila-acciones">
-              <button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button>
-              <button type="button" id="btn-imprimir">⎙ Imprimir</button>
-            </li>
-          </menu>'''
+            </li>'''
 
-          if old_css not in text:
-              raise SystemExit('No se encontró la regla CSS esperada de .ayuda menu')
-          if old_menu not in text:
-              raise SystemExit('No se encontró el menú esperado en index.html')
+          if text.count(old_css) != 1:
+              raise SystemExit(f'Regla CSS esperada encontrada {text.count(old_css)} veces')
+          if text.count(old_link) != 1:
+              raise SystemExit(f'Enlace de simulador esperado encontrado {text.count(old_link)} veces')
 
-          text = text.replace(old_css, new_css, 1).replace(old_menu, new_menu, 1)
+          text = text.replace(old_css, new_css, 1)
+          text = text.replace(old_link, new_link, 1)
           path.write_text(text, encoding='utf-8')
           PY
 
@@ -78,10 +68,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           text = Path('index.html').read_text(encoding='utf-8')
-          explore = text.index('>Explorar modelo</a>')
-          simulation = text.index('>Ver simulación</a>')
-          edit = text.index('id="btn-editar"')
-          assert explore < simulation < edit
+          assert text.index('>Explorar modelo</a>') < text.index('>Ver simulación</a>') < text.index('id="btn-editar"')
           PY
           npm test
 
