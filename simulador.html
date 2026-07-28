@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Asistente para comparar escenarios de residuos PET y orgánicos con datos trazables y resultados condicionados.">
+  <title>Explorador de residuos · FES Acatlán</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#simulador">Saltar al contenido</a>
+
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Inicio del explorador">
+      <span class="brand-mark" aria-hidden="true">RA</span>
+      <span><strong>Residuos Acatlán</strong><small>Explorador de escenarios</small></span>
+    </a>
+    <div class="header-meta">
+      <span class="model-tag"><i aria-hidden="true"></i> Modelo determinista</span>
+      <a href="GUIA_USUARIO.md">Guía</a>
+      <a href="README.md">Detalle técnico</a>
+      <a href="tests.html">Pruebas</a>
+    </div>
+  </header>
+
+  <main id="simulador" class="app-layout">
+    <aside class="step-rail" aria-label="Progreso de configuración">
+      <div class="rail-intro">
+        <p class="eyebrow">Tu recorrido</p>
+        <h2>De los datos a una comparación</h2>
+        <p>Todo se guarda mientras permanezcas en esta página. Puedes volver a cualquier paso.</p>
+      </div>
+      <ol id="step-list" class="step-list">
+        <li><button type="button" data-go-step="0"><span>0</span><small>Antes de empezar</small></button></li>
+        <li><button type="button" data-go-step="1"><span>1</span><small>Pregunta y periodo</small></button></li>
+        <li><button type="button" data-go-step="2"><span>2</span><small>Personas y actividad</small></button></li>
+        <li><button type="button" data-go-step="3"><span>3</span><small>Masa y composición</small></button></li>
+        <li><button type="button" data-go-step="4"><span>4</span><small>Operación PET</small></button></li>
+        <li><button type="button" data-go-step="5"><span>5</span><small>Operación orgánica</small></button></li>
+        <li><button type="button" data-go-step="6"><span>6</span><small>Participación</small></button></li>
+        <li><button type="button" data-go-step="7"><span>7</span><small>Escenarios</small></button></li>
+        <li><button type="button" data-go-step="8"><span>8</span><small>Revisión</small></button></li>
+        <li class="results-step"><button type="button" data-go-step="9" disabled><span>9</span><small>Resultados</small></button></li>
+      </ol>
+      <div class="rail-quality" id="rail-quality">
+        <span>Calidad de la base</span>
+        <strong>0 medidos · 4 estimados · 37 supuestos</strong>
+      </div>
+    </aside>
+
+    <div class="wizard-shell" id="parameter-editor">
+      <span id="contenido" class="fragment-anchor" aria-hidden="true"></span>
+      <div id="error-box" class="error-box" role="alert" hidden></div>
+      <noscript><div class="error-box">Activa JavaScript para configurar y calcular los escenarios.</div></noscript>
+
+      <section class="wizard-step welcome-step is-active" data-step="0" id="inicio">
+        <div class="welcome-visual" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="material-node node-pet">PET</div>
+          <div class="material-node node-org">ORG</div>
+          <div class="material-node node-data">%</div>
+        </div>
+        <div class="welcome-copy">
+          <p class="eyebrow">Antes de calcular</p>
+          <h1>Compara decisiones sin confundir una exploración con un pronóstico.</h1>
+          <p class="lead">Este simulador calcula siempre el mismo resultado cuando recibe los mismos datos. La trayectoria describe qué ocurriría <em>dentro de las reglas del modelo</em>, no qué sucederá con certeza en el campus.</p>
+
+          <div class="quality-callout">
+            <div class="quality-score" aria-hidden="true"><strong>0</strong><span>mediciones</span></div>
+            <div>
+              <h2>La base actual es ilustrativa</h2>
+              <p>Contiene <strong>0 mediciones, 4 estimaciones y 37 supuestos</strong>. Sirve para aprender y comparar, pero no para afirmar qué ocurrirá.</p>
+            </div>
+          </div>
+
+          <div class="choice-grid">
+            <button class="choice-card" id="use-example" type="button">
+              <span class="choice-icon" aria-hidden="true">↗</span>
+              <strong>Probar con datos de ejemplo</strong>
+              <small>Los resultados quedarán marcados como “Corrida ilustrativa”.</small>
+            </button>
+            <button class="choice-card primary-choice" id="use-own-data" type="button">
+              <span class="choice-icon" aria-hidden="true">✎</span>
+              <strong>Configurar con mis datos</strong>
+              <small>Edita valores, documenta su procedencia y conserva los ejemplos que aún no conozcas.</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="wizard-step" data-step="1">
+        <header class="step-header">
+          <p class="eyebrow">Paso 1 de 8 · Enmarcar la exploración</p>
+          <h1>¿Qué periodo y qué decisiones quieres comparar?</h1>
+          <p>Elige una duración suficiente para observar material que podría seguir esperando procesamiento.</p>
+        </header>
+        <div class="form-section two-columns">
+          <label class="field wide-field">
+            <span class="field-label">Pregunta que quieres explorar</span>
+            <textarea id="research-question" rows="3">Durante 180 días, ¿qué cambia si aumenta la participación desde el día 45 y se amplía la capacidad PET desde el día 90?</textarea>
+            <small>Es una guía para leer la comparación; no cambia las ecuaciones.</small>
+          </label>
+          <label class="field">
+            <span class="field-label">Fecha de referencia (día 0)</span>
+            <input id="reference-date" type="date">
+            <small>Solo traduce días relativos a fechas comprensibles.</small>
+          </label>
+          <label class="field">
+            <span class="field-label">Duración que quieres explorar</span>
+            <span class="input-with-unit"><input id="t-fin" type="number" min="136" step="1" value="180"><span>días</span></span>
+            <small id="horizon-note">Con los escenarios actuales, el final debe ser posterior al día 135.</small>
+          </label>
+        </div>
+        <div class="period-preview" id="period-preview" aria-live="polite"></div>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Personas y actividad <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="2">
+        <header class="step-header">
+          <p class="eyebrow">Paso 2 de 8 · Generación</p>
+          <h1>Personas y actividad del campus</h1>
+          <p>Primero indica cuántas personas podrían estar y qué parte suele presentarse. La matrícula y la asistencia diaria son datos distintos.</p>
+        </header>
+        <div id="people-editor" class="segment-grid"></div>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Masa y composición <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="3">
+        <header class="step-header">
+          <p class="eyebrow">Paso 3 de 8 · Conversión</p>
+          <h1>De unidades contadas a kilogramos</h1>
+          <p>El modelo convierte las unidades a masa y después la reparte entre orgánico, PET y otros residuos.</p>
+        </header>
+
+        <div class="conversion-summary" id="conversion-summary"></div>
+        <div class="composition-layout">
+          <div id="composition-editor" class="parameter-stack"></div>
+          <aside class="composition-card" aria-label="Vista previa de composición">
+            <p class="card-kicker">Cada 100 partes</p>
+            <div class="composition-bar" id="composition-bar"></div>
+            <div id="composition-legend" class="composition-legend"></div>
+            <div id="generation-breakdown" class="generation-breakdown"></div>
+          </aside>
+        </div>
+
+        <details class="advanced-panel" id="conversion-advanced">
+          <summary><span>Avanzado · conversión y pesaje</span><small>Requiere una medición o calibración documentada</small></summary>
+          <div class="advanced-warning">Estos datos se multiplican con el desecho por persona. Modifícalos solo si definiste qué es una “unidad” y evitaste contar la misma conversión dos veces.</div>
+          <div class="weight-assistant">
+            <div>
+              <h3>Asistente de pesaje</h3>
+              <p>Pesa juntas varias unidades representativas; calcularemos gramos por unidad.</p>
+            </div>
+            <label class="field"><span class="field-label">Unidades pesadas</span><input id="weight-count" type="number" min="1" step="1" value="200"></label>
+            <label class="field"><span class="field-label">Masa total</span><span class="input-with-unit"><input id="weight-total" type="number" min="0" step="1" value="5000"><span>g</span></span></label>
+            <button class="button secondary" id="apply-weight" type="button">Calcular peso medio</button>
+          </div>
+          <div id="conversion-advanced-editor" class="parameter-stack"></div>
+        </details>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Operación PET <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="4">
+        <header class="step-header">
+          <p class="eyebrow">Paso 4 de 8 · Cadena PET</p>
+          <h1>¿Qué puede hacer la operación PET?</h1>
+          <p>Describe alcance, rechazo, procesamiento y el punto a partir del cual el acopio ya se considera saturado.</p>
+        </header>
+        <div class="process-story pet-story" id="pet-story"></div>
+        <div id="pet-editor" class="parameter-grid"></div>
+        <div class="threshold-note"><strong>El umbral no es una pared.</strong><span>El modelo puede acumular más PET; rebasarlo indica saturación operativa.</span></div>
+        <details class="advanced-panel">
+          <summary><span>Avanzado · retrasos internos PET</span><small>Conservar valores de ejemplo si no están medidos</small></summary>
+          <div class="advanced-warning">Estos tiempos cambian inventarios y trayectorias. No equivalen a cobertura, frecuencia de recolección ni capacidad diaria.</div>
+          <div id="pet-advanced-editor" class="parameter-stack"></div>
+        </details>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Operación orgánica <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="5">
+        <header class="step-header">
+          <p class="eyebrow">Paso 5 de 8 · Cadena orgánica</p>
+          <h1>Separación, fermentación y aplicación</h1>
+          <p>Indica cuánto orgánico puede separarse, cuánto se rechaza, cuándo queda listo y qué tan rápido se aplica.</p>
+        </header>
+        <div class="process-story org-story" id="organic-story"></div>
+        <div id="organic-editor" class="parameter-grid"></div>
+        <div class="wet-mass-note"><span aria-hidden="true">≈</span><p><strong>kg-equivalentes de residuo húmedo</strong>Esta versión no descuenta agua ni emisiones y no calcula masa seca de composta.</p></div>
+        <details class="advanced-panel">
+          <summary><span>Avanzado · estructura orgánica</span><small>Calibración previa a la corrida</small></summary>
+          <div class="advanced-warning">El número de etapas cambia la estructura completa del cálculo y no puede modificarse dentro de un escenario.</div>
+          <div id="organic-advanced-editor" class="parameter-stack"></div>
+        </details>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Participación <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="6">
+        <header class="step-header">
+          <p class="eyebrow">Paso 6 de 8 · Comportamiento</p>
+          <h1>Participación compartida</h1>
+          <p>Es el porcentaje de personas que separa correctamente. El modelo usa el mismo valor para PET y orgánicos y permite que cambie poco a poco.</p>
+        </header>
+        <div class="participation-layout">
+          <div id="participation-editor" class="parameter-stack"></div>
+          <aside class="participation-compare">
+            <p class="card-kicker">Comparación</p>
+            <div class="people-row" id="participation-dots" aria-hidden="true"></div>
+            <div id="participation-caption"></div>
+          </aside>
+        </div>
+        <details class="advanced-panel">
+          <summary><span>Avanzado · calibración de respuesta</span><small>5 supuestos conductuales</small></summary>
+          <div class="advanced-warning">Estos datos cambian retrasos internos o respuestas de comportamiento. Consérvalos si no cuentas con medición o calibración documentada.</div>
+          <div id="feedback-advanced-editor" class="parameter-stack"></div>
+        </details>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Crear escenarios <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="7">
+        <header class="step-header">
+          <p class="eyebrow">Paso 7 de 8 · Decisiones</p>
+          <h1>Escenarios sin escribir JSON</h1>
+          <p>Un escenario cambia datos desde un día. El material ya existente no desaparece ni se reinicia.</p>
+        </header>
+        <div class="scenario-rule"><span aria-hidden="true">⇄</span><p><strong>Conserva siempre “Sin cambio”.</strong> Así podrás comparar una alternativa contra la situación de referencia.</p></div>
+        <div id="scenario-list" class="scenario-list"></div>
+        <div class="scenario-footer">
+          <button class="button secondary" id="add-decision" type="button">+ Agregar decisión</button>
+          <div id="scenario-count" class="scenario-count"></div>
+        </div>
+        <details class="advanced-panel raw-tree-panel">
+          <summary><span>Avanzado · importar o revisar estructura técnica</span><small>JSON completo</small></summary>
+          <div class="advanced-warning">El constructor guiado es la fuente normal. Al aplicar JSON se validarán fechas, rutas y parámetros estructurales.</div>
+          <label class="field"><span class="field-label">Especificación técnica</span><textarea id="tree-spec" rows="14" spellcheck="false"></textarea></label>
+          <button class="button secondary" id="apply-tree-json" type="button">Aplicar JSON al constructor</button>
+        </details>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Revisar datos <span>→</span></button></div>
+      </section>
+
+      <section class="wizard-step" data-step="8">
+        <header class="step-header">
+          <p class="eyebrow">Paso 8 de 8 · Control previo</p>
+          <h1>Revisa antes de correr</h1>
+          <p>Un resultado puede cerrar matemáticamente y aun así ser poco confiable si sus datos son supuestos.</p>
+        </header>
+        <div id="review-content" class="review-content"></div>
+        <span id="metodo" class="fragment-anchor" aria-hidden="true"></span>
+        <details class="advanced-panel compatibility-panel" id="compatibility-controls">
+          <summary><span>Diagnóstico técnico y compatibilidad</span><small>Controles numéricos de la versión anterior</small></summary>
+          <div class="advanced-warning">Estos controles describen el cálculo, no el campus. Conserva RK4 y el paso verificado salvo que estés diagnosticando la integración numérica.</div>
+          <div class="compatibility-grid">
+            <label class="field">
+              <span class="field-label">Paso de cálculo</span>
+              <span class="input-with-unit"><input id="dt" type="number" min="0.01" max="2" step="0.01" value="0.25"><span>días</span></span>
+            </label>
+            <label class="field">
+              <span class="field-label">Integrador</span>
+              <select id="integrator-method"><option value="rk4">RK4</option><option value="euler">Euler</option></select>
+            </label>
+            <div class="method-status"><span>Método activo</span><strong id="method-pill">RK4</strong></div>
+          </div>
+          <div class="compatibility-actions">
+            <button class="button secondary" id="restore-params" type="button">Restaurar parámetros</button>
+            <button class="button secondary" id="restore-tree" type="button">Restaurar escenarios</button>
+          </div>
+          <div class="tree-preview-wrap">
+            <span class="field-label">Rutas técnicas conservadas</span>
+            <pre id="tree-preview" class="tree-preview"></pre>
+          </div>
+        </details>
+        <label class="confirmation" id="range-confirmation" hidden>
+          <input id="confirm-ranges" type="checkbox">
+          <span><strong>Confirmo los valores fuera del rango de revisión.</strong> Verifiqué sus unidades y documenté una fuente.</span>
+        </label>
+        <label class="confirmation methodology-confirmation">
+          <input id="confirm-methodology" type="checkbox">
+          <span><strong>Entiendo cómo leer esta corrida.</strong> Es un resultado condicionado dentro de las reglas del modelo, no una predicción exacta ni una probabilidad.</span>
+        </label>
+        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button run-button" id="run-model" type="button"><span>Calcular escenarios</span><small id="run-estimate">8 combinaciones · 180 días</small></button></div>
+      </section>
+
+      <section class="wizard-step results-view" data-step="9">
+        <header class="results-header">
+          <div>
+            <p class="eyebrow">Resultados condicionados</p>
+            <h1>Compara trayectorias, no certezas.</h1>
+            <p id="run-summary">Selecciona una combinación y revisa primero el destino, después los productos y el inventario pendiente.</p>
+          </div>
+          <span class="illustrative-tag" id="illustrative-tag">Corrida ilustrativa</span>
+        </header>
+        <div class="methodology-banner"><strong>Cómo leer esta corrida.</strong><span>Con los mismos datos produce el mismo resultado. No asigna probabilidades, no representa imprevistos y no muestra intervalos de incertidumbre.</span></div>
+
+        <div class="route-toolbar">
+          <label class="field"><span class="field-label">Combinación de decisiones</span><select id="leaf-select"></select></label>
+          <div id="route-description" class="route-description"></div>
+        </div>
+
+        <section class="result-section">
+          <div class="section-title"><span>01</span><div><h2>Destino de la masa</h2><p>Totales acumulados desde el inicio hasta el final del periodo.</p></div></div>
+          <div class="mass-ledger">
+            <article><span>Residuo generado</span><strong id="kpi-generated">—</strong><small>No es kg/día ni una medición observada</small></article>
+            <span class="ledger-symbol" aria-hidden="true">−</span>
+            <article><span>Enviado a relleno</span><strong id="kpi-landfill">—</strong><small>Resto directo, no capturado y rechazos</small></article>
+            <span class="ledger-symbol" aria-hidden="true">=</span>
+            <article class="featured"><span>Desvío neto</span><strong id="kpi-diversion">—</strong><small id="kpi-diversion-pct">Incluye material pendiente</small></article>
+          </div>
+          <p class="interpretation-note"><strong>No significa “reciclado con éxito”.</strong> El desvío incluye filamento, composta aplicada y material que todavía sigue almacenado o en proceso.</p>
+        </section>
+
+        <section class="result-section">
+          <div class="section-title"><span>02</span><div><h2>Productos útiles e inventario pendiente</h2><p>Se muestran juntos para que el desvío no oculte material aún sin destino final.</p></div></div>
+          <div class="kpi-grid" id="kpi-grid">
+            <article class="kpi"><span>Filamento producido acumulado</span><strong id="kpi-filament">—</strong><small>No es ritmo diario, valor económico ni calidad</small></article>
+            <article class="kpi"><span>Composta aplicada acumulada</span><strong id="kpi-compost">—</strong><small>kg-equivalentes de residuo húmedo</small></article>
+            <article class="kpi pending"><span>Material pendiente al final</span><strong id="pending-inventory">—</strong><small>Permanece disperso, almacenado o en proceso</small></article>
+          </div>
+        </section>
+
+        <section class="result-section">
+          <div class="section-title"><span>03</span><div><h2>Operación PET y participación</h2><p>El umbral describe saturación; no detiene la acumulación.</p></div></div>
+          <div class="kpi-grid four">
+            <article class="kpi"><span>Mayor PET esperando proceso</span><strong id="kpi-backlog">—</strong><small id="kpi-backlog-day">—</small></article>
+            <article class="kpi"><span>Tiempo sobre el umbral</span><strong id="kpi-saturated">—</strong><small id="saturation-status">—</small></article>
+            <article class="kpi"><span>Participación al final</span><strong id="kpi-participation">—</strong><small>Valor modelado, no encuesta</small></article>
+            <article class="kpi balance"><span>Control de balance</span><strong id="mass-balance-status">—</strong><small id="mass-error">—</small></article>
+          </div>
+
+          <div class="chart-grid">
+            <article class="chart-card">
+              <div class="chart-heading"><div><span>Stocks operativos</span><h3>Material esperando o en proceso</h3></div><div class="legend"><span class="pet-line">PET acopiado</span><span class="org-line">En fermentación</span><span class="ready-line">Composta lista</span></div></div>
+              <svg id="stocks-chart" class="chart" viewBox="0 0 760 300" role="img" aria-label="Serie temporal de inventarios operativos"></svg>
+            </article>
+            <article class="chart-card participation-chart-card">
+              <div class="chart-heading"><div><span>Participación modelada</span><h3>Cambio durante el periodo</h3></div><strong id="terminal-participation-label">—</strong></div>
+              <svg id="participation-chart" class="chart" viewBox="0 0 760 220" role="img" aria-label="Serie temporal de participación modelada"></svg>
+            </article>
+          </div>
+        </section>
+
+        <section class="result-section comparison-section">
+          <div class="section-title"><span>04</span><div><h2>Comparar combinaciones</h2><p>Fija una situación de referencia; las diferencias no representan probabilidades ni un ranking.</p></div></div>
+          <label class="baseline-select"><span>Situación de referencia</span><select id="baseline-select"></select></label>
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Comparación desplazable de combinaciones"><table><thead><tr><th>Combinación</th><th>Desvío neto</th><th>Relleno</th><th>Filamento</th><th>Composta</th><th>PET máximo</th><th>Pendiente</th></tr></thead><tbody id="comparison-body"></tbody></table></div>
+        </section>
+
+        <section class="result-section evidence-section">
+          <div class="section-title"><span>05</span><div><h2>Qué sostiene este resultado</h2><p>Es una dependencia estructural conservadora, no un análisis de sensibilidad ni una prueba de causa.</p></div></div>
+          <details><summary id="assumption-summary">Ver parámetros supuestos</summary><ul id="assumption-list" class="assumption-list"></ul></details>
+          <div class="limits-card"><strong>Límites de esta versión</strong><p>Solo distingue PET, orgánico y resto; el resto va directo a relleno. La composta conserva kg-equivalentes húmedos, PET y orgánico comparten una participación y todos los inventarios empiezan en cero.</p></div>
+        </section>
+
+        <section class="export-panel">
+          <div><p class="eyebrow">Registro reproducible</p><h2>Exportar resultados y fuentes</h2><p>Los archivos incluyen versión, commit base, periodo, advertencia metodológica y supuestos iniciales.</p></div>
+          <div class="export-actions">
+            <button class="button secondary" id="export-indicators" type="button">Indicadores CSV</button>
+            <button class="button secondary" id="export-trajectory" type="button">Trayectoria CSV</button>
+            <button class="button secondary" id="export-parameters" type="button">Parámetros y fuentes</button>
+            <button class="button secondary" id="export-dictionary" type="button">Diccionario de datos</button>
+          </div>
+        </section>
+        <div class="results-actions"><button class="button ghost" id="back-to-review" type="button">Volver a la revisión</button><button class="button primary" id="new-exploration" type="button">Nueva exploración</button></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div><strong>Explorador de residuos · FES Acatlán</strong><span>Comparación determinista con trazabilidad de datos</span></div>
+    <div><a href="GUIA_USUARIO.md">Guía de usuario</a><a href="README.md">Documentación técnica</a><a href="tests.html">Suite de pruebas</a></div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

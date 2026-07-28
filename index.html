@@ -1,374 +1,510 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Asistente para comparar escenarios de residuos PET y orgánicos con datos trazables y resultados condicionados.">
-  <title>Explorador de residuos · FES Acatlán</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carátula · Aniversario del Programa de Recolección de Envases de PET · FES Acatlán</title>
+
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  CARÁTULA REUTILIZABLE · PROGRAMA DE RECOLECCIÓN DE ENVASES DE PET
+  FES Acatlán · UNAM
+  ───────────────────────────────────────────────────────────────────
+  · Para cada entrega, cambia los valores del objeto CONFIG (al final
+    del archivo, dentro de <script>) o usa el botón "Editar textos"
+    en pantalla (también funciona doble clic sobre cualquier texto).
+  · Formato carta (8.5 × 11 in). Imprime con Ctrl/Cmd + P,
+    márgenes en "Ninguno" y "Gráficos de fondo" activado.
+  · Escudos opcionales: coloca junto a este archivo dos imágenes
+    llamadas  escudo-unam.png  y  escudo-fesa.png  (o cambia los
+    src de las <img> del header). Si no existen, el espacio se
+    oculta solo y la carátula sigue equilibrada.
+  ═══════════════════════════════════════════════════════════════════
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,470;0,9..144,600;1,9..144,420&family=Archivo:wght@420;520;640&display=swap" rel="stylesheet">
+
+<style>
+  /* ── Tokens ─────────────────────────────────────────────────── */
+  :root{
+    --papel:  #FBF8F1;   /* blanco cálido de papel */
+    --tinta:  #1C2E24;   /* verde tinta, casi negro */
+    --bosque: #17402B;   /* verde profundo institucional */
+    --lima:   #9BBE3B;   /* verde PET del material del programa */
+    --oro:    #A98B3F;   /* oro UNAM envejecido, solo hairlines */
+    --crema:  #EFE9DA;   /* texto sobre la banda verde */
+    --escala: 1;         /* la ajusta JS para caber en pantalla */
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans:  "Archivo", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; }
+
+  html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  body{
+    background:#101B14;
+    font-family:var(--sans);
+    color:var(--tinta);
+  }
+
+  /* ── Escenario: centra y escala la hoja en pantalla ─────────── */
+  .escenario{
+    display:flex;
+    justify-content:center;
+    padding:40px 8px 120px;
+    height:calc(1056px * var(--escala) + 160px);
+    overflow:hidden;
+  }
+
+  /* ── La hoja carta ──────────────────────────────────────────── */
+  .portada{
+    position:relative;
+    width:816px;               /* 8.5 in  × 96 dpi */
+    height:1056px;             /* 11  in  × 96 dpi */
+    flex:0 0 auto;
+    background:
+      radial-gradient(120% 90% at 85% -10%, rgba(155,190,59,.07), transparent 55%),
+      radial-gradient(110% 80% at -10% 108%, rgba(23,64,43,.06), transparent 50%),
+      var(--papel);
+    box-shadow:0 24px 70px rgba(0,0,0,.5);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    transform:scale(var(--escala));
+    transform-origin:top center;
+  }
+
+  /* ── Cabecera institucional ─────────────────────────────────── */
+  .portada > header{
+    display:grid;
+    grid-template-columns:88px 1fr 88px;
+    align-items:center;
+    gap:16px;
+    padding:46px 64px 0;
+    text-align:center;
+  }
+  .escudo{ display:flex; justify-content:center; }
+  .escudo img{ max-height:56px; max-width:84px; object-fit:contain; }
+  .escudo.vacio{ visibility:hidden; }
+
+  .institucion p{ font-family:var(--sans); }
+  .inst-unam{
+    font-size:10.5px; letter-spacing:.30em; text-transform:uppercase;
+    color:var(--oro); font-weight:520;
+  }
+  .inst-fesa{
+    margin-top:6px;
+    font-size:13.5px; letter-spacing:.16em; text-transform:uppercase;
+    font-weight:640; color:var(--tinta);
+  }
+  .inst-depto{
+    margin-top:7px; padding-top:7px;
+    border-top:1px solid rgba(169,139,63,.45);
+    display:inline-block;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(28,46,36,.72);
+  }
+
+  /* ── Cuerpo ─────────────────────────────────────────────────── */
+  .portada > main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding:22px 72px 26px;
+  }
+
+  /* Sello: la pieza firma de la carátula */
+  .sello{ width:172px; height:172px; margin-bottom:16px; }
+  .sello svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .sello .aro-texto{
+    font-family:var(--sans); font-size:9px; font-weight:520;
+    letter-spacing:2.3px; fill:var(--bosque);
+  }
+
+  .lema{
+    font-size:11.5px; letter-spacing:.26em; text-transform:uppercase;
+    color:var(--bosque); font-weight:640;
+  }
+  .lema::before, .lema::after{ content:"—"; color:var(--lima); margin:0 10px; }
+
+  h1{
+    margin-top:12px;
+    font-family:var(--serif);
+    font-size:51px; line-height:1.1;
+    font-weight:470;
+    letter-spacing:.005em;
+    color:var(--tinta);
+  }
+  h1 .pet{
+    font-family:var(--sans);
+    font-size:.72em; font-weight:640; letter-spacing:.12em;
+    color:var(--bosque);
+    border-bottom:4px solid var(--lima);
+    padding:0 .06em 2px;
+  }
+
+  /* Divisor con el código de resina 1-PET */
+  .divisor{
+    margin:22px 0 20px;
+    display:flex; align-items:center; gap:14px;
+    width:340px;
+  }
+  .divisor::before, .divisor::after{
+    content:""; flex:1; height:1px; background:rgba(169,139,63,.55);
+  }
+  .divisor svg{ display:block; }
+
+  /* Bloques titulados (sostenedor y entrega) */
+  .etiqueta{
+    font-family:var(--sans);
+    font-size:10.5px; letter-spacing:.30em; text-transform:uppercase;
+    font-weight:640; color:var(--oro);
+  }
+
+  .titular-nombre{
+    margin-top:9px;
+    font-family:var(--serif); font-weight:600;
+    font-size:31px; color:var(--tinta);
+  }
+  .titular-cargo{
+    margin-top:6px;
+    font-size:12.5px; line-height:1.55; letter-spacing:.03em;
+    color:rgba(28,46,36,.82);
+  }
+
+  .entrega{ margin-top:26px; }
+  .entrega-titulo{
+    margin-top:10px;
+    font-family:var(--serif); font-style:italic; font-weight:420;
+    font-size:26px; color:var(--bosque);
+  }
+  .entrega-meta{
+    margin-top:9px;
+    font-size:12px; letter-spacing:.10em; text-transform:uppercase;
+    color:rgba(28,46,36,.75);
+  }
+  .entrega-meta .punto{ color:var(--lima); margin:0 8px; }
+
+  /* ── Banda inferior: equipo auxiliar ────────────────────────── */
+  .portada > footer{
+    background:var(--bosque);
+    color:var(--crema);
+    padding:30px 72px 26px;
+  }
+  .portada > footer .etiqueta{ color:var(--lima); }
+
+  .equipo{
+    margin-top:15px;
+    list-style:none; padding:0;
+    columns:2; column-gap:56px;
+    text-align:left;
+  }
+  .equipo li{
+    break-inside:avoid;
+    font-size:12.5px; font-weight:520; letter-spacing:.025em;
+    line-height:1.5;
+    padding:2.5px 0 2.5px 14px;
+    position:relative;
+  }
+  .equipo li::before{
+    content:""; position:absolute; left:0; top:.72em;
+    width:5px; height:5px; background:var(--lima);
+    transform:rotate(45deg);
+  }
+  .equipo .rol{
+    font-size:.82em; font-weight:420; letter-spacing:.06em;
+    color:rgba(239,233,218,.66);
+  }
+
+  .pie{
+    margin-top:18px; padding-top:13px;
+    border-top:1px solid rgba(239,233,218,.28);
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px;
+  }
+  .lema-unam{
+    font-family:var(--serif); font-style:italic; font-weight:420;
+    font-size:13.5px; color:rgba(239,233,218,.92);
+  }
+  .pie-derecha{
+    font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:rgba(239,233,218,.78);
+  }
+
+  /* ── Ayuda en pantalla (no se imprime) ──────────────────────── */
+  .ayuda{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    background:rgba(16,27,20,.92);
+    border:1px solid rgba(155,190,59,.4);
+    border-radius:999px;
+    padding:8px 10px 8px 18px;
+    display:flex; align-items:center; gap:14px;
+    color:var(--crema); font-size:12px;
+    backdrop-filter:blur(4px);
+    z-index:10; max-width:calc(100vw - 24px);
+  }
+  .ayuda p{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ayuda menu{ list-style:none; display:flex; gap:8px; padding:0; }
+  .ayuda button,
+  .ayuda .enlace-simulador{
+    font:inherit; font-weight:640; cursor:pointer;
+    color:var(--tinta); background:var(--lima);
+    border:0; border-radius:999px; padding:7px 15px;
+    text-decoration:none; white-space:nowrap;
+  }
+  .ayuda button.secundario{ background:transparent; color:var(--lima); border:1px solid var(--lima); }
+  .ayuda button:focus-visible,
+  .ayuda .enlace-simulador:focus-visible,
+  [contenteditable="true"]:focus-visible{
+    outline:2px dashed var(--lima); outline-offset:3px;
+  }
+  .modo-edicion [data-campo]{
+    outline:1.5px dashed rgba(155,190,59,.75); outline-offset:4px;
+    border-radius:2px; cursor:text;
+  }
+
+  /* ── Animación de entrada (solo pantalla) ───────────────────── */
+  @media screen and (prefers-reduced-motion: no-preference){
+    .anillo{ stroke-dasharray:528; stroke-dashoffset:528;
+             animation:trazo 1.3s ease-out .15s both; }
+    .flecha-arco{ stroke-dasharray:84; stroke-dashoffset:84;
+                  animation:trazo .8s ease-out .9s both; }
+    .aro-texto, .botella-g{ opacity:0; animation:aparecer .7s ease-out .95s both; }
+    .sube{ opacity:0; animation:subir .7s cubic-bezier(.22,.8,.3,1) both; }
+    .sube-1{ animation-delay:.35s } .sube-2{ animation-delay:.5s }
+    .sube-3{ animation-delay:.65s } .sube-4{ animation-delay:.8s }
+    .sube-5{ animation-delay:.95s } .sube-6{ animation-delay:1.1s }
+    @keyframes trazo{ to{ stroke-dashoffset:0 } }
+    @keyframes aparecer{ to{ opacity:1 } }
+    @keyframes subir{ from{ opacity:0; transform:translateY(14px) }
+                      to{ opacity:1; transform:none } }
+  }
+
+  /* ── Impresión ──────────────────────────────────────────────── */
+  @page{ size:letter portrait; margin:0; }
+  @media print{
+    body{ background:#fff; }
+    .escenario{ padding:0; height:auto; overflow:visible; display:block; }
+    .portada{ transform:none !important; box-shadow:none; margin:0 auto; }
+    .ayuda{ display:none; }
+  }
+</style>
 </head>
+
 <body>
-  <a class="skip-link" href="#simulador">Saltar al contenido</a>
+<div class="escenario">
+  <article class="portada" aria-label="Carátula de entrega">
 
-  <header class="site-header">
-    <a class="brand" href="#inicio" aria-label="Inicio del explorador">
-      <span class="brand-mark" aria-hidden="true">RA</span>
-      <span><strong>Residuos Acatlán</strong><small>Explorador de escenarios</small></span>
-    </a>
-    <div class="header-meta">
-      <span class="model-tag"><i aria-hidden="true"></i> Modelo determinista</span>
-      <a href="GUIA_USUARIO.md">Guía</a>
-      <a href="README.md">Detalle técnico</a>
-      <a href="tests.html">Pruebas</a>
-    </div>
-  </header>
-
-  <main id="simulador" class="app-layout">
-    <aside class="step-rail" aria-label="Progreso de configuración">
-      <div class="rail-intro">
-        <p class="eyebrow">Tu recorrido</p>
-        <h2>De los datos a una comparación</h2>
-        <p>Todo se guarda mientras permanezcas en esta página. Puedes volver a cualquier paso.</p>
+    <header>
+      <p class="escudo"><img src="escudo-unam.png" alt="Escudo de la UNAM"></p>
+      <div class="institucion">
+        <p class="inst-unam">Universidad Nacional Autónoma de México</p>
+        <p class="inst-fesa">Facultad de Estudios Superiores Acatlán</p>
+        <p class="inst-depto">Secretaría Administrativa · Departamento de Proyectos Administrativos</p>
       </div>
-      <ol id="step-list" class="step-list">
-        <li><button type="button" data-go-step="0"><span>0</span><small>Antes de empezar</small></button></li>
-        <li><button type="button" data-go-step="1"><span>1</span><small>Pregunta y periodo</small></button></li>
-        <li><button type="button" data-go-step="2"><span>2</span><small>Personas y actividad</small></button></li>
-        <li><button type="button" data-go-step="3"><span>3</span><small>Masa y composición</small></button></li>
-        <li><button type="button" data-go-step="4"><span>4</span><small>Operación PET</small></button></li>
-        <li><button type="button" data-go-step="5"><span>5</span><small>Operación orgánica</small></button></li>
-        <li><button type="button" data-go-step="6"><span>6</span><small>Participación</small></button></li>
-        <li><button type="button" data-go-step="7"><span>7</span><small>Escenarios</small></button></li>
-        <li><button type="button" data-go-step="8"><span>8</span><small>Revisión</small></button></li>
-        <li class="results-step"><button type="button" data-go-step="9" disabled><span>9</span><small>Resultados</small></button></li>
-      </ol>
-      <div class="rail-quality" id="rail-quality">
-        <span>Calidad de la base</span>
-        <strong>0 medidos · 4 estimados · 37 supuestos</strong>
+      <p class="escudo"><img src="escudo-fesa.png" alt="Escudo de la FES Acatlán"></p>
+    </header>
+
+    <main>
+      <!-- Sello del programa: texto orbital, botella PET y ciclo -->
+      <figure class="sello" aria-hidden="true">
+        <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <path id="orbita" d="M 90 20 a 70 70 0 1 1 -0.01 0" fill="none"/>
+            <marker id="punta" viewBox="0 0 7 7" refX="5.4" refY="3.5"
+                    markerWidth="6.5" markerHeight="6.5" orient="auto">
+              <path d="M0 0 L7 3.5 L0 7 Z" fill="#9BBE3B"/>
+            </marker>
+          </defs>
+
+          <circle class="anillo" cx="90" cy="90" r="84"
+                  fill="none" stroke="#A98B3F" stroke-width="1.1"/>
+          <circle cx="90" cy="90" r="54"
+                  fill="none" stroke="#A98B3F" stroke-width=".7" opacity=".55"/>
+
+          <text class="aro-texto">
+            <textPath href="#orbita" textLength="438" lengthAdjust="spacing">RECOLECCIÓN DE ENVASES DE PET • FES ACATLÁN • UNAM •</textPath>
+          </text>
+
+          <path class="flecha-arco" d="M46.8 74.3 A46 46 0 0 1 113 50.2"
+                fill="none" stroke="#9BBE3B" stroke-width="2.6"
+                stroke-linecap="round" marker-end="url(#punta)"/>
+          <path class="flecha-arco" d="M133.2 105.7 A46 46 0 0 1 67 129.8"
+                fill="none" stroke="#9BBE3B" stroke-width="2.6"
+                stroke-linecap="round" marker-end="url(#punta)"/>
+
+          <g class="botella-g">
+            <rect x="84" y="60" width="12" height="5" rx="1.5" fill="#1C2E24"/>
+            <path d="M86 65 v6 c0 4 -12 6 -12 13 v22 c0 5 5 7 16 7 s16 -2 16 -7 V84 c0 -7 -12 -9 -12 -13 v-6"
+                  fill="none" stroke="#1C2E24" stroke-width="2.2"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M75.5 94 q14.5 3.5 29 0" fill="none"
+                  stroke="#9BBE3B" stroke-width="1.4" opacity=".85"/>
+          </g>
+        </svg>
+      </figure>
+
+      <p class="lema sube sube-1" data-campo="lema-aniversario">Aniversario · Más de una década de trabajo sostenido</p>
+
+      <h1 class="sube sube-2">Programa de Recolección<br>de Envases de <span class="pet">PET</span></h1>
+
+      <div class="divisor sube sube-3" aria-hidden="true">
+        <!-- Código de resina 1 · PET -->
+        <svg width="26" height="30" viewBox="0 0 26 30">
+          <path d="M13 3 L23.5 20.5 H2.5 Z" fill="none" stroke="#17402B"
+                stroke-width="1.5" stroke-linejoin="round"/>
+          <text x="13" y="17.2" text-anchor="middle"
+                font-family="Archivo, sans-serif" font-size="9.5"
+                font-weight="640" fill="#17402B">1</text>
+          <text x="13" y="28.5" text-anchor="middle"
+                font-family="Archivo, sans-serif" font-size="6.5"
+                letter-spacing="1.5" font-weight="520" fill="#A98B3F">PET</text>
+        </svg>
       </div>
-    </aside>
 
-    <div class="wizard-shell" id="parameter-editor">
-      <span id="contenido" class="fragment-anchor" aria-hidden="true"></span>
-      <div id="error-box" class="error-box" role="alert" hidden></div>
-      <noscript><div class="error-box">Activa JavaScript para configurar y calcular los escenarios.</div></noscript>
-
-      <section class="wizard-step welcome-step is-active" data-step="0" id="inicio">
-        <div class="welcome-visual" aria-hidden="true">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="material-node node-pet">PET</div>
-          <div class="material-node node-org">ORG</div>
-          <div class="material-node node-data">%</div>
-        </div>
-        <div class="welcome-copy">
-          <p class="eyebrow">Antes de calcular</p>
-          <h1>Compara decisiones sin confundir una exploración con un pronóstico.</h1>
-          <p class="lead">Este simulador calcula siempre el mismo resultado cuando recibe los mismos datos. La trayectoria describe qué ocurriría <em>dentro de las reglas del modelo</em>, no qué sucederá con certeza en el campus.</p>
-
-          <div class="quality-callout">
-            <div class="quality-score" aria-hidden="true"><strong>0</strong><span>mediciones</span></div>
-            <div>
-              <h2>La base actual es ilustrativa</h2>
-              <p>Contiene <strong>0 mediciones, 4 estimaciones y 37 supuestos</strong>. Sirve para aprender y comparar, pero no para afirmar qué ocurrirá.</p>
-            </div>
-          </div>
-
-          <div class="choice-grid">
-            <button class="choice-card" id="use-example" type="button">
-              <span class="choice-icon" aria-hidden="true">↗</span>
-              <strong>Probar con datos de ejemplo</strong>
-              <small>Los resultados quedarán marcados como “Corrida ilustrativa”.</small>
-            </button>
-            <button class="choice-card primary-choice" id="use-own-data" type="button">
-              <span class="choice-icon" aria-hidden="true">✎</span>
-              <strong>Configurar con mis datos</strong>
-              <small>Edita valores, documenta su procedencia y conserva los ejemplos que aún no conozcas.</small>
-            </button>
-          </div>
-        </div>
+      <section class="sube sube-4" aria-labelledby="titular-h">
+        <h2 class="etiqueta" id="titular-h">Programa sostenido por</h2>
+        <p class="titular-nombre">Lic. Jesús Jiménez Cruz</p>
+        <p class="titular-cargo">Jefe del Departamento de Proyectos Administrativos<br>Secretaría Administrativa · FES Acatlán</p>
       </section>
 
-      <section class="wizard-step" data-step="1">
-        <header class="step-header">
-          <p class="eyebrow">Paso 1 de 8 · Enmarcar la exploración</p>
-          <h1>¿Qué periodo y qué decisiones quieres comparar?</h1>
-          <p>Elige una duración suficiente para observar material que podría seguir esperando procesamiento.</p>
-        </header>
-        <div class="form-section two-columns">
-          <label class="field wide-field">
-            <span class="field-label">Pregunta que quieres explorar</span>
-            <textarea id="research-question" rows="3">Durante 180 días, ¿qué cambia si aumenta la participación desde el día 45 y se amplía la capacidad PET desde el día 90?</textarea>
-            <small>Es una guía para leer la comparación; no cambia las ecuaciones.</small>
-          </label>
-          <label class="field">
-            <span class="field-label">Fecha de referencia (día 0)</span>
-            <input id="reference-date" type="date">
-            <small>Solo traduce días relativos a fechas comprensibles.</small>
-          </label>
-          <label class="field">
-            <span class="field-label">Duración que quieres explorar</span>
-            <span class="input-with-unit"><input id="t-fin" type="number" min="136" step="1" value="180"><span>días</span></span>
-            <small id="horizon-note">Con los escenarios actuales, el final debe ser posterior al día 135.</small>
-          </label>
-        </div>
-        <div class="period-preview" id="period-preview" aria-live="polite"></div>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Personas y actividad <span>→</span></button></div>
+      <section class="entrega sube sube-5" aria-labelledby="entrega-h">
+        <h2 class="etiqueta" id="entrega-h">Entrega</h2>
+        <p class="entrega-titulo" data-campo="titulo-entrega">Informe de actividades del programa</p>
+        <p class="entrega-meta">
+          <span data-campo="edicion-feria">Feria de Responsabilidad Social</span><span class="punto">·</span><time data-campo="fecha" datetime=""></time>
+        </p>
       </section>
+    </main>
 
-      <section class="wizard-step" data-step="2">
-        <header class="step-header">
-          <p class="eyebrow">Paso 2 de 8 · Generación</p>
-          <h1>Personas y actividad del campus</h1>
-          <p>Primero indica cuántas personas podrían estar y qué parte suele presentarse. La matrícula y la asistencia diaria son datos distintos.</p>
-        </header>
-        <div id="people-editor" class="segment-grid"></div>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Masa y composición <span>→</span></button></div>
+    <footer class="sube sube-6">
+      <section aria-labelledby="equipo-h">
+        <h2 class="etiqueta" id="equipo-h">Equipo auxiliar · Subcomisión de Difusión</h2>
+        <ul class="equipo">
+          <li>Sara Luz Alvarado Aranda</li>
+          <li>Gabriel Alejandro López Campos</li>
+          <li>Laura Angélica Chávez Tovar</li>
+          <li>Tejeda Gutiérrez Yunoel de Jesús</li>
+          <li>Nancy Picazo Villaseñor</li>
+          <li>Alberto Guerrero Meneses</li>
+          <li>Luis Daniel Martínez Arana <small class="rol">(Alumno)</small></li>
+          <li>Idalia Trujillo Toledo</li>
+        </ul>
       </section>
+      <div class="pie">
+        <p class="lema-unam">«Por mi raza hablará el espíritu»</p>
+        <p class="pie-derecha">FES Acatlán · <span data-campo="anio">2026</span></p>
+      </div>
+    </footer>
 
-      <section class="wizard-step" data-step="3">
-        <header class="step-header">
-          <p class="eyebrow">Paso 3 de 8 · Conversión</p>
-          <h1>De unidades contadas a kilogramos</h1>
-          <p>El modelo convierte las unidades a masa y después la reparte entre orgánico, PET y otros residuos.</p>
-        </header>
+  </article>
+</div>
 
-        <div class="conversion-summary" id="conversion-summary"></div>
-        <div class="composition-layout">
-          <div id="composition-editor" class="parameter-stack"></div>
-          <aside class="composition-card" aria-label="Vista previa de composición">
-            <p class="card-kicker">Cada 100 partes</p>
-            <div class="composition-bar" id="composition-bar"></div>
-            <div id="composition-legend" class="composition-legend"></div>
-            <div id="generation-breakdown" class="generation-breakdown"></div>
-          </aside>
-        </div>
+<aside class="ayuda" aria-label="Ayuda de edición e impresión">
+  <p>Doble clic sobre un texto para cambiarlo</p>
+  <menu>
+    <li><a class="enlace-simulador" href="simulador.html">↗ Abrir simulador</a></li>
+    <li><button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button></li>
+    <li><button type="button" id="btn-imprimir">⎙ Imprimir</button></li>
+  </menu>
+</aside>
 
-        <details class="advanced-panel" id="conversion-advanced">
-          <summary><span>Avanzado · conversión y pesaje</span><small>Requiere una medición o calibración documentada</small></summary>
-          <div class="advanced-warning">Estos datos se multiplican con el desecho por persona. Modifícalos solo si definiste qué es una “unidad” y evitaste contar la misma conversión dos veces.</div>
-          <div class="weight-assistant">
-            <div>
-              <h3>Asistente de pesaje</h3>
-              <p>Pesa juntas varias unidades representativas; calcularemos gramos por unidad.</p>
-            </div>
-            <label class="field"><span class="field-label">Unidades pesadas</span><input id="weight-count" type="number" min="1" step="1" value="200"></label>
-            <label class="field"><span class="field-label">Masa total</span><span class="input-with-unit"><input id="weight-total" type="number" min="0" step="1" value="5000"><span>g</span></span></label>
-            <button class="button secondary" id="apply-weight" type="button">Calcular peso medio</button>
-          </div>
-          <div id="conversion-advanced-editor" class="parameter-stack"></div>
-        </details>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Operación PET <span>→</span></button></div>
-      </section>
+<script>
+/* ═════════════════════════════════════════════════════════════════
+   CONFIG · Edita estos valores para cada nueva entrega.
+   (También puedes editar en pantalla y luego imprimir: los cambios
+   hechos con doble clic viven solo en esa sesión del navegador.)
+   ═══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  tituloEntrega: "Informe de actividades del programa", // nombre del documento que encabeza
+  edicionFeria:  "Feria de Responsabilidad Social",      // edición o contexto de la entrega
+  fecha: "",          // "AAAA-MM-DD" · vacío = fecha de hoy
+  lugar: "",          // p. ej. "Santa Cruz Acatlán, Naucalpan" · vacío = solo la fecha
+  anioInicio: null,   // p. ej. 2013 → calcula "13 años de trabajo sostenido"
+                      // null → "Más de una década de trabajo sostenido"
+};
 
-      <section class="wizard-step" data-step="4">
-        <header class="step-header">
-          <p class="eyebrow">Paso 4 de 8 · Cadena PET</p>
-          <h1>¿Qué puede hacer la operación PET?</h1>
-          <p>Describe alcance, rechazo, procesamiento y el punto a partir del cual el acopio ya se considera saturado.</p>
-        </header>
-        <div class="process-story pet-story" id="pet-story"></div>
-        <div id="pet-editor" class="parameter-grid"></div>
-        <div class="threshold-note"><strong>El umbral no es una pared.</strong><span>El modelo puede acumular más PET; rebasarlo indica saturación operativa.</span></div>
-        <details class="advanced-panel">
-          <summary><span>Avanzado · retrasos internos PET</span><small>Conservar valores de ejemplo si no están medidos</small></summary>
-          <div class="advanced-warning">Estos tiempos cambian inventarios y trayectorias. No equivalen a cobertura, frecuencia de recolección ni capacidad diaria.</div>
-          <div id="pet-advanced-editor" class="parameter-stack"></div>
-        </details>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Operación orgánica <span>→</span></button></div>
-      </section>
+(function(){
+  const $ = (sel) => document.querySelector(sel);
+  const campo = (nombre) => document.querySelector(`[data-campo="${nombre}"]`);
 
-      <section class="wizard-step" data-step="5">
-        <header class="step-header">
-          <p class="eyebrow">Paso 5 de 8 · Cadena orgánica</p>
-          <h1>Separación, fermentación y aplicación</h1>
-          <p>Indica cuánto orgánico puede separarse, cuánto se rechaza, cuándo queda listo y qué tan rápido se aplica.</p>
-        </header>
-        <div class="process-story org-story" id="organic-story"></div>
-        <div id="organic-editor" class="parameter-grid"></div>
-        <div class="wet-mass-note"><span aria-hidden="true">≈</span><p><strong>kg-equivalentes de residuo húmedo</strong>Esta versión no descuenta agua ni emisiones y no calcula masa seca de composta.</p></div>
-        <details class="advanced-panel">
-          <summary><span>Avanzado · estructura orgánica</span><small>Calibración previa a la corrida</small></summary>
-          <div class="advanced-warning">El número de etapas cambia la estructura completa del cálculo y no puede modificarse dentro de un escenario.</div>
-          <div id="organic-advanced-editor" class="parameter-stack"></div>
-        </details>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Participación <span>→</span></button></div>
-      </section>
+  /* ── Fecha (construida en horario local, sin sorpresas de UTC) ── */
+  let f;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(CONFIG.fecha)) {
+    const [a, m, d] = CONFIG.fecha.split("-").map(Number);
+    f = new Date(a, m - 1, d);
+  } else {
+    f = new Date();
+  }
+  const iso = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,"0")}-${String(f.getDate()).padStart(2,"0")}`;
+  const larga = new Intl.DateTimeFormat("es-MX",
+    { day:"numeric", month:"long", year:"numeric" }).format(f);
 
-      <section class="wizard-step" data-step="6">
-        <header class="step-header">
-          <p class="eyebrow">Paso 6 de 8 · Comportamiento</p>
-          <h1>Participación compartida</h1>
-          <p>Es el porcentaje de personas que separa correctamente. El modelo usa el mismo valor para PET y orgánicos y permite que cambie poco a poco.</p>
-        </header>
-        <div class="participation-layout">
-          <div id="participation-editor" class="parameter-stack"></div>
-          <aside class="participation-compare">
-            <p class="card-kicker">Comparación</p>
-            <div class="people-row" id="participation-dots" aria-hidden="true"></div>
-            <div id="participation-caption"></div>
-          </aside>
-        </div>
-        <details class="advanced-panel">
-          <summary><span>Avanzado · calibración de respuesta</span><small>5 supuestos conductuales</small></summary>
-          <div class="advanced-warning">Estos datos cambian retrasos internos o respuestas de comportamiento. Consérvalos si no cuentas con medición o calibración documentada.</div>
-          <div id="feedback-advanced-editor" class="parameter-stack"></div>
-        </details>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Crear escenarios <span>→</span></button></div>
-      </section>
+  const elFecha = campo("fecha");
+  elFecha.textContent = CONFIG.lugar ? `${CONFIG.lugar}, a ${larga}` : larga;
+  elFecha.setAttribute("datetime", iso);
 
-      <section class="wizard-step" data-step="7">
-        <header class="step-header">
-          <p class="eyebrow">Paso 7 de 8 · Decisiones</p>
-          <h1>Escenarios sin escribir JSON</h1>
-          <p>Un escenario cambia datos desde un día. El material ya existente no desaparece ni se reinicia.</p>
-        </header>
-        <div class="scenario-rule"><span aria-hidden="true">⇄</span><p><strong>Conserva siempre “Sin cambio”.</strong> Así podrás comparar una alternativa contra la situación de referencia.</p></div>
-        <div id="scenario-list" class="scenario-list"></div>
-        <div class="scenario-footer">
-          <button class="button secondary" id="add-decision" type="button">+ Agregar decisión</button>
-          <div id="scenario-count" class="scenario-count"></div>
-        </div>
-        <details class="advanced-panel raw-tree-panel">
-          <summary><span>Avanzado · importar o revisar estructura técnica</span><small>JSON completo</small></summary>
-          <div class="advanced-warning">El constructor guiado es la fuente normal. Al aplicar JSON se validarán fechas, rutas y parámetros estructurales.</div>
-          <label class="field"><span class="field-label">Especificación técnica</span><textarea id="tree-spec" rows="14" spellcheck="false"></textarea></label>
-          <button class="button secondary" id="apply-tree-json" type="button">Aplicar JSON al constructor</button>
-        </details>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button primary" data-next type="button">Revisar datos <span>→</span></button></div>
-      </section>
+  /* ── Textos configurables ── */
+  campo("titulo-entrega").textContent = CONFIG.tituloEntrega;
+  campo("edicion-feria").textContent  = CONFIG.edicionFeria;
+  campo("anio").textContent           = f.getFullYear();
 
-      <section class="wizard-step" data-step="8">
-        <header class="step-header">
-          <p class="eyebrow">Paso 8 de 8 · Control previo</p>
-          <h1>Revisa antes de correr</h1>
-          <p>Un resultado puede cerrar matemáticamente y aun así ser poco confiable si sus datos son supuestos.</p>
-        </header>
-        <div id="review-content" class="review-content"></div>
-        <span id="metodo" class="fragment-anchor" aria-hidden="true"></span>
-        <details class="advanced-panel compatibility-panel" id="compatibility-controls">
-          <summary><span>Diagnóstico técnico y compatibilidad</span><small>Controles numéricos de la versión anterior</small></summary>
-          <div class="advanced-warning">Estos controles describen el cálculo, no el campus. Conserva RK4 y el paso verificado salvo que estés diagnosticando la integración numérica.</div>
-          <div class="compatibility-grid">
-            <label class="field">
-              <span class="field-label">Paso de cálculo</span>
-              <span class="input-with-unit"><input id="dt" type="number" min="0.01" max="2" step="0.01" value="0.25"><span>días</span></span>
-            </label>
-            <label class="field">
-              <span class="field-label">Integrador</span>
-              <select id="integrator-method"><option value="rk4">RK4</option><option value="euler">Euler</option></select>
-            </label>
-            <div class="method-status"><span>Método activo</span><strong id="method-pill">RK4</strong></div>
-          </div>
-          <div class="compatibility-actions">
-            <button class="button secondary" id="restore-params" type="button">Restaurar parámetros</button>
-            <button class="button secondary" id="restore-tree" type="button">Restaurar escenarios</button>
-          </div>
-          <div class="tree-preview-wrap">
-            <span class="field-label">Rutas técnicas conservadas</span>
-            <pre id="tree-preview" class="tree-preview"></pre>
-          </div>
-        </details>
-        <label class="confirmation" id="range-confirmation" hidden>
-          <input id="confirm-ranges" type="checkbox">
-          <span><strong>Confirmo los valores fuera del rango de revisión.</strong> Verifiqué sus unidades y documenté una fuente.</span>
-        </label>
-        <label class="confirmation methodology-confirmation">
-          <input id="confirm-methodology" type="checkbox">
-          <span><strong>Entiendo cómo leer esta corrida.</strong> Es un resultado condicionado dentro de las reglas del modelo, no una predicción exacta ni una probabilidad.</span>
-        </label>
-        <div class="step-actions"><button class="button ghost" data-prev type="button">Atrás</button><button class="button run-button" id="run-model" type="button"><span>Calcular escenarios</span><small id="run-estimate">8 combinaciones · 180 días</small></button></div>
-      </section>
+  if (Number.isInteger(CONFIG.anioInicio)) {
+    const anios = f.getFullYear() - CONFIG.anioInicio;
+    if (anios > 0) {
+      campo("lema-aniversario").textContent =
+        `Aniversario · ${anios} años de trabajo sostenido`;
+    }
+  }
 
-      <section class="wizard-step results-view" data-step="9">
-        <header class="results-header">
-          <div>
-            <p class="eyebrow">Resultados condicionados</p>
-            <h1>Compara trayectorias, no certezas.</h1>
-            <p id="run-summary">Selecciona una combinación y revisa primero el destino, después los productos y el inventario pendiente.</p>
-          </div>
-          <span class="illustrative-tag" id="illustrative-tag">Corrida ilustrativa</span>
-        </header>
-        <div class="methodology-banner"><strong>Cómo leer esta corrida.</strong><span>Con los mismos datos produce el mismo resultado. No asigna probabilidades, no representa imprevistos y no muestra intervalos de incertidumbre.</span></div>
+  /* ── Escudos opcionales: si la imagen no existe, se oculta ── */
+  document.querySelectorAll(".escudo img").forEach((img) => {
+    const ocultar = () => img.parentElement.classList.add("vacio");
+    img.addEventListener("error", ocultar);
+    if (img.complete && img.naturalWidth === 0) ocultar();
+  });
 
-        <div class="route-toolbar">
-          <label class="field"><span class="field-label">Combinación de decisiones</span><select id="leaf-select"></select></label>
-          <div id="route-description" class="route-description"></div>
-        </div>
+  /* ── Edición en pantalla ── */
+  const campos = [...document.querySelectorAll("[data-campo]")];
+  const btnEditar = $("#btn-editar");
+  let edicion = false;
 
-        <section class="result-section">
-          <div class="section-title"><span>01</span><div><h2>Destino de la masa</h2><p>Totales acumulados desde el inicio hasta el final del periodo.</p></div></div>
-          <div class="mass-ledger">
-            <article><span>Residuo generado</span><strong id="kpi-generated">—</strong><small>No es kg/día ni una medición observada</small></article>
-            <span class="ledger-symbol" aria-hidden="true">−</span>
-            <article><span>Enviado a relleno</span><strong id="kpi-landfill">—</strong><small>Resto directo, no capturado y rechazos</small></article>
-            <span class="ledger-symbol" aria-hidden="true">=</span>
-            <article class="featured"><span>Desvío neto</span><strong id="kpi-diversion">—</strong><small id="kpi-diversion-pct">Incluye material pendiente</small></article>
-          </div>
-          <p class="interpretation-note"><strong>No significa “reciclado con éxito”.</strong> El desvío incluye filamento, composta aplicada y material que todavía sigue almacenado o en proceso.</p>
-        </section>
+  function fijarEdicion(activa){
+    edicion = activa;
+    campos.forEach((c) => c.contentEditable = activa ? "true" : "false");
+    document.body.classList.toggle("modo-edicion", activa);
+    btnEditar.setAttribute("aria-pressed", String(activa));
+    btnEditar.textContent = activa ? "✓ Terminar edición" : "✎ Editar textos";
+  }
+  btnEditar.addEventListener("click", () => fijarEdicion(!edicion));
 
-        <section class="result-section">
-          <div class="section-title"><span>02</span><div><h2>Productos útiles e inventario pendiente</h2><p>Se muestran juntos para que el desvío no oculte material aún sin destino final.</p></div></div>
-          <div class="kpi-grid" id="kpi-grid">
-            <article class="kpi"><span>Filamento producido acumulado</span><strong id="kpi-filament">—</strong><small>No es ritmo diario, valor económico ni calidad</small></article>
-            <article class="kpi"><span>Composta aplicada acumulada</span><strong id="kpi-compost">—</strong><small>kg-equivalentes de residuo húmedo</small></article>
-            <article class="kpi pending"><span>Material pendiente al final</span><strong id="pending-inventory">—</strong><small>Permanece disperso, almacenado o en proceso</small></article>
-          </div>
-        </section>
+  campos.forEach((c) => {
+    c.addEventListener("dblclick", () => {
+      if (edicion) return;
+      c.contentEditable = "true";
+      c.focus();
+    });
+    c.addEventListener("blur", () => { if (!edicion) c.contentEditable = "false"; });
+  });
 
-        <section class="result-section">
-          <div class="section-title"><span>03</span><div><h2>Operación PET y participación</h2><p>El umbral describe saturación; no detiene la acumulación.</p></div></div>
-          <div class="kpi-grid four">
-            <article class="kpi"><span>Mayor PET esperando proceso</span><strong id="kpi-backlog">—</strong><small id="kpi-backlog-day">—</small></article>
-            <article class="kpi"><span>Tiempo sobre el umbral</span><strong id="kpi-saturated">—</strong><small id="saturation-status">—</small></article>
-            <article class="kpi"><span>Participación al final</span><strong id="kpi-participation">—</strong><small>Valor modelado, no encuesta</small></article>
-            <article class="kpi balance"><span>Control de balance</span><strong id="mass-balance-status">—</strong><small id="mass-error">—</small></article>
-          </div>
+  $("#btn-imprimir").addEventListener("click", () => window.print());
 
-          <div class="chart-grid">
-            <article class="chart-card">
-              <div class="chart-heading"><div><span>Stocks operativos</span><h3>Material esperando o en proceso</h3></div><div class="legend"><span class="pet-line">PET acopiado</span><span class="org-line">En fermentación</span><span class="ready-line">Composta lista</span></div></div>
-              <svg id="stocks-chart" class="chart" viewBox="0 0 760 300" role="img" aria-label="Serie temporal de inventarios operativos"></svg>
-            </article>
-            <article class="chart-card participation-chart-card">
-              <div class="chart-heading"><div><span>Participación modelada</span><h3>Cambio durante el periodo</h3></div><strong id="terminal-participation-label">—</strong></div>
-              <svg id="participation-chart" class="chart" viewBox="0 0 760 220" role="img" aria-label="Serie temporal de participación modelada"></svg>
-            </article>
-          </div>
-        </section>
-
-        <section class="result-section comparison-section">
-          <div class="section-title"><span>04</span><div><h2>Comparar combinaciones</h2><p>Fija una situación de referencia; las diferencias no representan probabilidades ni un ranking.</p></div></div>
-          <label class="baseline-select"><span>Situación de referencia</span><select id="baseline-select"></select></label>
-          <div class="table-scroll" tabindex="0" role="region" aria-label="Comparación desplazable de combinaciones"><table><thead><tr><th>Combinación</th><th>Desvío neto</th><th>Relleno</th><th>Filamento</th><th>Composta</th><th>PET máximo</th><th>Pendiente</th></tr></thead><tbody id="comparison-body"></tbody></table></div>
-        </section>
-
-        <section class="result-section evidence-section">
-          <div class="section-title"><span>05</span><div><h2>Qué sostiene este resultado</h2><p>Es una dependencia estructural conservadora, no un análisis de sensibilidad ni una prueba de causa.</p></div></div>
-          <details><summary id="assumption-summary">Ver parámetros supuestos</summary><ul id="assumption-list" class="assumption-list"></ul></details>
-          <div class="limits-card"><strong>Límites de esta versión</strong><p>Solo distingue PET, orgánico y resto; el resto va directo a relleno. La composta conserva kg-equivalentes húmedos, PET y orgánico comparten una participación y todos los inventarios empiezan en cero.</p></div>
-        </section>
-
-        <section class="export-panel">
-          <div><p class="eyebrow">Registro reproducible</p><h2>Exportar resultados y fuentes</h2><p>Los archivos incluyen versión, commit base, periodo, advertencia metodológica y supuestos iniciales.</p></div>
-          <div class="export-actions">
-            <button class="button secondary" id="export-indicators" type="button">Indicadores CSV</button>
-            <button class="button secondary" id="export-trajectory" type="button">Trayectoria CSV</button>
-            <button class="button secondary" id="export-parameters" type="button">Parámetros y fuentes</button>
-            <button class="button secondary" id="export-dictionary" type="button">Diccionario de datos</button>
-          </div>
-        </section>
-        <div class="results-actions"><button class="button ghost" id="back-to-review" type="button">Volver a la revisión</button><button class="button primary" id="new-exploration" type="button">Nueva exploración</button></div>
-      </section>
-    </div>
-  </main>
-
-  <footer>
-    <div><strong>Explorador de residuos · FES Acatlán</strong><span>Comparación determinista con trazabilidad de datos</span></div>
-    <div><a href="GUIA_USUARIO.md">Guía de usuario</a><a href="README.md">Documentación técnica</a><a href="tests.html">Suite de pruebas</a></div>
-  </footer>
-
-  <script type="module" src="app.js"></script>
+  /* ── Escala para caber en cualquier pantalla (móvil incluido) ── */
+  const escenario = $(".escenario");
+  function ajustar(){
+    const disponible = document.documentElement.clientWidth - 16;
+    const s = Math.min(1, disponible / 816);
+    document.documentElement.style.setProperty("--escala", s);
+    escenario.style.height = `${1056 * s + 160}px`;
+  }
+  ajustar();
+  addEventListener("resize", ajustar);
+})();
+</script>
 </body>
 </html>
