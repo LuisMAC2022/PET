@@ -3,6 +3,7 @@ name: Integrar map_demo
 on:
   pull_request:
     branches: [sol_sim]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
   contents: write
