@@ -9,22 +9,20 @@ permissions:
 
 jobs:
   integrate:
+    if: github.head_ref == 'agent/map-demo-sync-final'
     runs-on: ubuntu-latest
     steps:
       - name: Preparar repositorio
         uses: actions/checkout@v4
         with:
-          ref: agent/map-demo-sync
+          ref: agent/map-demo-sync-final
           fetch-depth: 0
 
-      - name: Reconstruir desde sol_sim
+      - name: Copiar map_demo y actualizar navegación
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin sol_sim
-          git reset --hard origin/sol_sim
           git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
-
           rm -rf map_demo
           mkdir -p map_demo
           (cd /tmp/map-demo && tar --exclude='.git' -cf - .) | (cd map_demo && tar -xf -)
@@ -51,7 +49,7 @@ jobs:
           path.write_text(text.replace(old_css, new_css, 1).replace(old_link, new_link, 1), encoding='utf-8')
           PY
 
-          rm -f SYNC_REQUEST.md CONTROL_CONTEXT.txt TARGET_CONTEXT.txt DEST_CONTEXT.txt TEST_RESULTS.txt REBASE_REQUEST.md
+          rm -f FINAL_SYNC_REQUEST.md
           rm -f .github/workflows/sync-map-demo.yml
 
       - name: Validar copia y navegación
@@ -72,15 +70,15 @@ jobs:
           PY
           npm run check
 
-      - name: Registrar estado de pruebas existentes
+      - name: Registrar prueba heredada
         shell: bash
         run: |
           set +e
           npm test
-          echo "Las pruebas de compatibilidad pueden fallar porque la rama ya usa una carátula como index.html y la prueba antigua exige #simulador en ese archivo."
+          echo "La prueba de compatibilidad heredada exige #simulador en index.html, aunque esta rama ya usa una carátula como página raíz."
           exit 0
 
-      - name: Publicar commit limpio
+      - name: Publicar integración
         shell: bash
         run: |
           set -euo pipefail
@@ -88,4 +86,4 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
           git commit -m "Integra map_demo y agrega navegación al modelo"
-          git push --force origin HEAD:agent/map-demo-sync
+          git push origin HEAD:agent/map-demo-sync-final
