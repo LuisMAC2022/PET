@@ -249,7 +249,8 @@
     z-index:10; max-width:calc(100vw - 24px);
   }
   .ayuda p{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .ayuda menu{ list-style:none; display:flex; gap:8px; padding:0; }
+  .ayuda menu{ list-style:none; display:grid; gap:8px; padding:0; }
+.ayuda menu li{ display:flex; gap:8px; }
   .ayuda button,
   .ayuda .enlace-simulador{
     font:inherit; font-weight:640; cursor:pointer;
@@ -408,7 +409,10 @@
 <aside class="ayuda" aria-label="Ayuda de edición e impresión">
   <p>Doble clic sobre un texto para cambiarlo</p>
   <menu>
-    <li><a class="enlace-simulador" href="simulador.html">↗ Abrir simulador</a></li>
+    <li class="fila-enlaces">
+    <a class="enlace-simulador" href="map_demo/presentacion.html#modelo">Explorar modelo</a>
+    <a class="enlace-simulador" href="simulador.html">Ver simulación</a>
+  </li>
     <li><button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button></li>
     <li><button type="button" id="btn-imprimir">⎙ Imprimir</button></li>
   </menu>

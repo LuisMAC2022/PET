@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Simulador educativo del acopio y la preparación de residuos orgánicos para compostaje.">
+  <title>4 · Simulación de compostaje | Proyecto hermano Ciclo Tierra</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --panel: #fffdf8;
+      --ink: #183229;
+      --muted: #67736b;
+      --line: #d9d2c3;
+      --forest: #1f5b3a;
+      --forest-dark: #123d28;
+      --leaf: #7daa56;
+      --ochre: #c89445;
+      --clay: #a85c3b;
+      --bad: #a33a32;
+      --good: #26724a;
+      --warning-bg: #fbf0d9;
+      --shadow: 0 16px 40px rgba(24,50,41,.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% -10%, rgba(125,170,86,.18), transparent 34%),
+        var(--paper);
+    }
+
+    button, input, select { font: inherit; }
+
+    :focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; }
+
+    header {
+      padding: 1.1rem clamp(1rem, 3vw, 2rem) 1.2rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,253,248,.94);
+    }
+
+    .project-nav {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .5rem;
+      max-width: 1080px;
+      margin: 0 0 1rem;
+    }
+
+    .project-nav a {
+      display: grid;
+      gap: .12rem;
+      border: 1px solid var(--line);
+      border-radius: .7rem;
+      padding: .55rem .65rem;
+      color: var(--ink);
+      background: white;
+      text-decoration: none;
+    }
+
+    .project-nav a:hover { border-color: var(--forest); }
+
+    .project-nav a[aria-current="page"] {
+      border-color: var(--forest-dark);
+      color: white;
+      background: var(--forest-dark);
+    }
+
+    .project-nav strong { font-size: .76rem; }
+    .project-nav span { color: var(--muted); font-size: .66rem; line-height: 1.25; }
+    .project-nav a[aria-current="page"] span { color: #dce9e0; }
+
+    .eyebrow {
+      margin: 0 0 .35rem;
+      color: var(--clay);
+      font-size: .69rem;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.7rem, 4vw, 2.65rem);
+      line-height: 1;
+      letter-spacing: -.03em;
+    }
+
+    .sub {
+      margin: .4rem 0 0;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.45;
+    }
+
+    .phase-objective {
+      max-width: 1080px;
+      margin-top: .85rem;
+      border-left: 4px solid var(--leaf);
+      border-radius: 0 .65rem .65rem 0;
+      padding: .7rem .8rem;
+      color: #31523f;
+      background: #edf5ed;
+      font-size: .76rem;
+      line-height: 1.45;
+    }
+
+    .phase-objective a { color: inherit; font-weight: 800; }
+
+    main {
+      display: grid;
+      grid-template-columns: 270px minmax(330px, 1fr) 320px;
+      gap: .9rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: .9rem;
+    }
+
+    section, aside {
+      min-height: 160px;
+      border: 1px solid var(--line);
+      border-radius: .85rem;
+      padding: .9rem;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 { margin: 0 0 .65rem; font-size: 1rem; }
+
+    h3 {
+      margin: 1rem 0 .5rem;
+      color: var(--muted);
+      font-size: .7rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    button, input, select {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      padding: .62rem .7rem;
+      color: var(--ink);
+      background: white;
+    }
+
+    button { cursor: pointer; font-weight: 750; }
+    button:hover:not(:disabled) { border-color: var(--forest); background: #f4f8f3; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+
+    .primary {
+      border-color: var(--forest);
+      color: white;
+      background: var(--forest);
+    }
+
+    .primary:hover:not(:disabled) { color: white; background: var(--forest-dark); }
+
+    .stack { display: grid; gap: .5rem; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+
+    .score {
+      margin: .1rem 0 .8rem;
+      color: var(--forest-dark);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .score-label { color: var(--muted); font-size: .7rem; }
+
+    .bar {
+      height: .8rem;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f3f0e8;
+    }
+
+    .fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--leaf), var(--forest));
+      transition: width .18s ease;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      min-height: 1.55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .1rem .5rem;
+      color: var(--ink);
+      background: #f8f5ed;
+      font-size: .68rem;
+      font-weight: 750;
+    }
+
+    .generation-controls {
+      display: grid;
+      gap: .55rem;
+      border: 1px solid var(--line);
+      border-radius: .7rem;
+      padding: .7rem;
+      background: #f9f7f0;
+    }
+
+    .generation-controls label {
+      display: grid;
+      gap: .28rem;
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 750;
+    }
+
+    .generation-controls input,
+    .generation-controls select { width: 100%; }
+
+    .batch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+      gap: .65rem;
+      align-content: start;
+    }
+
+    .batch {
+      display: grid;
+      justify-items: stretch;
+      width: 100%;
+      min-height: 170px;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: .65rem;
+      text-align: left;
+      background: white;
+    }
+
+    .batch.selected { outline: 3px solid var(--ochre); border-color: var(--ochre); }
+    .batch.ready { border-color: var(--good); }
+    .batch.risk { border-color: #d9aaa3; }
+
+    .batch-title { display: block; margin-bottom: .45rem; text-align: center; font-size: .72rem; }
+
+    .mini-svg { display: block; width: 70px; height: 68px; margin: 0 auto .45rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: .25rem; justify-content: center; }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .12rem .38rem;
+      color: var(--muted);
+      font-size: .57rem;
+      line-height: 1.25;
+      background: #fff;
+    }
+
+    .tag.bad { color: var(--bad); border-color: #e3b2ad; background: #fff6f4; }
+    .tag.good { color: var(--good); border-color: #b8d7c4; background: #f4faf5; }
+
+    .yield {
+      margin-top: .5rem;
+      color: var(--forest);
+      font-size: .72rem;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .yield.zero { color: var(--bad); }
+
+    .details {
+      min-height: 148px;
+      border: 1px dashed var(--line);
+      border-radius: .7rem;
+      padding: .7rem;
+      background: #f9f7f0;
+    }
+
+    .details p { margin: .45rem 0 0; }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+
+    .guide, .log {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      font-size: .69rem;
+      line-height: 1.42;
+    }
+
+    .guide li + li, .log li + li { margin-top: .35rem; }
+
+    .log { max-height: 150px; overflow: auto; }
+
+    .next-step {
+      padding-top: .55rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .7rem;
+      line-height: 1.4;
+    }
+
+    .message {
+      min-height: 2.2rem;
+      margin-top: .65rem;
+      border-radius: .55rem;
+      padding: .5rem .6rem;
+      color: #704d17;
+      background: var(--warning-bg);
+      font-size: .7rem;
+      font-weight: 750;
+      line-height: 1.35;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .message.show { opacity: 1; }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: .7rem;
+      padding: 1rem;
+      color: var(--muted);
+      font-size: .76rem;
+      text-align: center;
+    }
+
+    .method-note {
+      margin-top: .75rem;
+      border-radius: .65rem;
+      padding: .65rem;
+      color: #60491f;
+      background: #f7eedb;
+      font-size: .66rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 1040px) {
+      main { grid-template-columns: 250px 1fr; }
+      main > aside:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 760px) {
+      .project-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { grid-template-columns: 1fr; }
+      main > aside:last-child { grid-column: auto; }
+    }
+
+    @media (max-width: 480px) {
+      .project-nav { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="project-nav" aria-label="Recorrido del proyecto Ciclo Tierra">
+      <a href="presentacion.html#estimacion"><strong>1 · Estimación</strong><span>Balance de masa y supuestos.</span></a>
+      <a href="presentacion.html#propuesta"><strong>2 · Propuesta</strong><span>Servicio, protocolo y validación.</span></a>
+      <a href="index.html"><strong>3 · Mapa</strong><span>Red operativa del piloto.</span></a>
+      <a href="compostaje_fase1.html" aria-current="page"><strong>4 · Simulación</strong><span>Practica el ciclo de preparación.</span></a>
+      <a href="../proyectos.html"><strong>Proyectos hermanos</strong><span>Selector de PET y Ciclo Tierra.</span></a>
+    </nav>
+    <p class="eyebrow">Ciclo Tierra · fase 4</p>
+    <h1 id="titulo">Simulador de preparación para compostaje</h1>
+    <p class="sub" id="subtitulo">Recolecta → separa impropios → trocea → equilibra → airea → incorpora a la pila.</p>
+    <div class="phase-objective"><strong>Objetivo mínimo:</strong> preparar un aporte y observar cómo impropios, estructura, humedad y aireación cambian su composta potencial. El resultado representa material que <em>entraría</em> a proceso; no sustituye descomposición, monitoreo ni curado. <a href="presentacion.html#fase-4">Ver validación</a>.</div>
+  </header>
+
+  <main>
+    <aside aria-labelledby="state-title">
+      <h2 id="state-title">Estado de la estación</h2>
+      <div class="score" id="composta">0.00 kg</div>
+      <div class="score-label">composta potencial acumulada después de proceso y curado</div>
+
+      <h3>Inventario de ruta</h3>
+      <div class="row"><span class="sub">Carga</span><span class="pill" id="pesoTexto">0.0 / 10.0 kg</span></div>
+      <div class="bar" aria-hidden="true"><div class="fill" id="inventarioBar"></div></div>
+
+      <h3>Acopio</h3>
+      <div class="row"><span class="sub">Instancia</span><span class="pill" id="contenedorNombre">demo</span></div>
+      <div class="row"><span class="sub">Orgánicos disponibles</span><span class="pill" id="contenedorCantidad">0 kg</span></div>
+      <div class="row"><span class="sub">Capacidad propuesta</span><span class="pill" id="contenedorCapacidad">80 kg</span></div>
+      <div class="bar" aria-hidden="true"><div class="fill" id="contenedorBar"></div></div>
+
+      <h3>Llegadas Poisson no homogéneas</h3>
+      <div class="generation-controls">
+        <label>Tasa base de la estación (kg/h simulada)
+          <input id="tasaGeneracion" type="number" min="0" max="200" step="0.5" inputmode="decimal" disabled>
+        </label>
+        <label>Perfil horario
+          <select id="perfilGeneracion" disabled>
+            <option value="campus">Actividad distribuida</option>
+            <option value="desayuno">Pico de desayuno</option>
+            <option value="comida">Pico de comida</option>
+          </select>
+        </label>
+        <div class="row"><span class="sub">Intensidad λ(t)</span><span class="pill" id="lambdaActual">0.0 kg/h</span></div>
+        <div class="row"><span class="sub">Hora simulada</span><span class="pill" id="horaSimulada">00:00</span></div>
+        <button id="btnAlternarGeneracion" type="button" disabled>Pausar llegadas</button>
+        <p class="sub">Escala del demo: 1 segundo real = 1 minuto simulado.</p>
+      </div>
+
+      <h3>Ciclo</h3>
+      <div class="stack">
+        <button id="btnGenerar" type="button" disabled>+ generar 1 kg de orgánicos</button>
+        <button class="primary" id="btnRecolectar" type="button" disabled>Recolectar 1 kg</button>
+        <button id="btnIncorporar" type="button" disabled>Incorporar aporte seleccionado</button>
+        <button id="btnIncorporarTodo" type="button" disabled>Incorporar todo el inventario</button>
+        <button id="btnVolverMapa" type="button">Volver al mapa</button>
+        <button id="btnVerTareas" type="button">Elegir una tarea del proyecto</button>
+      </div>
+      <div id="mensaje" class="message" role="status" aria-live="polite"></div>
+    </aside>
+
+    <section aria-labelledby="inventory-title">
+      <div class="row">
+        <h2 id="inventory-title">Aportes recolectados</h2>
+        <span class="pill" id="inventarioCantidad">0 aportes</span>
+      </div>
+      <div id="inventario" class="batch-grid"></div>
+      <div class="method-note"><strong>Regla didáctica:</strong> cada tarjeta representa 1 kg de residuo húmedo. El rendimiento máximo inicial del demo es 0.38 kg de composta potencial por kg recolectado; debe calibrarse con balances reales de masa, humedad y maduración.</div>
+    </section>
+
+    <aside aria-labelledby="process-title">
+      <h2 id="process-title">Preparar el aporte</h2>
+      <div id="detalle" class="details empty">Selecciona un aporte del inventario.</div>
+
+      <h3>Acciones</h3>
+      <div class="actions">
+        <button data-accion="separar" type="button" disabled>Separar impropios</button>
+        <button data-accion="trocear" type="button" disabled>Trocear</button>
+        <button data-accion="agregarSecos" type="button" disabled>Agregar secos</button>
+        <button data-accion="ajustarHumedad" type="button" disabled>Ajustar humedad</button>
+        <button data-accion="airear" type="button" disabled>Mezclar y airear</button>
+      </div>
+
+      <h3>Orden recomendado</h3>
+      <p class="sub">separar → trocear → agregar secos → ajustar humedad → mezclar y airear</p>
+
+      <h3>Por qué importa</h3>
+      <ol class="guide">
+        <li><strong>Separar:</strong> evita que plástico, vidrio o metal lleguen a la composta.</li>
+        <li><strong>Trocear:</strong> homogeneiza el tamaño y aumenta la superficie disponible.</li>
+        <li><strong>Agregar secos:</strong> aporta carbono y porosidad a un residuo de cocina húmedo.</li>
+        <li><strong>Ajustar humedad:</strong> el exceso desplaza oxígeno; la falta de agua frena la actividad microbiana.</li>
+        <li><strong>Airear:</strong> distribuye la mezcla y favorece condiciones aerobias.</li>
+      </ol>
+
+      <h3>Registro</h3>
+      <ol id="log" class="log"></ol>
+    </aside>
+  </main>
+
+  <script>
+    const CAPACIDAD_INVENTARIO_KG = 10;
+    const CAPACIDAD_PREDETERMINADA_KG = 80;
+    const TASA_PREDETERMINADA_KG_HORA = 8;
+    const MS_POR_MINUTO_SIMULADO = 1000;
+    const INTERVALO_ACTUALIZACION_MS = 1000;
+    const MAX_MINUTOS_RECUPERACION = 3 * 24 * 60;
+    const STORAGE_KEY_GLOBAL = "cicloTierra:compostaje:v1:global";
+
+    const RENDIMIENTO_MAXIMO_KG = 0.38;
+    const EVENTOS_ORGANICOS = Object.freeze({
+      GENERAR: "organicos:generar",
+      CONFIGURAR: "organicos:configurar-generacion",
+      PAUSAR: "organicos:pausar-generacion",
+      REANUDAR: "organicos:reanudar-generacion",
+      GENERADO: "organicos:aporte-generado",
+      ESTADO: "organicos:estado-generacion"
+    });
+
+    const PERFILES = Object.freeze({
+      campus: normalizarPerfil([
+        .08,.06,.05,.05,.06,.12,.35,.85,1.25,1.2,1.05,1.15,
+        1.55,1.65,1.45,1.25,1.05,.85,.60,.40,.28,.20,.14,.10
+      ]),
+      desayuno: normalizarPerfil([
+        .06,.05,.04,.04,.08,.28,.85,1.8,2.25,1.85,1.2,.85,
+        .70,.65,.58,.50,.42,.35,.28,.22,.17,.13,.10,.08
+      ]),
+      comida: normalizarPerfil([
+        .06,.05,.04,.04,.05,.09,.20,.40,.60,.75,.95,1.35,
+        2.15,2.35,2.0,1.45,1.05,.78,.55,.38,.26,.18,.12,.09
+      ])
+    });
+
+    const TIPOS_APORTE = Object.freeze([
+      { id: "fruta", nombre: "fruta y verdura", color: "#7daa56" },
+      { id: "cafe", nombre: "café y filtros", color: "#8a5a3b" },
+      { id: "poda", nombre: "poda blanda", color: "#4f8a55" }
+    ]);
+
+    const params = new URLSearchParams(location.search);
+    const INSTANCIA_ID = limpiar(params.get("contenedor") || params.get("id") || "demo");
+    const INSTANCIA_NOMBRE = params.get("nombre") || INSTANCIA_ID;
+    const TASA_URL = numeroFinito(params.get("tasa"), null);
+    const PERFIL_URL = PERFILES[params.get("perfil")] ? params.get("perfil") : null;
+    const CONTENEDORES_RESPALDO = Array.from({ length: 6 }, (_, index) => ({
+      id: `A-${String(index + 1).padStart(2, "0")}`,
+      nombre: `Acopio demostrativo ${String(index + 1).padStart(2, "0")}`,
+      capacidadKg: CAPACIDAD_PREDETERMINADA_KG
+    }));
+
+    let catalogoContenedores = [];
+    let estadoGlobal = null;
+    let estado = null;
+    let timerGeneracion = null;
+
+    function normalizarPerfil(valores) {
+      const media = valores.reduce((suma, valor) => suma + valor, 0) / valores.length;
+      return Object.freeze(valores.map(valor => valor / media));
+    }
+
+    function numeroFinito(valor, respaldo) {
+      if (valor === null || valor === undefined || valor === "") return respaldo;
+      const numero = Number(valor);
+      return Number.isFinite(numero) ? numero : respaldo;
+    }
+
+    function limpiar(valor) {
+      return String(valor || "demo").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "demo";
+    }
+
+    function esObjeto(valor) {
+      return !!valor && typeof valor === "object" && !Array.isArray(valor);
+    }
+
+    function crearReloj(ahoraMs) {
+      const fecha = new Date(ahoraMs);
+      return { origenRealMs: ahoraMs, minutoOrigen: fecha.getHours() * 60 + fecha.getMinutes() + fecha.getSeconds() / 60 };
+    }
+
+    function normalizarReloj(entrada, ahoraMs) {
+      if (!esObjeto(entrada)) return crearReloj(ahoraMs);
+      return {
+        origenRealMs: numeroFinito(entrada.origenRealMs, ahoraMs),
+        minutoOrigen: numeroFinito(entrada.minutoOrigen, crearReloj(ahoraMs).minutoOrigen)
+      };
+    }
+
+    function minutoSimulado(ahoraMs, global = estadoGlobal) {
+      const reloj = global?.reloj || crearReloj(ahoraMs);
+      return reloj.minutoOrigen + (ahoraMs - reloj.origenRealMs) / MS_POR_MINUTO_SIMULADO;
+    }
+
+    function minutoDelDia(minuto) { return ((minuto % 1440) + 1440) % 1440; }
+    function horaDeMinuto(minuto) { return Math.floor(minutoDelDia(minuto) / 60); }
+
+    function formatoHoraSimulada(minutoAbsoluto) {
+      const minuto = Math.floor(minutoDelDia(minutoAbsoluto));
+      return `${String(Math.floor(minuto / 60)).padStart(2, "0")}:${String(minuto % 60).padStart(2, "0")}`;
+    }
+
+    function aporteNuevoPara(destino) {
+      const tipo = TIPOS_APORTE[Math.floor(Math.random() * TIPOS_APORTE.length)];
+      return {
+        id: destino.siguienteId++,
+        tipo: tipo.id,
+        tipoNombre: tipo.nombre,
+        color: tipo.color,
+        tieneImpropios: Math.random() < .38,
+        troceado: false,
+        tieneSecos: false,
+        humedad: "alta",
+        aireado: false,
+        masaKg: 1
+      };
+    }
+
+    function crearEstadoInicial(meta, global, ahoraMs) {
+      const tasa = meta.id === INSTANCIA_ID && TASA_URL !== null ? TASA_URL : numeroFinito(meta.tasaHora, TASA_PREDETERMINADA_KG_HORA);
+      const perfil = meta.id === INSTANCIA_ID && PERFIL_URL ? PERFIL_URL : (PERFILES[meta.perfil] ? meta.perfil : "campus");
+      const inicial = {
+        id: meta.id,
+        nombre: meta.nombre || meta.id,
+        compostaKg: 0,
+        rechazados: 0,
+        contenedor: [],
+        inventario: [],
+        seleccion: null,
+        siguienteId: 1,
+        generacionActiva: true,
+        tasaHora: Math.min(200, Math.max(0, tasa)),
+        perfil,
+        capacidadKg: Math.max(1, Math.floor(numeroFinito(meta.capacidadKg, CAPACIDAD_PREDETERMINADA_KG))),
+        ultimaGeneracionMinuto: minutoSimulado(ahoraMs, global)
+      };
+      for (let i = 0; i < 4; i += 1) inicial.contenedor.push(aporteNuevoPara(inicial));
+      return inicial;
+    }
+
+    function normalizarAporte(aporte, idRespaldo) {
+      const tipo = TIPOS_APORTE.find(item => item.id === aporte?.tipo) || TIPOS_APORTE[0];
+      const id = Number(aporte?.id);
+      return {
+        id: Number.isInteger(id) && id > 0 ? id : idRespaldo,
+        tipo: tipo.id,
+        tipoNombre: String(aporte?.tipoNombre || tipo.nombre),
+        color: String(aporte?.color || tipo.color),
+        tieneImpropios: aporte?.tieneImpropios !== false,
+        troceado: !!aporte?.troceado,
+        tieneSecos: !!aporte?.tieneSecos,
+        humedad: ["alta", "optima", "baja"].includes(aporte?.humedad) ? aporte.humedad : "alta",
+        aireado: !!aporte?.aireado,
+        masaKg: Math.max(.1, numeroFinito(aporte?.masaKg, 1))
+      };
+    }
+
+    function normalizarEstadoContenedor(entrada, meta, global, ahoraMs) {
+      if (!esObjeto(entrada)) return crearEstadoInicial(meta, global, ahoraMs);
+      let siguienteId = Math.max(1, Math.floor(numeroFinito(entrada.siguienteId, 1)));
+      const normalizarLista = lista => (Array.isArray(lista) ? lista : []).map(aporte => {
+        const normalizado = normalizarAporte(aporte, siguienteId);
+        siguienteId = Math.max(siguienteId, normalizado.id + 1);
+        return normalizado;
+      });
+      const contenedor = normalizarLista(entrada.contenedor);
+      const inventario = normalizarLista(entrada.inventario);
+      const seleccionNumero = Number(entrada.seleccion);
+      const seleccion = Number.isInteger(seleccionNumero) && inventario.some(aporte => aporte.id === seleccionNumero) ? seleccionNumero : null;
+      return {
+        id: meta.id,
+        nombre: String(entrada.nombre || meta.nombre || meta.id),
+        compostaKg: Math.max(0, numeroFinito(entrada.compostaKg, 0)),
+        rechazados: Math.max(0, Math.floor(numeroFinito(entrada.rechazados, 0))),
+        contenedor,
+        inventario,
+        seleccion,
+        siguienteId,
+        generacionActiva: entrada.generacionActiva !== false,
+        tasaHora: Math.min(200, Math.max(0, numeroFinito(entrada.tasaHora, numeroFinito(meta.tasaHora, TASA_PREDETERMINADA_KG_HORA)))),
+        perfil: PERFILES[entrada.perfil] ? entrada.perfil : (PERFILES[meta.perfil] ? meta.perfil : "campus"),
+        capacidadKg: Math.max(1, Math.floor(numeroFinito(entrada.capacidadKg, numeroFinito(meta.capacidadKg, CAPACIDAD_PREDETERMINADA_KG)))),
+        ultimaGeneracionMinuto: numeroFinito(entrada.ultimaGeneracionMinuto, minutoSimulado(ahoraMs, global))
+      };
+    }
+
+    async function cargarCatalogoContenedores() {
+      try {
+        const respuesta = await fetch("puntos.json", { cache: "no-store" });
+        if (!respuesta.ok) throw new Error(`No se pudo cargar puntos.json (${respuesta.status})`);
+        const puntos = await respuesta.json();
+        const catalogo = (Array.isArray(puntos) ? puntos : [])
+          .filter(punto => punto?.id && normalizarTexto(punto.categoria).includes("acopio"))
+          .map(punto => ({
+            id: limpiar(punto.id),
+            nombre: String(punto.nombre || punto.id),
+            tasaHora: numeroFinito(punto.tasa_kg_hora, TASA_PREDETERMINADA_KG_HORA),
+            perfil: PERFILES[punto.perfil_organicos] ? punto.perfil_organicos : "campus",
+            capacidadKg: numeroFinito(punto.capacidad_kg, CAPACIDAD_PREDETERMINADA_KG)
+          }));
+        if (catalogo.length) return catalogo;
+      } catch (error) {
+        console.warn("No se pudo cargar el catálogo de orgánicos; se usará el respaldo.", error);
+      }
+      return CONTENEDORES_RESPALDO.map(meta => ({ ...meta, tasaHora: TASA_PREDETERMINADA_KG_HORA, perfil: "campus" }));
+    }
+
+    function metaActual() {
+      return catalogoContenedores.find(meta => meta.id === INSTANCIA_ID) || {
+        id: INSTANCIA_ID,
+        nombre: INSTANCIA_NOMBRE,
+        tasaHora: TASA_PREDETERMINADA_KG_HORA,
+        perfil: "campus",
+        capacidadKg: CAPACIDAD_PREDETERMINADA_KG
+      };
+    }
+
+    function leerJSONLocal(clave) {
+      try { return JSON.parse(localStorage.getItem(clave) || "null"); }
+      catch (error) { console.warn(`No se pudo leer ${clave}.`, error); return null; }
+    }
+
+    function normalizarEstadoGlobal(entrada, ahoraMs = Date.now()) {
+      const base = esObjeto(entrada) ? entrada : {};
+      const global = { version: 1, reloj: normalizarReloj(base.reloj, ahoraMs), contenedores: {}, actualizadoEnMs: numeroFinito(base.actualizadoEnMs, ahoraMs) };
+      const existentes = esObjeto(base.contenedores) ? base.contenedores : {};
+      const metas = new Map(catalogoContenedores.map(meta => [meta.id, { ...meta }]));
+      Object.entries(existentes).forEach(([clave, valor]) => {
+        const id = limpiar(valor?.id || clave);
+        if (!metas.has(id)) metas.set(id, { id, nombre: String(valor?.nombre || id) });
+      });
+      const actual = metaActual();
+      metas.set(actual.id, actual);
+      metas.forEach((meta, id) => { global.contenedores[id] = normalizarEstadoContenedor(existentes[id], meta, global, ahoraMs); });
+      return global;
+    }
+
+    function leerEstadoGlobal(ahoraMs = Date.now()) {
+      return normalizarEstadoGlobal(leerJSONLocal(STORAGE_KEY_GLOBAL), ahoraMs);
+    }
+
+    function escribirEstadoGlobal(global) {
+      global.actualizadoEnMs = Date.now();
+      try { localStorage.setItem(STORAGE_KEY_GLOBAL, JSON.stringify(global)); return true; }
+      catch (error) { console.warn("No se pudo guardar el estado del simulador.", error); return false; }
+    }
+
+    function adoptarEstadoGlobal(global) {
+      estadoGlobal = global;
+      estado = global.contenedores[INSTANCIA_ID];
+      configurarEncabezado();
+    }
+
+    function guardarEstadoActual() {
+      if (!estadoGlobal || !estado) return;
+      estadoGlobal.contenedores[INSTANCIA_ID] = estado;
+      escribirEstadoGlobal(estadoGlobal);
+    }
+
+    function perfilDe(contenedor) { return PERFILES[contenedor.perfil] || PERFILES.campus; }
+
+    function intensidadPorHora(contenedor, minuto) {
+      return contenedor.generacionActiva ? contenedor.tasaHora * perfilDe(contenedor)[horaDeMinuto(minuto)] : 0;
+    }
+
+    function integrarIntensidad(contenedor, inicio, fin) {
+      let cursor = inicio;
+      let media = 0;
+      const perfil = perfilDe(contenedor);
+      while (cursor < fin) {
+        const dentroDelDia = minutoDelDia(cursor);
+        const siguiente = Math.min(fin, cursor + Math.max(.000001, 60 - dentroDelDia % 60));
+        media += contenedor.tasaHora * perfil[Math.floor(dentroDelDia / 60)] * (siguiente - cursor) / 60;
+        cursor = siguiente;
+      }
+      return contenedor.generacionActiva ? media : 0;
+    }
+
+    function muestraPoisson(media, limite) {
+      let restante = Math.max(0, media);
+      let total = 0;
+      while (restante > 0 && total < limite) {
+        const tramo = Math.min(20, restante);
+        const umbral = Math.exp(-tramo);
+        let producto = 1;
+        let k = 0;
+        do { k += 1; producto *= Math.random(); } while (producto > umbral && total + k - 1 < limite);
+        total += k - 1;
+        restante -= tramo;
+      }
+      return Math.min(total, limite);
+    }
+
+    function actualizarContenedorPoisson(contenedor, global, ahoraMs) {
+      const fin = minutoSimulado(ahoraMs, global);
+      const inicio = Math.max(numeroFinito(contenedor.ultimaGeneracionMinuto, fin), fin - MAX_MINUTOS_RECUPERACION);
+      const disponibles = Math.max(0, contenedor.capacidadKg - contenedor.contenedor.length);
+      const media = integrarIntensidad(contenedor, inicio, fin);
+      const cantidad = muestraPoisson(media, disponibles);
+      const generados = [];
+      for (let i = 0; i < cantidad; i += 1) {
+        const aporte = aporteNuevoPara(contenedor);
+        contenedor.contenedor.push(aporte);
+        generados.push(aporte);
+      }
+      contenedor.ultimaGeneracionMinuto = fin;
+      return { contenedor, generados, media };
+    }
+
+    function actualizarTodosLosContenedores(ahoraMs = Date.now(), renderizar = true) {
+      const global = leerEstadoGlobal(ahoraMs);
+      Object.values(global.contenedores).forEach(contenedor => actualizarContenedorPoisson(contenedor, global, ahoraMs));
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      if (renderizar) render(false);
+    }
+
+    function obtenerContenedorGlobal(idSolicitado, global) {
+      const id = limpiar(idSolicitado || INSTANCIA_ID);
+      if (!global.contenedores[id]) {
+        const meta = catalogoContenedores.find(item => item.id === id) || { id, nombre: id };
+        global.contenedores[id] = crearEstadoInicial(meta, global, Date.now());
+      }
+      return global.contenedores[id];
+    }
+
+    function generarParaContenedor(detalle = {}) {
+      const global = leerEstadoGlobal(Date.now());
+      const destino = obtenerContenedorGlobal(detalle.contenedor || detalle.id, global);
+      const cantidad = Math.min(Math.max(1, Math.floor(numeroFinito(detalle.cantidad, 1))), Math.max(0, destino.capacidadKg - destino.contenedor.length));
+      const generados = [];
+      for (let i = 0; i < cantidad; i += 1) { const aporte = aporteNuevoPara(destino); destino.contenedor.push(aporte); generados.push(aporte); }
+      destino.ultimaGeneracionMinuto = minutoSimulado(Date.now(), global);
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      render(false);
+      window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.GENERADO, { detail: { contenedor: destino.id, cantidad, fuente: detalle.fuente || "manual" } }));
+    }
+
+    function configurarGeneracion(detalle = {}) {
+      const global = leerEstadoGlobal(Date.now());
+      const destino = obtenerContenedorGlobal(detalle.contenedor || detalle.id, global);
+      const tasa = numeroFinito(detalle.tasaHora ?? detalle.tasa, null);
+      if (tasa !== null) destino.tasaHora = Math.min(200, Math.max(0, tasa));
+      if (PERFILES[detalle.perfil]) destino.perfil = detalle.perfil;
+      if (typeof detalle.activo === "boolean") destino.generacionActiva = detalle.activo;
+      destino.ultimaGeneracionMinuto = minutoSimulado(Date.now(), global);
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      render(false);
+      window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.ESTADO, { detail: { contenedor: destino.id, tasaHora: destino.tasaHora, perfil: destino.perfil, activo: destino.generacionActiva } }));
+    }
+
+    function registrarEventosGlobales() {
+      window.addEventListener(EVENTOS_ORGANICOS.GENERAR, event => generarParaContenedor(event.detail || {}));
+      window.addEventListener(EVENTOS_ORGANICOS.CONFIGURAR, event => configurarGeneracion(event.detail || {}));
+      window.addEventListener(EVENTOS_ORGANICOS.PAUSAR, event => configurarGeneracion({ ...(event.detail || {}), activo: false }));
+      window.addEventListener(EVENTOS_ORGANICOS.REANUDAR, event => configurarGeneracion({ ...(event.detail || {}), activo: true }));
+      window.addEventListener("storage", event => {
+        if (event.key !== STORAGE_KEY_GLOBAL || !event.newValue) return;
+        try { adoptarEstadoGlobal(normalizarEstadoGlobal(JSON.parse(event.newValue), Date.now())); render(false); }
+        catch (error) { console.warn("No se pudo sincronizar otra pestaña.", error); }
+      });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) actualizarTodosLosContenedores(Date.now()); });
+      window.OrganicosGenerador = Object.freeze({
+        eventos: EVENTOS_ORGANICOS,
+        generar: detalle => window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.GENERAR, { detail: detalle || {} })),
+        configurar: detalle => window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.CONFIGURAR, { detail: detalle || {} })),
+        pausar: contenedor => window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.PAUSAR, { detail: { contenedor } })),
+        reanudar: contenedor => window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.REANUDAR, { detail: { contenedor } }))
+      });
+    }
+
+    function configurarEncabezado() {
+      if (!estado) return;
+      document.title = `Simulación de compostaje — ${estado.nombre} (${estado.id})`;
+      document.getElementById("titulo").textContent = `Preparación en ${estado.nombre}`;
+      document.getElementById("subtitulo").textContent = `Estación ${estado.id} · estado persistente y llegadas independientes por punto de acopio.`;
+    }
+
+    function sinCambio(aporte, texto) { mostrarMensaje(texto); return aporte; }
+
+    function separar(aporte) {
+      if (!aporte.tieneImpropios) return sinCambio(aporte, "El aporte ya está libre de impropios visibles.");
+      return { ...aporte, tieneImpropios: false };
+    }
+
+    function trocear(aporte) {
+      if (aporte.tieneImpropios) return sinCambio(aporte, "Separa primero los impropios para no fragmentarlos dentro del material orgánico.");
+      if (aporte.troceado) return sinCambio(aporte, "El aporte ya tiene un tamaño homogéneo para este demo.");
+      return { ...aporte, troceado: true };
+    }
+
+    function agregarSecos(aporte) {
+      if (aporte.tieneImpropios) return sinCambio(aporte, "No agregues estructurante antes de separar los impropios.");
+      if (!aporte.troceado) return sinCambio(aporte, "Trocea primero para mezclar de forma más homogénea.");
+      if (aporte.tieneSecos) return sinCambio(aporte, "El aporte ya contiene material seco y estructurante.");
+      return { ...aporte, tieneSecos: true };
+    }
+
+    function ajustarHumedad(aporte) {
+      if (!aporte.tieneSecos) return sinCambio(aporte, "Agrega primero material seco: ayuda a absorber exceso de agua y conservar porosidad.");
+      if (aporte.humedad === "optima") return sinCambio(aporte, "La humedad ya está en el objetivo didáctico del lote.");
+      return { ...aporte, humedad: "optima" };
+    }
+
+    function airear(aporte) {
+      if (aporte.tieneImpropios || !aporte.troceado || !aporte.tieneSecos || aporte.humedad !== "optima") {
+        return sinCambio(aporte, "Completa separación, troceado, estructurante y humedad antes de la mezcla final.");
+      }
+      if (aporte.aireado) return sinCambio(aporte, "El aporte ya fue mezclado y aireado.");
+      return { ...aporte, aireado: true };
+    }
+
+    const acciones = { separar, trocear, agregarSecos, ajustarHumedad, airear };
+
+    function calcularCompostaPotencial(aporte) {
+      if (aporte.tieneImpropios) return 0;
+      let rendimiento = RENDIMIENTO_MAXIMO_KG;
+      if (!aporte.troceado) rendimiento -= .05;
+      if (!aporte.tieneSecos) rendimiento -= .13;
+      if (aporte.humedad !== "optima") rendimiento -= .10;
+      if (!aporte.aireado) rendimiento -= .07;
+      return Math.max(0, rendimiento) * aporte.masaKg;
+    }
+
+    function esListo(aporte) {
+      return !aporte.tieneImpropios && aporte.troceado && aporte.tieneSecos && aporte.humedad === "optima" && aporte.aireado;
+    }
+
+    function pesoInventario() { return estado.inventario.reduce((suma, aporte) => suma + aporte.masaKg, 0); }
+
+    function recolectar() {
+      if (!estado.contenedor.length) return mostrarMensaje("El punto de acopio está vacío. Genera o espera una llegada.");
+      const aporte = estado.contenedor[0];
+      if (pesoInventario() + aporte.masaKg > CAPACIDAD_INVENTARIO_KG) return mostrarMensaje("La ruta está llena. Prepara e incorpora material antes de recolectar más.");
+      estado.contenedor.shift();
+      estado.inventario.push(aporte);
+      estado.seleccion = aporte.id;
+      registrar(`Recolectado aporte #${aporte.id}: ${aporte.tipoNombre}.`);
+      render();
+    }
+
+    function generarAporte() {
+      window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.GENERAR, { detail: { contenedor: INSTANCIA_ID, cantidad: 1, fuente: "manual" } }));
+    }
+
+    function aplicarAccion(nombre) {
+      if (estado.seleccion === null) return mostrarMensaje("Selecciona un aporte antes de prepararlo.");
+      const index = estado.inventario.findIndex(aporte => aporte.id === estado.seleccion);
+      if (index < 0) return;
+      const antes = estado.inventario[index];
+      const despues = acciones[nombre](antes);
+      estado.inventario[index] = despues;
+      if (despues !== antes) registrar(`${etiquetaAccion(nombre)} aplicada al aporte #${despues.id}.`);
+      render();
+    }
+
+    function etiquetaAccion(nombre) {
+      return ({ separar: "Separación", trocear: "Troceado", agregarSecos: "Estructurante", ajustarHumedad: "Ajuste de humedad", airear: "Aireación" })[nombre] || nombre;
+    }
+
+    function incorporarIndice(index) {
+      const aporte = estado.inventario.splice(index, 1)[0];
+      const potencial = calcularCompostaPotencial(aporte);
+      estado.compostaKg += potencial;
+      if (potencial <= 0) estado.rechazados += 1;
+      registrar(potencial > 0
+        ? `Aporte #${aporte.id} incorporado: ${formatoKg(potencial)} de composta potencial.`
+        : `Aporte #${aporte.id} rechazado por impropios o preparación insuficiente.`);
+      return { aporte, potencial };
+    }
+
+    function incorporarSeleccionado() {
+      if (estado.seleccion === null) return mostrarMensaje("Selecciona un aporte para incorporarlo a la pila.");
+      const index = estado.inventario.findIndex(aporte => aporte.id === estado.seleccion);
+      if (index < 0) return;
+      const { aporte, potencial } = incorporarIndice(index);
+      estado.seleccion = estado.inventario[0]?.id ?? null;
+      if (!esListo(aporte)) mostrarMensaje(potencial > 0
+        ? "El aporte entró al proceso con penalización didáctica. En campo habría que registrar la desviación y corregir la mezcla global."
+        : "El aporte no suma composta potencial. Los impropios deben retirarse antes de aceptar la carga.");
+      render();
+    }
+
+    function incorporarTodo() {
+      if (!estado.inventario.length) return mostrarMensaje("No hay aportes en el inventario.");
+      const cantidad = estado.inventario.length;
+      let potencial = 0;
+      let rechazados = 0;
+      while (estado.inventario.length) {
+        const resultado = incorporarIndice(0);
+        potencial += resultado.potencial;
+        if (resultado.potencial <= 0) rechazados += 1;
+      }
+      estado.seleccion = null;
+      registrar(`Carga cerrada: ${cantidad} aportes, ${formatoKg(potencial)} potenciales, ${rechazados} rechazados.`);
+      render();
+    }
+
+    function formatoKg(numero) { return `${numero.toFixed(2)} kg`; }
+
+    function mostrarMensaje(texto) {
+      const elemento = document.getElementById("mensaje");
+      elemento.textContent = texto;
+      elemento.classList.add("show");
+      clearTimeout(mostrarMensaje.timer);
+      mostrarMensaje.timer = setTimeout(() => elemento.classList.remove("show"), 5200);
+    }
+
+    function registrar(texto) {
+      const log = document.getElementById("log");
+      const item = document.createElement("li");
+      item.textContent = texto;
+      log.prepend(item);
+      while (log.children.length > 10) log.removeChild(log.lastChild);
+    }
+
+    function aporteSvg(aporte) {
+      const impropio = aporte.tieneImpropios ? '<rect x="48" y="16" width="13" height="9" rx="2" fill="#a33a32" transform="rotate(18 54 20)"/>' : "";
+      const secos = aporte.tieneSecos ? '<path d="M12 45l12-15 7 16M50 45L42 28 34 46" fill="#c89445" opacity=".9"/>' : "";
+      const gotas = aporte.humedad === "alta" ? '<path d="M20 16c4 6 4 9 0 12-4-3-4-6 0-12Zm28 2c3 5 3 8 0 10-3-2-3-5 0-10Z" fill="#76a9b5"/>' : "";
+      const aire = aporte.aireado ? '<path d="M9 12c8-6 15 2 22-3M37 10c7-4 11 1 18-2" fill="none" stroke="#1f5b3a" stroke-width="2" stroke-linecap="round"/>' : "";
+      return `<svg class="mini-svg" viewBox="0 0 70 68" aria-hidden="true">
+        ${aire}${gotas}
+        <path d="M9 31h52l-6 28H15L9 31Z" fill="#f2e7cf" stroke="#183229" stroke-width="2"/>
+        <circle cx="25" cy="39" r="9" fill="${aporte.color}"/>
+        <path d="M24 31c3-5 7-7 11-7-1 5-4 8-10 9" fill="#1f5b3a"/>
+        <circle cx="43" cy="41" r="8" fill="#d78b45"/>
+        ${secos}${impropio}
+      </svg>`;
+    }
+
+    function etiquetas(aporte) {
+      return [
+        aporte.tieneImpropios ? ["con impropios", "bad"] : ["separado", "good"],
+        aporte.troceado ? ["troceado", "good"] : ["entero", "bad"],
+        aporte.tieneSecos ? ["con secos", "good"] : ["sin secos", "bad"],
+        aporte.humedad === "optima" ? ["humedad objetivo", "good"] : ["muy húmedo", "bad"],
+        aporte.aireado ? ["aireado", "good"] : ["sin airear", "bad"]
+      ].map(([texto, clase]) => `<span class="tag ${clase}">${texto}</span>`).join("");
+    }
+
+    function siguientePaso(aporte) {
+      if (aporte.tieneImpropios) return "<strong>Siguiente:</strong> separar impropios antes de fragmentar o mezclar.";
+      if (!aporte.troceado) return "<strong>Siguiente:</strong> trocear para homogeneizar el tamaño de partícula.";
+      if (!aporte.tieneSecos) return "<strong>Siguiente:</strong> agregar material seco y estructurante.";
+      if (aporte.humedad !== "optima") return "<strong>Siguiente:</strong> ajustar la humedad del lote.";
+      if (!aporte.aireado) return "<strong>Siguiente:</strong> mezclar y airear antes de incorporar.";
+      return "<strong>Listo para incorporar.</strong> Aún requiere compostaje controlado y curado.";
+    }
+
+    function renderInventario() {
+      const contenedor = document.getElementById("inventario");
+      if (!estado.inventario.length) {
+        contenedor.innerHTML = '<div class="empty">Inventario vacío. Recolecta un aporte del punto de acopio.</div>';
+        return;
+      }
+      contenedor.innerHTML = estado.inventario.map(aporte => {
+        const potencial = calcularCompostaPotencial(aporte);
+        const clases = ["batch", aporte.id === estado.seleccion ? "selected" : "", esListo(aporte) ? "ready" : "risk"].join(" ");
+        return `<button type="button" class="${clases}" data-id="${aporte.id}" aria-pressed="${aporte.id === estado.seleccion}">
+          <span class="batch-title">#${aporte.id} · ${escapeHTML(aporte.tipoNombre)}</span>
+          ${aporteSvg(aporte)}
+          <span class="tags">${etiquetas(aporte)}</span>
+          <span class="yield ${potencial <= 0 ? "zero" : ""}">${formatoKg(potencial)} potenciales</span>
+        </button>`;
+      }).join("");
+      contenedor.querySelectorAll(".batch").forEach(elemento => {
+        elemento.addEventListener("click", () => { estado.seleccion = Number(elemento.dataset.id); render(); });
+      });
+    }
+
+    function renderDetalle() {
+      const elemento = document.getElementById("detalle");
+      const aporte = estado.inventario.find(item => item.id === estado.seleccion);
+      if (!aporte) { elemento.className = "details empty"; elemento.textContent = "Selecciona un aporte del inventario."; return; }
+      elemento.className = "details";
+      elemento.innerHTML = `<strong>Aporte #${aporte.id} · ${escapeHTML(aporte.tipoNombre)}</strong>
+        <div class="yield ${calcularCompostaPotencial(aporte) <= 0 ? "zero" : ""}">${formatoKg(calcularCompostaPotencial(aporte))} de composta potencial</div>
+        <p class="sub">Masa húmeda representada: ${aporte.masaKg.toFixed(1)} kg</p>
+        <div class="tags">${etiquetas(aporte)}</div>
+        <p class="next-step">${siguientePaso(aporte)}</p>`;
+    }
+
+    function render(persistir = true) {
+      if (!estado || !estadoGlobal) return;
+      const peso = pesoInventario();
+      const minuto = minutoSimulado(Date.now(), estadoGlobal);
+      document.getElementById("composta").textContent = formatoKg(estado.compostaKg);
+      document.getElementById("pesoTexto").textContent = `${peso.toFixed(1)} / ${CAPACIDAD_INVENTARIO_KG.toFixed(1)} kg`;
+      document.getElementById("inventarioBar").style.width = `${Math.min(100, peso / CAPACIDAD_INVENTARIO_KG * 100)}%`;
+      document.getElementById("contenedorNombre").textContent = estado.id;
+      document.getElementById("contenedorCantidad").textContent = `${estado.contenedor.length} kg`;
+      document.getElementById("contenedorCapacidad").textContent = `${estado.capacidadKg} kg`;
+      document.getElementById("contenedorBar").style.width = `${Math.min(100, estado.contenedor.length / estado.capacidadKg * 100)}%`;
+      document.getElementById("inventarioCantidad").textContent = `${estado.inventario.length} ${estado.inventario.length === 1 ? "aporte" : "aportes"}`;
+      document.getElementById("lambdaActual").textContent = `${intensidadPorHora(estado, minuto).toFixed(1)} kg/h`;
+      document.getElementById("horaSimulada").textContent = formatoHoraSimulada(minuto);
+      document.getElementById("btnAlternarGeneracion").textContent = estado.generacionActiva ? "Pausar llegadas" : "Reanudar llegadas";
+      const tasaInput = document.getElementById("tasaGeneracion");
+      if (document.activeElement !== tasaInput) tasaInput.value = String(estado.tasaHora);
+      tasaInput.disabled = false;
+      const perfilInput = document.getElementById("perfilGeneracion");
+      perfilInput.value = estado.perfil;
+      perfilInput.disabled = false;
+      document.getElementById("btnAlternarGeneracion").disabled = false;
+      document.getElementById("btnGenerar").disabled = estado.contenedor.length >= estado.capacidadKg;
+      document.getElementById("btnRecolectar").disabled = !estado.contenedor.length;
+      document.getElementById("btnIncorporar").disabled = estado.seleccion === null;
+      document.getElementById("btnIncorporarTodo").disabled = !estado.inventario.length;
+      document.querySelectorAll("[data-accion]").forEach(button => { button.disabled = estado.seleccion === null; });
+      renderInventario();
+      renderDetalle();
+      if (persistir) guardarEstadoActual();
+    }
+
+    function normalizarTexto(valor) { return String(valor || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+    }
+
+    document.getElementById("btnGenerar").addEventListener("click", generarAporte);
+    document.getElementById("btnRecolectar").addEventListener("click", recolectar);
+    document.getElementById("btnIncorporar").addEventListener("click", incorporarSeleccionado);
+    document.getElementById("btnIncorporarTodo").addEventListener("click", incorporarTodo);
+    document.getElementById("btnVolverMapa").addEventListener("click", () => { location.href = "index.html"; });
+    document.getElementById("btnVerTareas").addEventListener("click", () => { location.href = "presentacion.html#colaborar"; });
+    document.getElementById("btnAlternarGeneracion").addEventListener("click", () => {
+      const tipo = estado.generacionActiva ? EVENTOS_ORGANICOS.PAUSAR : EVENTOS_ORGANICOS.REANUDAR;
+      window.dispatchEvent(new CustomEvent(tipo, { detail: { contenedor: INSTANCIA_ID } }));
+    });
+    document.getElementById("tasaGeneracion").addEventListener("change", event => {
+      window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.CONFIGURAR, { detail: { contenedor: INSTANCIA_ID, tasaHora: event.target.value } }));
+    });
+    document.getElementById("perfilGeneracion").addEventListener("change", event => {
+      window.dispatchEvent(new CustomEvent(EVENTOS_ORGANICOS.CONFIGURAR, { detail: { contenedor: INSTANCIA_ID, perfil: event.target.value } }));
+    });
+    document.querySelectorAll("[data-accion]").forEach(button => button.addEventListener("click", () => aplicarAccion(button.dataset.accion)));
+
+    registrarEventosGlobales();
+
+    async function iniciar() {
+      catalogoContenedores = await cargarCatalogoContenedores();
+      const global = leerEstadoGlobal(Date.now());
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      actualizarTodosLosContenedores(Date.now(), false);
+      render(false);
+      timerGeneracion = setInterval(() => actualizarTodosLosContenedores(Date.now()), INTERVALO_ACTUALIZACION_MS);
+    }
+
+    iniciar().catch(error => {
+      console.error("No se pudo iniciar el simulador de compostaje.", error);
+      mostrarMensaje("No se pudo iniciar la simulación.");
+      clearInterval(timerGeneracion);
+    });
+  </script>
+</body>
+</html>

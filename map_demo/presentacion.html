@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Estimación, propuesta y simulación del proyecto PET en FES Acatlán, con un tablero de colaboración multidisciplinaria.">
+  <title>El PET de Acatlán | Estimación y propuesta</title>
+  <style>
+    :root {
+      --ink: #17332b;
+      --ink-2: #294a40;
+      --paper: #f5f3eb;
+      --paper-2: #ebe8dc;
+      --card: #fffdf8;
+      --green: #087c5b;
+      --green-2: #0ca576;
+      --green-soft: #dcefe8;
+      --rust: #b6532d;
+      --rust-soft: #f5e3d9;
+      --red: #b53737;
+      --red-soft: #f5dddd;
+      --gold: #c18a21;
+      --line: #cdd3c9;
+      --muted: #60736c;
+      --shadow: 0 18px 50px rgba(23, 51, 43, 0.09);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: Iowan Old Style, Baskerville, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 90% 0%, rgba(12, 165, 118, 0.09), transparent 30rem),
+        var(--paper);
+      font-family: var(--sans);
+      line-height: 1.62;
+    }
+    a { color: var(--green); text-underline-offset: 0.18em; }
+    a:hover { color: var(--rust); }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    code, .mono { font-family: var(--mono); }
+    .skip {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 100;
+      padding: 0.8rem 1rem;
+      color: #fff;
+      background: var(--ink);
+    }
+    .skip:focus { left: 1rem; top: 1rem; }
+    .wrap { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; }
+    .eyebrow {
+      margin: 0 0 0.7rem;
+      color: var(--rust);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+    .muted { color: var(--muted); }
+    .small { font-size: 0.9rem; }
+    .kicker {
+      max-width: 760px;
+      margin: 1.15rem 0 0;
+      color: var(--ink-2);
+      font-family: var(--serif);
+      font-size: clamp(1.13rem, 2.5vw, 1.4rem);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.64rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--ink-2);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .pill::before {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--gold);
+      content: "";
+    }
+    .pill.verified::before { background: var(--green-2); }
+    .pill.pending::before { background: var(--rust); }
+
+    header.hero {
+      padding: clamp(4.2rem, 10vw, 8rem) 0 3rem;
+    }
+    .hero h1 {
+      max-width: 880px;
+      margin: 0;
+      font-size: clamp(2.7rem, 7.5vw, 6.6rem);
+      font-weight: 760;
+      letter-spacing: -0.055em;
+      line-height: 0.94;
+    }
+    .hero h1 em { color: var(--green); font-style: normal; }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1.6rem;
+    }
+    .hero-note {
+      max-width: 760px;
+      margin-top: 1.5rem;
+      padding: 1rem 1.1rem;
+      border-left: 4px solid var(--rust);
+      background: var(--rust-soft);
+      color: var(--ink-2);
+    }
+
+    .journey-nav {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      max-width: 920px;
+      margin-top: 2rem;
+    }
+    .journey-nav a {
+      display: grid;
+      gap: 0.2rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      color: var(--ink-2);
+      text-decoration: none;
+    }
+    .journey-nav a:hover,
+    .journey-nav a:focus-visible {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .journey-nav a[aria-current="page"] {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: #fffdf8;
+    }
+    .journey-nav strong { font-size: 0.88rem; }
+    .journey-nav span { font-size: 0.76rem; opacity: 0.78; }
+
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-block: 1px solid rgba(205, 211, 201, 0.9);
+      background: rgba(245, 243, 235, 0.93);
+      backdrop-filter: blur(12px);
+    }
+    .topnav .wrap {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-block: 0.75rem;
+      scrollbar-width: thin;
+    }
+    .topnav a {
+      flex: none;
+      color: var(--ink-2);
+      font-size: 0.84rem;
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .topnav a:hover { color: var(--green); }
+
+    main section { padding: clamp(3.6rem, 8vw, 6.5rem) 0; }
+    main section + section { border-top: 1px solid var(--line); }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      max-width: 800px;
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+    }
+    h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1.13rem;
+      letter-spacing: -0.012em;
+    }
+    p { margin: 0 0 1rem; }
+    .section-aside { color: var(--muted); font-size: 0.92rem; }
+    .subsection-head { margin-top: 3rem; }
+    .applied-criteria { margin-top: 2rem; }
+    .task-source-link { margin-top: 1rem; }
+
+    .thesis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .thesis > div {
+      padding: 1.35rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+    }
+    .thesis .old { border-top: 5px solid var(--rust); }
+    .thesis .new { border-top: 5px solid var(--green); }
+
+    .chain {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin: 2rem 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: chain;
+    }
+    .chain li {
+      position: relative;
+      min-height: 126px;
+      padding: 1rem 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      counter-increment: chain;
+    }
+    .chain li::before {
+      display: block;
+      margin-bottom: 0.7rem;
+      color: var(--rust);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      content: "0" counter(chain);
+    }
+    .chain strong { display: block; line-height: 1.25; }
+    .chain span { display: block; margin-top: 0.4rem; color: var(--muted); font-size: 0.82rem; }
+
+    .callout {
+      padding: 1.15rem 1.25rem;
+      border: 1px solid #b7d9cc;
+      border-radius: 14px;
+      background: var(--green-soft);
+    }
+    .callout.warning {
+      border-color: #ebc5af;
+      background: var(--rust-soft);
+    }
+    .callout strong { color: var(--ink); }
+
+    .equation-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    .equation-main { padding: clamp(1.4rem, 4vw, 2.6rem); }
+    .equation {
+      margin: 0.8rem 0 1rem;
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(1.25rem, 3.2vw, 2.35rem);
+      font-weight: 750;
+      letter-spacing: -0.045em;
+    }
+    .equation .hi { color: var(--green); }
+    .equation-sub {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--line);
+    }
+    .equation-sub > div { padding: 1.2rem; }
+    .equation-sub > div + div { border-left: 1px solid var(--line); }
+    .equation-sub code {
+      display: block;
+      margin-top: 0.5rem;
+      color: var(--green);
+      font-size: 0.82rem;
+    }
+
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .symbol {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+    .symbol b {
+      display: block;
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 1.1rem;
+    }
+    .symbol span { color: var(--muted); font-size: 0.84rem; }
+
+    .corrections {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+    .correction {
+      padding: 1.1rem;
+      border-left: 4px solid var(--green);
+      background: var(--green-soft);
+    }
+    .correction .before {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--red);
+      font-size: 0.82rem;
+      font-weight: 750;
+      text-decoration: line-through;
+    }
+    .correction .after { font-weight: 700; }
+    .correction p { margin: 0.5rem 0 0; color: var(--ink-2); font-size: 0.9rem; }
+
+    .lab-shell {
+      padding: clamp(1rem, 3vw, 2rem);
+      border-radius: 26px;
+      background: var(--ink);
+      color: #f7f5ed;
+      box-shadow: var(--shadow);
+    }
+    .lab-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .lab-head h3 { max-width: 650px; margin: 0; font-size: clamp(1.45rem, 3vw, 2.2rem); }
+    .lab-shell .eyebrow { color: #e1c2ac; }
+    .scenario-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .scenario-buttons button,
+    .quiz button {
+      padding: 0.58rem 0.82rem;
+      border: 1px solid #698078;
+      border-radius: 10px;
+      color: #f7f5ed;
+      background: #28463d;
+      font-weight: 750;
+    }
+    .scenario-buttons button:hover,
+    .scenario-buttons button:focus-visible,
+    .quiz button:hover,
+    .quiz button:focus-visible { border-color: #7ee0bb; background: #305b4d; }
+    .scenario-buttons button[aria-pressed="true"] {
+      border-color: #7ee0bb;
+      color: #112e25;
+      background: #7ee0bb;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: minmax(270px, 0.78fr) minmax(0, 1.45fr);
+      gap: 1.2rem;
+      align-items: start;
+    }
+    .controls {
+      padding: 1rem;
+      border: 1px solid #486158;
+      border-radius: 16px;
+      background: #1f3b32;
+    }
+    .control { margin-bottom: 1.15rem; }
+    .control:last-child { margin-bottom: 0; }
+    .control-top {
+      display: flex;
+      gap: 0.7rem;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+    .control label { color: #e8eee9; font-size: 0.86rem; font-weight: 700; }
+    .control output { color: #7ee0bb; font-family: var(--mono); font-size: 0.88rem; font-weight: 750; }
+    .control input[type="range"] { width: 100%; accent-color: #35c894; }
+    .control small { display: block; color: #aabbb5; font-size: 0.73rem; }
+    .control .source { color: #e1c2ac; }
+    details {
+      margin-top: 0.85rem;
+      border-top: 1px solid #486158;
+      padding-top: 0.8rem;
+    }
+    summary { color: #d9e6df; font-size: 0.84rem; font-weight: 750; cursor: pointer; }
+    .detail-inner { padding-top: 0.9rem; }
+    .period-label {
+      margin: 1rem 0 0.45rem;
+      color: #e1c2ac;
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .readout { min-width: 0; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-bottom: 0.8rem;
+    }
+    .stat {
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid #486158;
+      border-radius: 14px;
+      background: #1f3b32;
+    }
+    .stat span { display: block; color: #aabbb5; font-size: 0.74rem; }
+    .stat strong {
+      display: block;
+      overflow-wrap: anywhere;
+      margin-top: 0.2rem;
+      color: #fffdf8;
+      font-size: clamp(1.15rem, 2.7vw, 1.75rem);
+      letter-spacing: -0.035em;
+    }
+    .stat small { display: block; margin-top: 0.25rem; color: #aabbb5; font-size: 0.72rem; }
+
+    .model-live,
+    .balance,
+    .uncertainty {
+      margin-top: 0.8rem;
+      padding: 1rem;
+      border: 1px solid #486158;
+      border-radius: 14px;
+      background: #1f3b32;
+    }
+    .model-live code {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #7ee0bb;
+      font-size: 0.86rem;
+      line-height: 1.7;
+    }
+    .balance-title,
+    .uncertainty-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      color: #dfe9e3;
+      font-size: 0.82rem;
+      font-weight: 750;
+    }
+    .bar {
+      display: flex;
+      min-height: 62px;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #331f22;
+    }
+    .bar-part {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: center;
+      padding: 0.4rem;
+      transition: width 250ms ease;
+    }
+    .bar-part span {
+      overflow: hidden;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recovered { color: #102f25; background: #35c894; }
+    .lost { color: #fff4f2; background: #a73d3d; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1rem;
+      margin-top: 0.7rem;
+      color: #bac9c3;
+      font-size: 0.76rem;
+    }
+    .legend i {
+      display: inline-block;
+      width: 0.68rem;
+      height: 0.68rem;
+      margin-right: 0.35rem;
+      border-radius: 3px;
+      vertical-align: -0.03rem;
+    }
+    .legend .rec-swatch { background: #35c894; }
+    .legend .lost-swatch { background: #a73d3d; }
+    .whisker {
+      position: relative;
+      height: 54px;
+      margin: 1.2rem 1rem 0;
+    }
+    .whisker-track {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+      height: 7px;
+      border-radius: 7px;
+      background: #476057;
+    }
+    .whisker-range {
+      position: absolute;
+      top: 20px;
+      left: 8%;
+      width: 84%;
+      height: 7px;
+      border-radius: 7px;
+      background: #d1a14f;
+    }
+    .whisker-dot {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      width: 22px;
+      height: 22px;
+      border: 4px solid #1f3b32;
+      border-radius: 50%;
+      background: #7ee0bb;
+      transform: translateX(-50%);
+    }
+    .whisker-label {
+      position: absolute;
+      top: 33px;
+      color: #c0cec8;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .whisker-label.low { left: 8%; }
+    .whisker-label.mid { left: 50%; }
+    .whisker-label.high { left: 92%; }
+    .status {
+      margin-top: 0.8rem;
+      padding: 0.85rem 0.95rem;
+      border-left: 4px solid #d1a14f;
+      background: #2d443c;
+      color: #e4ebe7;
+      font-size: 0.85rem;
+    }
+    .status.ok { border-color: #35c894; }
+    .status.error { border-color: #e36969; background: #4d2929; }
+    .uncertainty-note { margin: 0.5rem 0 0; color: #bac9c3; }
+
+    .quiz {
+      margin-top: 1.2rem;
+      padding: 1rem;
+      border: 1px solid #486158;
+      border-radius: 16px;
+      background: #1f3b32;
+    }
+    .quiz h3 { color: #f7f5ed; }
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .quiz fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0.9rem;
+      border: 1px solid #486158;
+      border-radius: 12px;
+    }
+    .quiz legend { padding: 0 0.25rem; color: #e8eee9; font-size: 0.82rem; font-weight: 750; }
+    .quiz label { display: block; margin: 0.45rem 0; color: #cbd8d2; font-size: 0.8rem; }
+    .quiz input { margin-right: 0.35rem; accent-color: #35c894; }
+    .quiz-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin-top: 0.9rem; }
+    #quiz-feedback { color: #dce9e3; font-size: 0.84rem; }
+
+    .protocol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin: 2rem 0;
+      counter-reset: protocol;
+    }
+    .protocol article {
+      position: relative;
+      padding: 1.2rem 1.2rem 1.2rem 4rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      counter-increment: protocol;
+    }
+    .protocol article::before {
+      position: absolute;
+      top: 1.15rem;
+      left: 1.1rem;
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 1.3rem;
+      font-weight: 800;
+      content: "0" counter(protocol);
+    }
+    .protocol article p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; background: var(--card); }
+    th, td { padding: 0.85rem 0.9rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--paper-2); font-size: 0.78rem; letter-spacing: 0.035em; text-transform: uppercase; }
+    td { font-size: 0.85rem; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .state { font-weight: 800; }
+    .state.ok { color: var(--green); }
+    .state.pending { color: var(--rust); }
+    .audit-title { margin-top: 2rem; }
+
+    .refs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem 1.4rem;
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+    .refs li { padding-left: 0.25rem; color: var(--ink-2); font-size: 0.89rem; }
+    .refs em { font-family: var(--serif); }
+    .editorial-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+    .editorial-notes > div {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+    }
+    .editorial-notes p { margin: 0; color: var(--muted); font-size: 0.84rem; }
+
+    .onboarding-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin: 2rem 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: onboarding;
+    }
+    .onboarding-steps li {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      counter-increment: onboarding;
+    }
+    .onboarding-steps li::before {
+      display: block;
+      margin-bottom: 0.45rem;
+      color: var(--rust);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 800;
+      content: "PASO 0" counter(onboarding);
+    }
+    .onboarding-steps strong { display: block; margin-bottom: 0.25rem; }
+    .onboarding-steps span { display: block; color: var(--muted); font-size: 0.82rem; }
+
+    .task-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin: 2rem 0;
+    }
+    .task-card {
+      display: grid;
+      align-content: start;
+      gap: 0.8rem;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--green);
+      border-radius: 14px;
+      background: var(--card);
+    }
+    .task-card:has(input:checked) {
+      border-color: var(--green);
+      background: var(--green-soft);
+      box-shadow: 0 0 0 2px rgba(8, 124, 91, 0.12);
+    }
+    .task-card header {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .task-card h3 { margin: 0; }
+    .task-id {
+      flex: none;
+      color: var(--rust);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .task-meta span {
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--paper-2);
+      color: var(--ink-2);
+      font-size: 0.73rem;
+      font-weight: 750;
+    }
+    .task-card p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+    .task-card ul { margin: 0; padding-left: 1.15rem; color: var(--ink-2); font-size: 0.82rem; }
+    .task-card li + li { margin-top: 0.35rem; }
+    .task-choice {
+      display: flex;
+      gap: 0.55rem;
+      align-items: center;
+      width: fit-content;
+      margin-top: auto;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .task-choice input { width: 1.05rem; height: 1.05rem; accent-color: var(--green); }
+
+    .selection-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 0.55fr);
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 16px;
+      background: var(--ink);
+      color: #f7f5ed;
+    }
+    .selection-panel h3 { color: #fff; }
+    .selection-panel p { margin-bottom: 0.7rem; color: #c9d6d0; font-size: 0.85rem; }
+    .selection-panel ul { margin: 0; padding-left: 1.2rem; color: #e2ebe7; font-size: 0.85rem; }
+    .selection-form { display: grid; gap: 0.55rem; }
+    .selection-form label { color: #dce7e2; font-size: 0.76rem; font-weight: 750; }
+    .selection-form input {
+      width: 100%;
+      margin-top: 0.2rem;
+      padding: 0.62rem 0.7rem;
+      border: 1px solid #698078;
+      border-radius: 9px;
+      background: #fffdf8;
+      color: var(--ink);
+    }
+    .selection-form button {
+      padding: 0.65rem 0.8rem;
+      border: 1px solid #7ee0bb;
+      border-radius: 9px;
+      background: #7ee0bb;
+      color: #112e25;
+      font-weight: 800;
+    }
+    .selection-form button:disabled { cursor: not-allowed; opacity: 0.5; }
+    #selection-status { min-height: 1.3em; margin: 0; color: #e1c2ac; font-size: 0.78rem; }
+
+    footer {
+      padding: 2.2rem 0 3rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    footer strong { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      .section-head, .lab-grid { grid-template-columns: 1fr; }
+      .chain { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .symbol-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .quiz-grid { grid-template-columns: 1fr; }
+      .onboarding-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
+      .thesis, .corrections, .protocol, .refs, .editorial-notes, .task-board, .selection-panel { grid-template-columns: 1fr; }
+      .journey-nav { grid-template-columns: 1fr; }
+      .chain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .equation-sub, .stats { grid-template-columns: 1fr; }
+      .equation-sub > div + div { border-left: 0; border-top: 1px solid var(--line); }
+      .hero h1 { font-size: clamp(2.55rem, 15vw, 4.4rem); }
+      .stat strong { font-size: 1.45rem; }
+    }
+    @media (max-width: 430px) {
+      .chain, .symbol-grid, .onboarding-steps { grid-template-columns: 1fr; }
+      .wrap { width: min(100% - 1.1rem, 1120px); }
+      .lab-shell { border-radius: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .bar-part { transition: none; }
+    }
+    @media print {
+      .topnav, .journey-nav, .scenario-buttons, .quiz, .task-choice, .selection-form { display: none; }
+      body { background: #fff; }
+      main section { break-inside: avoid; }
+      .lab-shell { color: #111; background: #fff; box-shadow: none; border: 1px solid #777; }
+      .controls, .stat, .model-live, .balance, .uncertainty { color: #111; background: #fff; border-color: #aaa; }
+      .control label, .control output, .stat strong, .model-live code, .balance-title, .uncertainty-title { color: #111; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">FES Acatlán · estimación, propuesta y simulación</p>
+      <h1>Estimar antes de <em>proponer</em>; simular para aprender.</h1>
+      <p class="kicker">Un laboratorio para estimar cuánto PET se genera, cuánto se recupera y qué parte podría convertirse en materia prima útil. La interacción hace visibles los supuestos; el aforo los pone a prueba.</p>
+      <div class="hero-meta" role="group" aria-label="Estado de los datos">
+        <span class="pill verified">Población estudiantil: fuente oficial</span>
+        <span class="pill pending">Recuperación ECOCE: fuente local pendiente</span>
+        <span class="pill pending">Consumo y rendimiento: requieren medición</span>
+      </div>
+      <div class="hero-note"><strong>Alcance.</strong> El documento integra la narrativa de cambio de conducta con el modelo cuantitativo. No afirma que cada botella se convertirá en una prótesis ni que la simulación cambiará por sí sola el comportamiento: ambas son hipótesis que deben validarse.</div>
+      <nav class="journey-nav" aria-label="Recorrido integrado del proyecto">
+        <a href="presentacion.html#estimacion" aria-current="page"><strong>1 · Estimación</strong><span>Datos, supuestos y modelo.</span></a>
+        <a href="presentacion.html#propuesta"><strong>2 · Propuesta</strong><span>Hipótesis, MVP y validación.</span></a>
+        <a href="reciclaje_pet_fase1.html"><strong>3 · Simulación</strong><span>Practica el ciclo del MVP.</span></a>
+        <a href="proyectos.html"><strong>Proyectos hermanos</strong><span>Selector PET + Ciclo Tierra.</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="topnav" aria-label="Contenido">
+    <div class="wrap">
+      <a href="#estimacion">Estimación</a>
+      <a href="#modelo">Modelo</a>
+      <a href="#laboratorio">Laboratorio</a>
+      <a href="#validacion">Validación</a>
+      <a href="#propuesta">Propuesta</a>
+      <a href="#estado-proyecto">Estado 3–5</a>
+      <a href="#fase-3">Fase 3</a>
+      <a href="#referencias">Referencias</a>
+      <a href="#colaborar">Colaborar</a>
+    </div>
+  </nav>
+
+  <main id="contenido">
+    <section id="estimacion">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 · propósito común</p>
+            <h2>La mecánica cuenta la historia; el modelo evita que la historia exagere.</h2>
+          </div>
+          <p class="section-aside">La versión narrativa aportaba motivación. La versión matemática aportaba trazabilidad. La reconciliación conserva ambas y distingue con claridad dato, estimación e hipótesis.</p>
+        </div>
+
+        <div class="thesis">
+          <div class="old">
+            <h3>Problema de comunicación</h3>
+            <p>“El PET puede reciclarse” es una afirmación correcta, pero demasiado abstracta para mostrar el costo de mezclar, ensuciar o no recuperar el material.</p>
+          </div>
+          <div class="new">
+            <h3>Objetivo de aprendizaje</h3>
+            <p>Al terminar, la persona podrá explicar de qué depende la masa generada, detectar una inconsistencia y proponer qué dato medir antes de tomar decisiones.</p>
+          </div>
+        </div>
+
+        <ol class="chain">
+          <li><strong>Generar</strong><span>Estimar botellas y masa por periodo.</span></li>
+          <li><strong>Separar</strong><span>Evitar mezcla, líquidos y residuos ajenos.</span></li>
+          <li><strong>Recuperar</strong><span>Pesar lo que sale del campus con trazabilidad.</span></li>
+          <li><strong>Acondicionar</strong><span>Clasificar, lavar, secar y controlar contaminación.</span></li>
+          <li><strong>Transformar</strong><span>Extruir filamento y caracterizar su estabilidad.</span></li>
+          <li><strong>Validar</strong><span>Ensayar piezas antes de cualquier uso protésico.</span></li>
+        </ol>
+
+        <div class="callout">
+          <strong>Mensaje central corregido:</strong> una botella bien separada conserva más posibilidades de aprovechamiento. El destino “prótesis” es una aplicación potencial que exige etapas de proceso, ensayos mecánicos y evaluación de seguridad; no es una conversión automática.
+        </div>
+      </div>
+    </section>
+
+    <section id="modelo">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 · modelo matemático</p>
+            <h2>Primero se cuentan días-persona; después, botellas y kilogramos.</h2>
+          </div>
+          <p class="section-aside">La forma estratificada es la más general. El laboratorio usa un solo estrato —la matrícula estudiantil— para mantener la lectura didáctica. Personal y visitantes deben añadirse como estratos separados si forman parte del alcance.</p>
+        </div>
+
+        <div class="equation-card">
+          <div class="equation-main">
+            <p class="eyebrow">Ecuación anual de generación</p>
+            <div class="equation" role="math" aria-label="G es igual a la suma sobre grupos y periodos de N por a por d por c por m, dividido entre mil">
+              <span class="hi">G</span> = 1/1000 · Σ<sub>s</sub> Σ<sub>p</sub> N<sub>s</sub> a<sub>s,p</sub> d<sub>p</sub> c<sub>s,p</sub> m̄<sub>s,p</sub>
+            </div>
+            <p><strong>G</strong> es la masa de botellas de PET generada en el alcance y año definidos, expresada en kg. El factor 1/1000 convierte gramos a kilogramos.</p>
+
+            <div class="symbol-grid">
+              <div class="symbol"><b>s</b><span>Grupo: estudiantes, personal o visitantes.</span></div>
+              <div class="symbol"><b>p</b><span>Periodo con asistencia y consumo relativamente estables.</span></div>
+              <div class="symbol"><b>N<sub>s</sub></b><span>Personas del grupo, no “personas presentes”.</span></div>
+              <div class="symbol"><b>a<sub>s,p</sub></b><span>Fracción media presente por día del periodo.</span></div>
+              <div class="symbol"><b>d<sub>p</sub></b><span>Días de actividad incluidos en el periodo.</span></div>
+              <div class="symbol"><b>c<sub>s,p</sub></b><span>Botellas por persona presente y día.</span></div>
+              <div class="symbol"><b>m̄<sub>s,p</sub></b><span>Masa media de PET por botella, en gramos.</span></div>
+              <div class="symbol"><b>R, q, η</b><span>Masa retirada antes del rechazo, fracción aceptada y rendimiento de proceso.</span></div>
+            </div>
+          </div>
+          <div class="equation-sub">
+            <div>
+              <h3>Exposición</h3>
+              <p>Número anual de días-persona presentes.</p>
+              <code>E = Σ N<sub>s</sub>a<sub>s,p</sub>d<sub>p</sub></code>
+            </div>
+            <div>
+              <h3>Recuperación</h3>
+              <p>Parte de la generación estimada que fue pesada como recuperada.</p>
+              <code>ρ = R / G</code>
+            </div>
+            <div>
+              <h3>Material útil potencial</h3>
+              <p>Masa que supera selección y proceso, antes de validar una aplicación.</p>
+              <code>F = R · q · η</code>
+            </div>
+          </div>
+        </div>
+
+        <section class="corrections" aria-label="Correcciones matemáticas principales">
+          <div class="correction">
+            <span class="before">“Se multiplica porque los eventos son independientes.”</span>
+            <span class="after">Se multiplica porque es una cadena de tasas y unidades.</span>
+            <p>La independencia no es necesaria para el balance determinista. Solo entra al combinar incertidumbres; si hay correlación, debe incluirse la covarianza.</p>
+          </div>
+          <div class="correction">
+            <span class="before">“La sumatoria es una suma de Riemann.”</span>
+            <span class="after">Es una agregación por periodos; aproxima una integral bajo un supuesto.</span>
+            <p>Puede interpretarse como aproximación de una tasa continua si se acepta que la tasa es casi constante dentro de cada periodo.</p>
+          </div>
+          <div class="correction">
+            <span class="before">“Mínimo, central y máximo son percentiles de los rangos.”</span>
+            <span class="after">Los percentiles requieren una distribución explícita.</span>
+            <p>El laboratorio usa factores lognormales independientes y coeficientes de variación; muestra P10, P50 y P90 bajo ese supuesto.</p>
+          </div>
+          <div class="correction">
+            <span class="before">“Si R supera G, se limita R a G.”</span>
+            <span class="after">Si R &gt; G, hay una inconsistencia que debe investigarse.</span>
+            <p>No se oculta con un mínimo. Puede indicar alcances o periodos distintos, doble conteo, PET externo o una subestimación de G.</p>
+          </div>
+          <div class="correction">
+            <span class="before">“Un aforo semanal es validación cruzada.”</span>
+            <span class="after">Es validación externa o fuera de muestra.</span>
+            <p>“Validación cruzada” se reserva normalmente para particiones repetidas de una misma muestra durante el ajuste del modelo.</p>
+          </div>
+          <div class="correction">
+            <span class="before">“PET → filamento → prótesis.”</span>
+            <span class="after">PET → proceso → filamento experimental → ensayos → prototipo.</span>
+            <p>La literatura demuestra factibilidad de filamento rPET y existen proyectos protésicos, pero cada formulación y pieza necesita caracterización propia.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="laboratorio">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">03 · laboratorio interactivo</p>
+            <h2>Mueve un supuesto y observa exactamente dónde aparece su consecuencia.</h2>
+          </div>
+          <p class="section-aside">Los valores iniciales son demostrativos. Solo <strong>N = 22 470</strong> proviene directamente de la Agenda Estadística UNAM 2025 para la población de licenciatura de FES Acatlán, ciclo 2024–2025. Los demás deben sustituirse con datos del mismo alcance y año.</p>
+        </div>
+
+        <div class="lab-shell" id="pet-lab">
+          <div class="lab-head">
+            <div>
+              <p class="eyebrow">Balance anual · estrato estudiantil</p>
+              <h3>¿Cuánto se genera, cuánto se recupera y cuánto queda disponible para ensayos?</h3>
+            </div>
+            <div class="scenario-buttons" role="group" aria-label="Escenarios demostrativos">
+              <button type="button" data-scenario="low" aria-pressed="false">Bajo</button>
+              <button type="button" data-scenario="base" aria-pressed="true">Base</button>
+              <button type="button" data-scenario="high" aria-pressed="false">Alto</button>
+            </div>
+          </div>
+
+          <div class="lab-grid">
+            <div class="controls">
+              <div class="control">
+                <div class="control-top"><label for="n">Matrícula N</label><output id="n-out" for="n">22 470 personas</output></div>
+                <input id="n" type="range" min="10000" max="30000" step="10" value="22470">
+                <small><span class="source">Fuente inicial:</span> Agenda Estadística UNAM 2025.</small>
+              </div>
+              <div class="control">
+                <div class="control-top"><label for="c">Consumo c</label><output id="c-out" for="c">0.10 bot/persona-día</output></div>
+                <input id="c" type="range" min="0.02" max="0.50" step="0.01" value="0.10">
+                <small>Estímalo con aforo o ventas; evita importarlo sin contexto.</small>
+              </div>
+              <div class="control">
+                <div class="control-top"><label for="m">Masa media m̄</label><output id="m-out" for="m">24 g/botella</output></div>
+                <input id="m" type="range" min="15" max="40" step="0.5" value="24">
+                <small>Pesa botellas vacías, secas y sin componentes no PET.</small>
+              </div>
+              <div class="control">
+                <div class="control-top"><label for="r">PET recuperado R</label><output id="r-out" for="r">850 kg/año</output></div>
+                <input id="r" type="range" min="0" max="3000" step="10" value="850">
+                <small><span class="source">Pendiente:</span> respaldar con tickets del mismo año. Si R ya es PET neto aceptado, usa q = 100%.</small>
+              </div>
+
+              <details open>
+                <summary>Periodos: a<sub>p</sub> y d<sub>p</sub></summary>
+                <div class="detail-inner">
+                  <p class="period-label">Clases regulares</p>
+                  <div class="control">
+                    <div class="control-top"><label for="d1">Días d₁</label><output id="d1-out" for="d1">160 días</output></div>
+                    <input id="d1" type="range" min="0" max="220" step="1" value="160">
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="a1">Asistencia a₁</label><output id="a1-out" for="a1">0.72</output></div>
+                    <input id="a1" type="range" min="0" max="1" step="0.01" value="0.72">
+                  </div>
+
+                  <p class="period-label">Exámenes y trámites</p>
+                  <div class="control">
+                    <div class="control-top"><label for="d2">Días d₂</label><output id="d2-out" for="d2">20 días</output></div>
+                    <input id="d2" type="range" min="0" max="60" step="1" value="20">
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="a2">Asistencia a₂</label><output id="a2-out" for="a2">0.35</output></div>
+                    <input id="a2" type="range" min="0" max="1" step="0.01" value="0.35">
+                  </div>
+
+                  <p class="period-label">Intersemestral</p>
+                  <div class="control">
+                    <div class="control-top"><label for="d3">Días d₃</label><output id="d3-out" for="d3">30 días</output></div>
+                    <input id="d3" type="range" min="0" max="100" step="1" value="30">
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="a3">Asistencia a₃</label><output id="a3-out" for="a3">0.10</output></div>
+                    <input id="a3" type="range" min="0" max="1" step="0.01" value="0.10">
+                  </div>
+                  <small>Los días iniciales son ilustrativos; reconstruye los periodos con el calendario y registros de acceso.</small>
+                </div>
+              </details>
+
+              <details>
+                <summary>Calidad y rendimiento: q y η</summary>
+                <div class="detail-inner">
+                  <div class="control">
+                    <div class="control-top"><label for="q">Fracción aceptada q</label><output id="q-out" for="q">80%</output></div>
+                    <input id="q" type="range" min="0" max="100" step="1" value="80">
+                    <small>Porción que supera clasificación, limpieza y secado.</small>
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="eta">Rendimiento η</label><output id="eta-out" for="eta">85%</output></div>
+                    <input id="eta" type="range" min="0" max="100" step="1" value="85">
+                    <small>Masa útil de filamento respecto del PET aceptado.</small>
+                  </div>
+                </div>
+              </details>
+
+              <details>
+                <summary>Incertidumbre: coeficientes de variación</summary>
+                <div class="detail-inner">
+                  <div class="control">
+                    <div class="control-top"><label for="uc">CV de c</label><output id="uc-out" for="uc">30%</output></div>
+                    <input id="uc" type="range" min="1" max="60" step="1" value="30">
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="ua">CV de exposición E</label><output id="ua-out" for="ua">12%</output></div>
+                    <input id="ua" type="range" min="1" max="40" step="1" value="12">
+                  </div>
+                  <div class="control">
+                    <div class="control-top"><label for="um">CV de m̄</label><output id="um-out" for="um">8%</output></div>
+                    <input id="um" type="range" min="1" max="30" step="1" value="8">
+                  </div>
+                  <small>Supuesto didáctico: los valores centrales son medianas de factores positivos, lognormales e independientes. Si comparten una fuente, incorpora covarianza o usa Monte Carlo con el modelo conjunto.</small>
+                </div>
+              </details>
+            </div>
+
+            <div class="readout">
+              <div class="stats" aria-live="polite">
+                <div class="stat"><span>Generación central G₅₀</span><strong id="g-stat">—</strong><small id="b-stat">— botellas/año</small></div>
+                <div class="stat"><span>Tasa de recuperación ρ</span><strong id="rho-stat">—</strong><small id="lost-stat">— no recuperados</small></div>
+                <div class="stat"><span>Material útil potencial F</span><strong id="f-stat">—</strong><small>No equivale a prótesis aprobadas.</small></div>
+              </div>
+
+              <div class="model-live">
+                <div class="balance-title"><span>Sustitución en el modelo</span><span id="exposure-label">— días-persona</span></div>
+                <code id="formula-live">—</code>
+                <code id="units-live">[personas] × [días-persona/persona] × [botellas/día-persona] × [kg/botella] = [kg]</code>
+              </div>
+
+              <div class="balance">
+                <div class="balance-title"><span>Balance de lo generado</span><span id="balance-summary">—</span></div>
+                <div class="bar" role="img" aria-labelledby="balance-summary" id="balance-bar">
+                  <div class="bar-part recovered" id="recovered-bar"><span id="recovered-label">—</span></div>
+                  <div class="bar-part lost" id="lost-bar"><span id="lost-label">—</span></div>
+                </div>
+                <div class="legend">
+                  <span><i class="rec-swatch"></i>Recuperado: <b id="recovered-legend">—</b></span>
+                  <span><i class="lost-swatch"></i>No recuperado: <b id="lost-legend">—</b></span>
+                </div>
+              </div>
+
+              <div class="uncertainty">
+                <div class="uncertainty-title"><span>Intervalo central del 80% para G</span><span id="unc-source">—</span></div>
+                <div class="whisker" role="img" id="unc-chart" aria-label="Percentiles diez, cincuenta y noventa de la generación">
+                  <div class="whisker-track"></div>
+                  <div class="whisker-range"></div>
+                  <div class="whisker-dot"></div>
+                  <span class="whisker-label low" id="p10-label">P10 —</span>
+                  <span class="whisker-label mid" id="p50-label">P50 —</span>
+                  <span class="whisker-label high" id="p90-label">P90 —</span>
+                </div>
+                <p class="small uncertainty-note">No es un intervalo empírico: depende de los CV y de la independencia declarada. La tasa compatible con este intervalo es <strong id="rho-range">—</strong>.</p>
+              </div>
+
+              <div class="status" id="status" role="status" aria-live="polite">—</div>
+            </div>
+          </div>
+
+          <div class="quiz">
+            <h3>Comprobación rápida</h3>
+            <div class="quiz-grid">
+              <fieldset data-correct="double">
+                <legend>1. Si c se duplica y todo lo demás queda igual, G…</legend>
+                <label><input type="radio" name="q1" value="same"> no cambia</label>
+                <label><input type="radio" name="q1" value="double"> se duplica</label>
+                <label><input type="radio" name="q1" value="quad"> se cuadruplica</label>
+              </fieldset>
+              <fieldset data-correct="rates">
+                <legend>2. ¿Por qué se multiplican N, a, d, c y m?</legend>
+                <label><input type="radio" name="q2" value="independent"> porque siempre son independientes</label>
+                <label><input type="radio" name="q2" value="rates"> porque forman una cadena de tasas</label>
+                <label><input type="radio" name="q2" value="positive"> porque todos son positivos</label>
+              </fieldset>
+              <fieldset data-correct="audit">
+                <legend>3. Si R &gt; G, ¿qué corresponde?</legend>
+                <label><input type="radio" name="q3" value="clamp"> limitar R a G</label>
+                <label><input type="radio" name="q3" value="audit"> auditar datos y alcances</label>
+                <label><input type="radio" name="q3" value="ignore"> ignorar R</label>
+              </fieldset>
+            </div>
+            <div class="quiz-actions">
+              <button type="button" id="check-quiz">Comprobar</button>
+              <span id="quiz-feedback" role="status" aria-live="polite">Responde las tres preguntas.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="validacion">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">04 · validación y evaluación</p>
+            <h2>El laboratorio enseña el modelo. El campus decide si el modelo merece confianza.</h2>
+          </div>
+          <p class="section-aside">La evidencia clave no es que alguien complete una “venta” virtual, sino que pueda explicar el balance y que, en campo, mejoren indicadores definidos antes de la intervención.</p>
+        </div>
+
+        <div class="protocol">
+          <article><h3>Fijar alcance</h3><p>Define ciclo, zonas, población, resina aceptada y si tapas o etiquetas cuentan. R y G deben referirse al mismo sistema.</p></article>
+          <article><h3>Diseñar la muestra</h3><p>Estratifica contenedores por zona, día y turno. Registra la probabilidad de inclusión para poder expandir resultados.</p></article>
+          <article><h3>Medir tres magnitudes</h3><p>Cuenta botellas, pesa PET seco y cuantifica rechazo/contaminación. El número de botellas por sí solo no cierra el balance.</p></article>
+          <article><h3>Estimar c y m̄</h3><p>Calcula consumo por día-persona y masa media con su variabilidad. Documenta báscula, tara y criterio de limpieza.</p></article>
+          <article><h3>Validar fuera de muestra</h3><p>Reserva otra semana o zona. Compara observación y predicción con error porcentual y cobertura del intervalo.</p></article>
+          <article><h3>Evaluar la intervención</h3><p>Usa línea base y, si es posible, grupo o zona de comparación. Mide recuperación, contaminación y conocimiento pre/post.</p></article>
+        </div>
+
+        <div class="callout warning">
+          <strong>Criterio mínimo de publicación:</strong> no presentar “ECOCE recupera entre 700 y 1000 kg al año” como hecho institucional hasta incorporar el reporte, convenio, ticket o serie de pesajes que lo respalde. En este documento se conserva únicamente como valor demostrativo heredado.
+        </div>
+
+        <h3 class="audit-title">Auditoría de datos</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Variable o afirmación</th><th scope="col">Estado</th><th scope="col">Fuente o acción requerida</th><th scope="col">Uso permitido ahora</th></tr></thead>
+            <tbody>
+              <tr><td>N = 22 470 estudiantes de licenciatura</td><td><span class="state ok">Respaldada</span></td><td>Agenda Estadística UNAM 2025, población 2024–2025.</td><td>Valor inicial, citando ciclo y alcance.</td></tr>
+              <tr><td>d<sub>p</sub>, días por periodo</td><td><span class="state pending">Por reconstruir</span></td><td>Calendario DGAE + definición local de días con operación.</td><td>Valores demostrativos.</td></tr>
+              <tr><td>a<sub>p</sub>, asistencia</td><td><span class="state pending">Por medir</span></td><td>Accesos, transporte, aforo o muestra observacional.</td><td>Análisis de sensibilidad.</td></tr>
+              <tr><td>c, botellas/persona-día</td><td><span class="state pending">Crítica</span></td><td>Aforo estratificado; ventas como comprobación secundaria.</td><td>Hipótesis explícita.</td></tr>
+              <tr><td>m̄, gramos de PET por botella</td><td><span class="state pending">Fácil de medir</span></td><td>Muestra local de botellas vacías, limpias y secas.</td><td>Valor demostrativo.</td></tr>
+              <tr><td>R = 700–1000 kg/año de ECOCE</td><td><span class="state pending">Sin fuente primaria localizada</span></td><td>Tickets, pesajes, informe o responsable institucional.</td><td>No publicar como hecho.</td></tr>
+              <tr><td>q y η, calidad y rendimiento</td><td><span class="state pending">Por pilotear</span></td><td>Balance de masa de clasificación, lavado, secado y extrusión.</td><td>Escenarios de proceso.</td></tr>
+              <tr><td>Vínculo con HUMAN STEM</td><td><span class="state pending">Por confirmar</span></td><td>Carta, proyecto, responsable o página institucional verificable.</td><td>Actor propuesto, no alianza confirmada.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="propuesta">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">05 · propuesta</p>
+            <h2>Saber que el PET es reciclable no garantiza separarlo bien.</h2>
+          </div>
+          <p class="section-aside">La evidencia disponible permite sostener una brecha entre conciencia, intención y conducta; no permite afirmar todavía qué sabe o hace la comunidad de FES Acatlán. Esa línea base debe medirse.</p>
+        </div>
+
+        <div class="thesis">
+          <div class="old">
+            <h3>Lo que sí respalda la literatura</h3>
+            <p>La conciencia del problema influye de manera indirecta: la intención, las normas, el control percibido y las condiciones de ejecución también explican la conducta proambiental. Las intervenciones de reciclaje han combinado información, retroalimentación, incentivos, modelado social y cambios del entorno.</p>
+            <p class="small"><a href="https://doi.org/10.1016/j.jenvp.2006.12.002">Bamberg &amp; Möser, 2007</a> · <a href="https://doi.org/10.1016/j.jenvp.2017.03.011">Varotto &amp; Spagnolli, 2017</a></p>
+          </div>
+          <div class="new">
+            <h3>La hipótesis local que se probará</h3>
+            <p>Si el simulador hace visible el costo de contaminar o perder material y permite practicar decisiones, entonces puede mejorar la comprensión del sistema. El cambio sostenido en los contenedores es una segunda hipótesis y exige medición de campo.</p>
+            <p class="small"><a href="https://doi.org/10.1037/a0031311">Wouters et al., 2013</a> · <a href="https://doi.org/10.3102/0034654320933544">Chernikova et al., 2020</a></p>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>Reformulación clave:</strong> sustituir “no es un problema de información” por “la información por sí sola puede ser insuficiente”. Sustituir “quien juega cambia su conducta” por “se evaluará si la experiencia mejora comprensión y, después, conducta observable”.
+        </div>
+
+        <div class="section-head subsection-head">
+          <div>
+            <p class="eyebrow">estrategia · dos frentes complementarios</p>
+            <h2>La propuesta define la ruta; el simulador permite experimentar las consecuencias.</h2>
+          </div>
+          <p class="section-aside">El documento y el MVP comparten el mismo mensaje: separar bien conserva opciones de aprovechamiento, pero ninguno sustituye la infraestructura, la trazabilidad ni el proceso técnico.</p>
+        </div>
+
+        <div class="thesis">
+          <div class="new">
+            <h3>Propuesta documentada</h3>
+            <p>Define alcance, actores, ruta operativa, datos pendientes y criterios de decisión. Su función es reducir ambigüedad y distinguir lo demostrado de lo que aún debe comprobarse.</p>
+          </div>
+          <div class="new">
+            <h3>Simulador de cadena de valor</h3>
+            <p>Convierte recolección, clasificación, acondicionamiento, venta y reinversión en decisiones. La retroalimentación debe mostrar por qué una omisión cambia calidad, masa útil o valor.</p>
+          </div>
+        </div>
+
+        <ol class="chain">
+          <li><strong>Recolectar</strong><span>Observar mezcla y origen.</span></li>
+          <li><strong>Separar</strong><span>Retirar líquidos y materiales ajenos.</span></li>
+          <li><strong>Acondicionar</strong><span>Lavar, secar y controlar calidad.</span></li>
+          <li><strong>Vender</strong><span>Recibir retroalimentación económica calibrada.</span></li>
+          <li><strong>Reinvertir</strong><span>Mejorar capacidad del sistema.</span></li>
+          <li><strong>Validar</strong><span>Conectar aprendizaje virtual y evidencia física.</span></li>
+        </ol>
+
+        <div class="callout">
+          <strong>La mecánica como mensaje:</strong> el PET limpio y trazable conserva más opciones; el material mezclado o contaminado puede exigir separación adicional, reducir desempeño o ser rechazado. La regla económica exacta del juego debe calibrarse con el comprador y el proceso local, no inventarse. <a href="https://doi.org/10.3390/polym14245507">Vaucher et al., 2022</a>
+        </div>
+
+        <div class="section-head subsection-head">
+          <div>
+            <p class="eyebrow">propósito · del material al prototipo</p>
+            <h2>La prótesis es el horizonte narrativo, no una conversión automática.</h2>
+          </div>
+          <p class="section-aside">El filamento de rPET es técnicamente factible, pero su formulación, extrusión, estabilidad y desempeño deben caracterizarse antes de fabricar y evaluar un prototipo.</p>
+        </div>
+
+        <ol class="chain">
+          <li><strong>PET recuperado</strong><span>Masa con origen y periodo conocidos.</span></li>
+          <li><strong>Selección</strong><span>Resina, color y contaminación controlados.</span></li>
+          <li><strong>Lavado y secado</strong><span>Preparación reproducible.</span></li>
+          <li><strong>Filamento experimental</strong><span>Diámetro y proceso estables.</span></li>
+          <li><strong>Ensayos</strong><span>Propiedades mecánicas y procesabilidad.</span></li>
+          <li><strong>Prototipo</strong><span>Evaluación específica de la aplicación.</span></li>
+        </ol>
+        <p class="small muted">Base técnica: <a href="https://doi.org/10.1016/j.cscee.2024.100673">Joseph et al., 2024</a>; <a href="https://doi.org/10.1038/s41598-023-41744-8">Rashwan et al., 2023</a>.</p>
+
+        <div class="section-head subsection-head">
+          <div>
+            <p class="eyebrow">evaluación · dos niveles</p>
+            <h2>Primero se prueba aprendizaje; después, transferencia al campus.</h2>
+          </div>
+          <p class="section-aside">Completar una venta virtual es telemetría de uso, no evidencia suficiente de cambio de conducta.</p>
+        </div>
+        <div class="protocol">
+          <article><h3>Comprensión pre/post</h3><p>Explicar la cadena, distinguir generado/recuperado/útil y anticipar consecuencias de contaminación.</p></article>
+          <article><h3>Desempeño en el MVP</h3><p>Registrar decisiones, errores, omisiones, tiempo y finalización de un ciclo completo.</p></article>
+          <article><h3>Línea base física</h3><p>Pesar PET, rechazo y contaminación antes de difundir el simulador.</p></article>
+          <article><h3>Comparación</h3><p>Cuando sea viable, usar otra zona o periodo para separar el efecto del juego de cambios operativos o estacionales.</p></article>
+          <article><h3>Seguimiento</h3><p>Repetir medición después de la intervención; una encuesta inmediata no demuestra hábito.</p></article>
+          <article><h3>Decisión</h3><p>Definir antes del piloto qué combinación de aprendizaje, uso y señal física justificaría iterar o escalar.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="estado-proyecto">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">06 · estado de las secciones 3–5</p>
+            <h2>La narrativa está integrada; los siguientes módulos conservan su estado real.</h2>
+          </div>
+          <p class="section-aside">Esta sección sirve como hoja de ruta de preparación. No contiene costos ni riesgos inventados.</p>
+        </div>
+        <div class="editorial-notes">
+          <div><h3>3 · MVP</h3><p><strong>Objetivo mínimo funcional cumplido; validación pendiente.</strong> La demostración ya muestra un ciclo completo y consecuencias visibles. Falta comprobar aprendizaje y transferencia al campus.</p></div>
+          <div><h3>4 · Costos de medición</h3><p><strong>Pausada.</strong> Cuando se reactive, estimar horas-persona, muestra, báscula y calibración, recipientes, traslados, captura y limpieza de datos.</p></div>
+          <div><h3>5 · Riesgos</h3><p><strong>Pausada.</strong> Cuando se reactive, separar riesgos agudos del piloto y riesgos estructurales de operación, gobernanza, mercado y capacidad técnica.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fase-3">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">06B · validación de la fase 3</p>
+            <h2>El MVP cumple el mínimo funcional; todavía no cierra la validación de aprendizaje.</h2>
+          </div>
+          <p class="section-aside">La revisión se hizo contra el objetivo declarado y contra el comportamiento disponible en el documento y el simulador. “Funciona” y “produce el cambio esperado” son afirmaciones distintas.</p>
+        </div>
+
+        <div class="callout">
+          <strong>Veredicto.</strong> Sí se cumple el objetivo mínimo: la simulación permite generar o esperar, recolectar, acondicionar y vender PET, y hace visible cómo la tapa, etiqueta, líquido, humedad y compresión cambian el resultado. La fase 3 solo podrá considerarse validada cuando también exista evidencia de comprensión y una prueba controlada en campus.
+        </div>
+
+        <h3 class="audit-title">Matriz de cumplimiento</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Criterio</th><th>Estado</th><th>Evidencia actual</th><th>Cierre requerido</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ciclo completo del MVP</td><td><span class="state ok">Cumple</span></td><td>Generar o esperar → recolectar → procesar → vender.</td><td>Conservar una prueba de recorrido repetible.</td></tr>
+              <tr><td>Consecuencia visible</td><td><span class="state ok">Cumple</span></td><td>Etiquetas de estado, restricciones de orden y penalizaciones de precio.</td><td>Calibrar magnitudes con reglas locales; no presentarlas como precios reales.</td></tr>
+              <tr><td>Vínculo propuesta–simulación</td><td><span class="state ok">Cumple</span></td><td>El recorrido visible enlaza la propuesta con el simulador y permite regresar al documento.</td><td>Probar enlaces, estado inicial y navegación móvil/teclado.</td></tr>
+              <tr><td>Evidencia de aprendizaje</td><td><span class="state pending">Pendiente</span></td><td>No hay medición pre/post ni eventos analíticos de errores, omisiones o finalización.</td><td>Instrumentar y ejecutar un piloto de comprensión.</td></tr>
+              <tr><td>Transferencia al campus</td><td><span class="state pending">Pendiente</span></td><td>No hay línea base ni comparación de recuperación o contaminación.</td><td>Medir antes y después con alcance, periodo y regla de decisión predefinidos.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="audit-title">Tareas para cerrar la fase</h3>
+        <div class="protocol">
+          <article><h3>Formalizar la prueba de aceptación</h3><p>Definir un recorrido reproducible que compruebe acceso desde la propuesta, ciclo completo, ruta limpia, ruta contaminada y regreso al documento.</p></article>
+          <article><h3>Instrumentar el recorrido</h3><p>Registrar inicio, acciones, bloqueos, errores, precio final, finalización y contenedor sin datos personales innecesarios.</p></article>
+          <article><h3>Medir comprensión pre/post</h3><p>Evaluar si la persona distingue generado, recuperado y útil, y anticipa las consecuencias de contaminación.</p></article>
+          <article><h3>Calibrar las reglas</h3><p>Sustituir precios y penalizaciones demostrativas con criterios documentados del comprador, gestor y proceso local.</p></article>
+          <article><h3>Ejecutar un piloto de campus</h3><p>Levantar línea base de masa, rechazo y contaminación; aplicar el MVP en una zona y conservar una comparación viable.</p></article>
+          <article><h3>Aplicar la regla de cierre</h3><p>Decidir iterar, escalar o detener con umbrales definidos antes del piloto y publicar la evidencia obtenida.</p></article>
+        </div>
+
+        <div class="callout warning">
+          <strong>Seguimiento versionable:</strong> la lista completa, con perfiles sugeridos, dependencias y evidencia de aceptación, está en <a href="TAREAS_PROYECTO.md">TAREAS_PROYECTO.md</a>.
+        </div>
+      </div>
+    </section>
+
+    <section id="referencias">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">07 · referencias</p>
+            <h2>Fuentes para los datos, el método y los límites de la propuesta.</h2>
+          </div>
+          <p class="section-aside">Estilo APA 7 aproximado para lectura web. Las fuentes locales pendientes deben añadirse con fecha, responsable, periodo y método de medición.</p>
+        </div>
+
+        <ol class="refs">
+          <li>Coordinación de Planeación, Evaluación y Simplificación de la Gestión Institucional, UNAM. (2025). <em>Agenda Estadística UNAM 2025</em>. <a href="https://web.planeacion.unam.mx/Agenda/2025/pdf/AgendaUNAM2025.pdf">Documento oficial</a>.</li>
+          <li>Dirección General de Administración Escolar, UNAM. (2025). <em>Calendario escolar: Plan semestral 2026</em>. <a href="https://repositorio.dgae.unam.mx/pdfs/calendario_semestral2026.pdf">Documento oficial</a>.</li>
+          <li>Joint Committee for Guides in Metrology. (2008). <em>Evaluation of measurement data—Guide to the expression of uncertainty in measurement</em> (JCGM 100:2008). <a href="https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf">BIPM</a>.</li>
+          <li>ECOCE. (2026, 7 de mayo). <em>Errores más comunes al reciclar y cómo evitarlos</em>. <a href="https://ecoce.mx/2026/05/07/errores-mas-comunes-al-reciclar-y-como-evitarlos/">ECOCE</a>.</li>
+          <li>Joseph, T. M., Azat, S., Ahmadi, Z., Moini Jazani, O., Esmaeili, A., Kianfar, E., Haponiuk, J., &amp; Thomas, S. (2024). Polyethylene terephthalate (PET) recycling: A review. <em>Case Studies in Chemical and Environmental Engineering, 9</em>, 100673. <a href="https://doi.org/10.1016/j.cscee.2024.100673">https://doi.org/10.1016/j.cscee.2024.100673</a></li>
+          <li>Rashwan, O., Koroneos, Z., Townsend, T. G., et al. (2023). Extrusion and characterization of recycled polyethylene terephthalate (rPET) filaments compounded with chain extender and impact modifiers for material-extrusion additive manufacturing. <em>Scientific Reports, 13</em>, 16041. <a href="https://doi.org/10.1038/s41598-023-41744-8">https://doi.org/10.1038/s41598-023-41744-8</a></li>
+          <li>Grupo de Investigación en Robótica Aplicada y Biomecánica, Pontificia Universidad Católica del Perú. (2019–2020). <em>Prótesis mioeléctricas personalizadas… en filamentos de plástico reciclado PET</em>. <a href="https://investigacion.pucp.edu.pe/grupos/girab/proyecto/protesis-mioelectricas-personalizadas-de-mano-con-retroalimentacion-haptica-empleando-fabricacion-digital-en-filamentos-plastico-pet/">Ficha del proyecto</a>.</li>
+          <li>Freeman, S., Eddy, S. L., McDonough, M., Smith, M. K., Okoroafor, N., Jordt, H., &amp; Wenderoth, M. P. (2014). Active learning increases student performance in science, engineering, and mathematics. <em>Proceedings of the National Academy of Sciences, 111</em>(23), 8410–8415. <a href="https://doi.org/10.1073/pnas.1319030111">https://doi.org/10.1073/pnas.1319030111</a></li>
+          <li>Bamberg, S., &amp; Möser, G. (2007). Twenty years after Hines, Hungerford, and Tomera: A new meta-analysis of psycho-social determinants of pro-environmental behaviour. <em>Journal of Environmental Psychology, 27</em>(1), 14–25. <a href="https://doi.org/10.1016/j.jenvp.2006.12.002">https://doi.org/10.1016/j.jenvp.2006.12.002</a></li>
+          <li>Varotto, A., &amp; Spagnolli, A. (2017). Psychological strategies to promote household recycling: A systematic review with meta-analysis of validated field interventions. <em>Journal of Environmental Psychology, 51</em>, 168–188. <a href="https://doi.org/10.1016/j.jenvp.2017.03.011">https://doi.org/10.1016/j.jenvp.2017.03.011</a></li>
+          <li>Wouters, P., van Nimwegen, C., van Oostendorp, H., &amp; van der Spek, E. D. (2013). A meta-analysis of the cognitive and motivational effects of serious games. <em>Journal of Educational Psychology, 105</em>(2), 249–265. <a href="https://doi.org/10.1037/a0031311">https://doi.org/10.1037/a0031311</a></li>
+          <li>Chernikova, O., Heitzmann, N., Stadler, M., Holzberger, D., Seidel, T., &amp; Fischer, F. (2020). Simulation-based learning in higher education: A meta-analysis. <em>Review of Educational Research, 90</em>(4), 499–541. <a href="https://doi.org/10.3102/0034654320933544">https://doi.org/10.3102/0034654320933544</a></li>
+          <li>Gaggi, O., Meneghello, F., Palazzi, C. E., &amp; Pante, G. (2020). Learning how to recycle waste using a game. In <em>Proceedings of GoodTechs ’20</em> (pp. 144–149). <a href="https://doi.org/10.1145/3411170.3411251">https://doi.org/10.1145/3411170.3411251</a></li>
+          <li>Vaucher, J., Demongeot, A., Michaud, V., &amp; Leterrier, Y. (2022). Recycling of bottle grade PET: Influence of HDPE contamination on the microstructure and mechanical performance of 3D printed parts. <em>Polymers, 14</em>(24), 5507. <a href="https://doi.org/10.3390/polym14245507">https://doi.org/10.3390/polym14245507</a></li>
+        </ol>
+
+        <div class="callout applied-criteria">
+          <strong>Criterios editoriales aplicados.</strong> El documento distingue PET generado, recuperado, aceptado y útil; redondea las cifras según la calidad de cada dato; y presenta el aprendizaje y el cambio de conducta como hipótesis por evaluar, no como resultados demostrados.
+        </div>
+      </div>
+    </section>
+
+    <section id="colaborar">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">08 · onboarding y colaboración</p>
+            <h2>Elige una tarea y ayuda a convertir la propuesta en un proyecto verificable.</h2>
+          </div>
+          <p class="section-aside">Este tablero reúne calidad documental, medición, desarrollo, pedagogía, operación y validación técnica. Marcar una tarea expresa interés; la asignación se confirma con el equipo.</p>
+        </div>
+
+        <ol class="onboarding-steps">
+          <li><strong>Recorre el contexto</strong><span>Lee Estimación y Propuesta; después completa una ruta limpia y otra contaminada en la Simulación.</span></li>
+          <li><strong>Elige por aporte</strong><span>Busca una tarea compatible con tu experiencia o una habilidad que quieras desarrollar.</span></li>
+          <li><strong>Acota antes de editar</strong><span>Confirma responsable, alcance, fecha, dependencia y evidencia de aceptación.</span></li>
+          <li><strong>Deja trazabilidad</strong><span>Comparte fuente, método, archivo y límites; solicita revisión de otra disciplina.</span></li>
+        </ol>
+
+        <div class="callout warning">
+          <strong>Antes de elegir.</strong> Las prioridades P0 desbloquean decisiones o validaciones inmediatas; las P1 dependen de una P0 o preparan la siguiente iteración. No sustituyas un supuesto con otro: si falta un dato, documenta cómo se obtendrá.
+        </div>
+
+        <div class="task-board" id="task-board">
+          <article class="task-card">
+            <header><h3>Fuentes y trazabilidad local</h3><span class="task-id">T01 · P0</span></header>
+            <div class="task-meta"><span>Investigación documental</span><span>Gestión ambiental</span></div>
+            <p>Confirma los días operativos, recuperación atribuida a ECOCE, ruta institucional y vínculo con HUMAN STEM. Registra qué afirmación respalda cada fuente.</p>
+            <ul><li><strong>Entrega:</strong> matriz de fuentes con responsable, fecha, periodo, método y alcance.</li><li><strong>Depende de:</strong> acceso a documentos y contactos institucionales.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T01" data-task-title="Fuentes y trazabilidad local"> Quiero colaborar en T01</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Auditoría del modelo cuantitativo</h3><span class="task-id">T02 · P0</span></header>
+            <div class="task-meta"><span>Estadística</span><span>Ciencia de datos</span></div>
+            <p>Reproduce fórmulas, unidades, escenarios e intervalos; revisa que generado, recuperado, aceptado y útil no se mezclen en el balance.</p>
+            <ul><li><strong>Entrega:</strong> cálculo reproducible y registro de supuestos, errores y sensibilidad.</li><li><strong>Depende de:</strong> definiciones de alcance de T01.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T02" data-task-title="Auditoría del modelo cuantitativo"> Quiero colaborar en T02</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Línea base en campus</h3><span class="task-id">T03 · P0</span></header>
+            <div class="task-meta"><span>Trabajo de campo</span><span>Operaciones</span><span>Estadística</span></div>
+            <p>Diseña y ejecuta una medición estratificada de botellas, masa seca, rechazo y contaminación por zona, día y turno.</p>
+            <ul><li><strong>Entrega:</strong> protocolo, datos anonimizados, bitácora visual y resumen con incertidumbre.</li><li><strong>Depende de:</strong> permisos, seguridad y criterios operativos de T01.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T03" data-task-title="Línea base en campus"> Quiero colaborar en T03</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Evaluación de aprendizaje</h3><span class="task-id">T04 · P0</span></header>
+            <div class="task-meta"><span>Pedagogía</span><span>Psicología</span><span>UX research</span></div>
+            <p>Crea un instrumento breve pre/post que mida comprensión de la cadena, del balance de masa y de las consecuencias de contaminar el PET.</p>
+            <ul><li><strong>Entrega:</strong> instrumento, clave, plan de análisis, consentimiento y umbral definido antes del piloto.</li><li><strong>Depende de:</strong> objetivos de aprendizaje y recorrido estable del MVP.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T04" data-task-title="Evaluación de aprendizaje"> Quiero colaborar en T04</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Instrumentación del simulador</h3><span class="task-id">T05 · P0</span></header>
+            <div class="task-meta"><span>Desarrollo web</span><span>Datos</span><span>Privacidad</span></div>
+            <p>Registra inicio, decisiones, bloqueos, errores, omisiones, tiempo, precio y finalización sin recopilar datos personales innecesarios.</p>
+            <ul><li><strong>Entrega:</strong> diccionario de eventos, implementación, prueba y política de conservación de datos.</li><li><strong>Depende de:</strong> variables de análisis definidas con T04.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T05" data-task-title="Instrumentación del simulador"> Quiero colaborar en T05</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Pruebas funcionales y accesibilidad</h3><span class="task-id">T06 · P0</span></header>
+            <div class="task-meta"><span>QA</span><span>Accesibilidad</span><span>Frontend</span></div>
+            <p>Automatiza el recorrido de Estimación a Propuesta y luego a Simulación, una ruta limpia, una contaminada y el regreso al documento.</p>
+            <ul><li><strong>Entrega:</strong> pruebas repetibles y reporte en móvil, teclado, lector de pantalla y movimiento reducido.</li><li><strong>Depende de:</strong> versión del recorrido congelada para el piloto.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T06" data-task-title="Pruebas funcionales y accesibilidad"> Quiero colaborar en T06</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Calibración de reglas económicas</h3><span class="task-id">T07 · P1</span></header>
+            <div class="task-meta"><span>Economía</span><span>Gestión de residuos</span></div>
+            <p>Obtén precios, descuentos y rechazos reales para PET limpio, mezclado o húmedo y tradúcelos a reglas transparentes del MVP.</p>
+            <ul><li><strong>Entrega:</strong> tabla versionada con fuente, unidad, vigencia, rango y regla implementable.</li><li><strong>Depende de:</strong> comprador o gestor confirmado en T01.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T07" data-task-title="Calibración de reglas económicas"> Quiero colaborar en T07</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Ruta técnica de rPET a prototipo</h3><span class="task-id">T08 · P1</span></header>
+            <div class="task-meta"><span>Materiales</span><span>Mecánica</span><span>Biomédica</span></div>
+            <p>Define especificación del material, lavado, secado, extrusión, caracterización y ensayos antes de considerar una aplicación protésica.</p>
+            <ul><li><strong>Entrega:</strong> diagrama de proceso, criterios de avance, riesgos y límites de uso.</li><li><strong>Depende de:</strong> actor técnico y composición del flujo confirmados.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T08" data-task-title="Ruta técnica de rPET a prototipo"> Quiero colaborar en T08</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Calidad editorial y visual</h3><span class="task-id">T09 · P1</span></header>
+            <div class="task-meta"><span>Edición</span><span>Diseño</span><span>Comunicación científica</span></div>
+            <p>Revisa lenguaje, fuentes, cifras, causalidad, jerarquía visual y comprensión para personas que llegan por primera vez al proyecto.</p>
+            <ul><li><strong>Entrega:</strong> lista de control resuelta y revisión cruzada de afirmaciones, figuras y referencias.</li><li><strong>Depende de:</strong> resultados estabilizados de T01–T04.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T09" data-task-title="Calidad editorial y visual"> Quiero colaborar en T09</label>
+          </article>
+
+          <article class="task-card">
+            <header><h3>Piloto y regla de decisión</h3><span class="task-id">T10 · P1</span></header>
+            <div class="task-meta"><span>Coordinación</span><span>Ética</span><span>Evaluación</span></div>
+            <p>Integra calendario, responsables, riesgos, consentimientos, comparación viable y umbrales para iterar, escalar o detener.</p>
+            <ul><li><strong>Entrega:</strong> protocolo aprobado, matriz RACI, calendario y acta de decisión con límites.</li><li><strong>Depende de:</strong> T03–T06 listas y recursos confirmados.</li></ul>
+            <label class="task-choice"><input type="checkbox" data-task-id="T10" data-task-title="Piloto y regla de decisión"> Quiero colaborar en T10</label>
+          </article>
+        </div>
+
+        <div class="selection-panel">
+          <div>
+            <h3>Tu selección</h3>
+            <p id="selection-help">Se guarda únicamente en este navegador y no asigna la tarea. Copia el mensaje y compártelo con la coordinación para confirmar alcance y responsable.</p>
+            <ul id="selection-list" aria-live="polite"><li>Aún no has seleccionado una tarea.</li></ul>
+          </div>
+          <div class="selection-form">
+            <label>Nombre (opcional)<input id="collaborator-name" type="text" autocomplete="name" placeholder="Cómo quieres que te identifiquen"></label>
+            <label>Perfil o disciplina (opcional)<input id="collaborator-profile" type="text" placeholder="Ej. estadística, diseño, materiales"></label>
+            <button id="copy-task-selection" type="button" disabled>Copiar mensaje de colaboración</button>
+            <p id="selection-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <p class="small muted task-source-link">La versión de seguimiento para responsables, fechas y evidencias de aceptación está en <a href="TAREAS_PROYECTO.md">TAREAS_PROYECTO.md</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p><strong>Versión integrada.</strong> Estimación, propuesta, simulación, referencias y tablero multidisciplinario actualizados el 14 de julio de 2026. Documento didáctico: sustituir supuestos por mediciones locales antes de usarlo para decisiones operativas, financieras o de diseño protésico.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var root = document.getElementById("pet-lab");
+      var ids = ["n", "c", "m", "r", "d1", "a1", "d2", "a2", "d3", "a3", "q", "eta", "uc", "ua", "um"];
+      var el = {};
+      ids.forEach(function (id) { el[id] = document.getElementById(id); });
+
+      var out = {
+        n: document.getElementById("n-out"),
+        c: document.getElementById("c-out"),
+        m: document.getElementById("m-out"),
+        r: document.getElementById("r-out"),
+        d1: document.getElementById("d1-out"),
+        a1: document.getElementById("a1-out"),
+        d2: document.getElementById("d2-out"),
+        a2: document.getElementById("a2-out"),
+        d3: document.getElementById("d3-out"),
+        a3: document.getElementById("a3-out"),
+        q: document.getElementById("q-out"),
+        eta: document.getElementById("eta-out"),
+        uc: document.getElementById("uc-out"),
+        ua: document.getElementById("ua-out"),
+        um: document.getElementById("um-out")
+      };
+
+      var ui = {
+        g: document.getElementById("g-stat"),
+        b: document.getElementById("b-stat"),
+        rho: document.getElementById("rho-stat"),
+        lostStat: document.getElementById("lost-stat"),
+        f: document.getElementById("f-stat"),
+        exposure: document.getElementById("exposure-label"),
+        formula: document.getElementById("formula-live"),
+        balanceSummary: document.getElementById("balance-summary"),
+        recoveredBar: document.getElementById("recovered-bar"),
+        lostBar: document.getElementById("lost-bar"),
+        recoveredLabel: document.getElementById("recovered-label"),
+        lostLabel: document.getElementById("lost-label"),
+        recoveredLegend: document.getElementById("recovered-legend"),
+        lostLegend: document.getElementById("lost-legend"),
+        p10: document.getElementById("p10-label"),
+        p50: document.getElementById("p50-label"),
+        p90: document.getElementById("p90-label"),
+        uncSource: document.getElementById("unc-source"),
+        rhoRange: document.getElementById("rho-range"),
+        uncChart: document.getElementById("unc-chart"),
+        status: document.getElementById("status"),
+        balanceBar: document.getElementById("balance-bar")
+      };
+
+      var scenarios = {
+        low:  { n: 22470, c: 0.06, m: 22, r: 700, d1: 150, a1: 0.60, d2: 18, a2: 0.25, d3: 25, a3: 0.07, q: 70, eta: 75, uc: 35, ua: 15, um: 10 },
+        base: { n: 22470, c: 0.10, m: 24, r: 850, d1: 160, a1: 0.72, d2: 20, a2: 0.35, d3: 30, a3: 0.10, q: 80, eta: 85, uc: 30, ua: 12, um: 8 },
+        high: { n: 22470, c: 0.18, m: 27, r: 1000, d1: 170, a1: 0.82, d2: 24, a2: 0.50, d3: 40, a3: 0.18, q: 90, eta: 90, uc: 25, ua: 10, um: 6 }
+      };
+
+      function number(value, digits) {
+        return Number(value).toLocaleString("es-MX", {
+          minimumFractionDigits: digits || 0,
+          maximumFractionDigits: digits || 0
+        });
+      }
+
+      function kg(value) {
+        if (!isFinite(value)) { return "—"; }
+        return number(Math.round(value), 0) + " kg";
+      }
+
+      function percent(value, digits) {
+        if (!isFinite(value)) { return "—"; }
+        return number(value * 100, digits == null ? 1 : digits) + "%";
+      }
+
+      function values() {
+        var v = {};
+        ids.forEach(function (id) { v[id] = Number(el[id].value); });
+        return v;
+      }
+
+      function updateOutputs(v) {
+        out.n.textContent = number(v.n, 0) + " personas";
+        out.c.textContent = number(v.c, 2) + " bot/persona-día";
+        out.m.textContent = number(v.m, v.m % 1 ? 1 : 0) + " g/botella";
+        out.r.textContent = number(v.r, 0) + " kg/año";
+        out.d1.textContent = number(v.d1, 0) + " días";
+        out.a1.textContent = number(v.a1, 2);
+        out.d2.textContent = number(v.d2, 0) + " días";
+        out.a2.textContent = number(v.a2, 2);
+        out.d3.textContent = number(v.d3, 0) + " días";
+        out.a3.textContent = number(v.a3, 2);
+        out.q.textContent = number(v.q, 0) + "%";
+        out.eta.textContent = number(v.eta, 0) + "%";
+        out.uc.textContent = number(v.uc, 0) + "%";
+        out.ua.textContent = number(v.ua, 0) + "%";
+        out.um.textContent = number(v.um, 0) + "%";
+      }
+
+      function dominantUncertainty(v) {
+        var parts = [
+          { name: "c", value: Math.log(1 + Math.pow(v.uc / 100, 2)) },
+          { name: "E", value: Math.log(1 + Math.pow(v.ua / 100, 2)) },
+          { name: "m̄", value: Math.log(1 + Math.pow(v.um / 100, 2)) }
+        ];
+        parts.sort(function (a, b) { return b.value - a.value; });
+        var total = parts.reduce(function (sum, item) { return sum + item.value; }, 0);
+        var share = total ? parts[0].value / total : 0;
+        return "Domina " + parts[0].name + " (" + number(share * 100, 0) + "% de la varianza log)";
+      }
+
+      function simulate() {
+        var v = values();
+        updateOutputs(v);
+
+        var activeDays = v.a1 * v.d1 + v.a2 * v.d2 + v.a3 * v.d3;
+        var exposure = v.n * activeDays;
+        var bottles = exposure * v.c;
+        var G = bottles * v.m / 1000;
+        var rho = G > 0 ? v.r / G : NaN;
+        var lost = G - v.r;
+        var F = v.r * (v.q / 100) * (v.eta / 100);
+
+        var logVariance = Math.log(1 + Math.pow(v.uc / 100, 2)) +
+          Math.log(1 + Math.pow(v.ua / 100, 2)) +
+          Math.log(1 + Math.pow(v.um / 100, 2));
+        var factor = Math.exp(1.2815515655 * Math.sqrt(logVariance));
+        var p10 = factor ? G / factor : G;
+        var p90 = G * factor;
+        var rhoLow = p90 > 0 ? v.r / p90 : NaN;
+        var rhoHigh = p10 > 0 ? v.r / p10 : NaN;
+
+        ui.g.textContent = kg(G) + "/año";
+        ui.b.textContent = number(Math.round(bottles), 0) + " botellas/año";
+        ui.rho.textContent = percent(rho, 1);
+        ui.lostStat.textContent = lost >= 0 ? kg(lost) + " no recuperados" : "R excede G por " + kg(-lost);
+        ui.f.textContent = kg(F);
+        ui.exposure.textContent = number(Math.round(exposure), 0) + " días-persona";
+        ui.formula.textContent = number(v.n, 0) + " × (" +
+          number(v.a1, 2) + "×" + number(v.d1, 0) + " + " +
+          number(v.a2, 2) + "×" + number(v.d2, 0) + " + " +
+          number(v.a3, 2) + "×" + number(v.d3, 0) + ") × " +
+          number(v.c, 2) + " × " + number(v.m, v.m % 1 ? 1 : 0) +
+          " / 1000 = " + number(Math.round(G), 0) + " kg/año";
+
+        var recWidth = isFinite(rho) ? Math.max(0, Math.min(100, rho * 100)) : 0;
+        var lostWidth = Math.max(0, 100 - recWidth);
+        ui.recoveredBar.style.width = recWidth + "%";
+        ui.lostBar.style.width = lostWidth + "%";
+        ui.recoveredLabel.textContent = recWidth >= 17 ? percent(rho, 1) : "";
+        ui.lostLabel.textContent = lostWidth >= 17 && lost >= 0 ? percent(1 - rho, 1) : "";
+        ui.recoveredLegend.textContent = kg(v.r);
+        ui.lostLegend.textContent = lost >= 0 ? kg(lost) : "inconsistente";
+        ui.balanceSummary.textContent = kg(G) + " generados";
+        ui.balanceBar.setAttribute("aria-label", kg(G) + " generados; " + kg(v.r) + " recuperados; " + (lost >= 0 ? kg(lost) + " no recuperados" : "datos inconsistentes"));
+
+        ui.p10.textContent = "P10 " + kg(p10);
+        ui.p50.textContent = "P50 " + kg(G);
+        ui.p90.textContent = "P90 " + kg(p90);
+        ui.uncSource.textContent = dominantUncertainty(v);
+        ui.rhoRange.textContent = percent(rhoLow, 1) + "–" + percent(rhoHigh, 1);
+        ui.uncChart.setAttribute("aria-label", "Generación P10 " + kg(p10) + ", P50 " + kg(G) + " y P90 " + kg(p90));
+
+        ui.status.className = "status";
+        if (G <= 0) {
+          ui.status.classList.add("error");
+          ui.status.textContent = "No hay exposición o generación calculable. Revisa días, asistencia y consumo.";
+        } else if (v.r > G) {
+          ui.status.classList.add("error");
+          ui.status.textContent = "Inconsistencia: R supera G. No limites el resultado; verifica que recuperación y generación cubran el mismo periodo, material y población.";
+        } else if (rho > 0.8) {
+          ui.status.textContent = "La tasa calculada es alta. Antes de celebrarla, revisa si G omite personal, visitantes, periodos o consumo fuera de los puntos muestreados.";
+        } else {
+          ui.status.classList.add("ok");
+          ui.status.textContent = "Lectura central: se recupera " + percent(rho, 1) + " de la generación estimada. Tras calidad y proceso quedarían " + kg(F) + " para caracterización y prototipos.";
+        }
+      }
+
+      function applyScenario(name) {
+        var scenario = scenarios[name];
+        if (!scenario) { return; }
+        ids.forEach(function (id) { el[id].value = scenario[id]; });
+        root.querySelectorAll("[data-scenario]").forEach(function (button) {
+          button.setAttribute("aria-pressed", button.getAttribute("data-scenario") === name ? "true" : "false");
+        });
+        simulate();
+      }
+
+      ids.forEach(function (id) {
+        el[id].addEventListener("input", function () {
+          root.querySelectorAll("[data-scenario]").forEach(function (button) {
+            button.setAttribute("aria-pressed", "false");
+          });
+          simulate();
+        });
+      });
+
+      root.querySelectorAll("[data-scenario]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          applyScenario(button.getAttribute("data-scenario"));
+        });
+      });
+
+      document.getElementById("check-quiz").addEventListener("click", function () {
+        var fieldsets = Array.prototype.slice.call(root.querySelectorAll(".quiz fieldset"));
+        var answered = 0;
+        var correct = 0;
+        fieldsets.forEach(function (fieldset) {
+          var selected = fieldset.querySelector("input:checked");
+          if (selected) {
+            answered += 1;
+            if (selected.value === fieldset.getAttribute("data-correct")) { correct += 1; }
+          }
+        });
+        var feedback = document.getElementById("quiz-feedback");
+        if (answered < fieldsets.length) {
+          feedback.textContent = "Faltan " + (fieldsets.length - answered) + " respuesta(s).";
+        } else if (correct === fieldsets.length) {
+          feedback.textContent = "3/3. Ya puedes explicar la estructura y detectar la inconsistencia principal.";
+        } else {
+          feedback.textContent = correct + "/3. Revisa: cadena de tasas, proporcionalidad lineal y auditoría cuando R > G.";
+        }
+      });
+
+      applyScenario("base");
+    }());
+  </script>
+  <script>
+    (function () {
+      "use strict";
+
+      var storageKey = "map:onboarding:tareas:v1";
+      var checkboxes = Array.prototype.slice.call(document.querySelectorAll("[data-task-id]"));
+      var list = document.getElementById("selection-list");
+      var copyButton = document.getElementById("copy-task-selection");
+      var status = document.getElementById("selection-status");
+
+      function selectedTasks() {
+        return checkboxes.filter(function (checkbox) { return checkbox.checked; }).map(function (checkbox) {
+          return { id: checkbox.getAttribute("data-task-id"), title: checkbox.getAttribute("data-task-title") };
+        });
+      }
+
+      function persist(tasks) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(tasks.map(function (task) { return task.id; })));
+        } catch (error) {
+          status.textContent = "La selección funciona, pero este navegador no permitió guardarla.";
+        }
+      }
+
+      function renderSelection(shouldPersist) {
+        var tasks = selectedTasks();
+        list.innerHTML = "";
+        if (!tasks.length) {
+          var emptyItem = document.createElement("li");
+          emptyItem.textContent = "Aún no has seleccionado una tarea.";
+          list.appendChild(emptyItem);
+        } else {
+          tasks.forEach(function (task) {
+            var item = document.createElement("li");
+            item.textContent = task.id + " · " + task.title;
+            list.appendChild(item);
+          });
+        }
+        copyButton.disabled = tasks.length === 0;
+        if (shouldPersist) { persist(tasks); }
+      }
+
+      function restoreSelection() {
+        try {
+          var saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          checkboxes.forEach(function (checkbox) {
+            checkbox.checked = saved.indexOf(checkbox.getAttribute("data-task-id")) !== -1;
+          });
+        } catch (error) {
+          try { localStorage.removeItem(storageKey); } catch (storageError) { /* La selección seguirá funcionando sin persistencia. */ }
+        }
+        renderSelection(false);
+      }
+
+      function collaborationMessage() {
+        var name = document.getElementById("collaborator-name").value.trim();
+        var profile = document.getElementById("collaborator-profile").value.trim();
+        var tasks = selectedTasks();
+        var lines = ["Hola, me gustaría colaborar en el proyecto PET de FES Acatlán.", ""];
+        tasks.forEach(function (task) { lines.push("- " + task.id + " · " + task.title); });
+        if (name) { lines.push("", "Nombre: " + name); }
+        if (profile) { lines.push("Perfil o disciplina: " + profile); }
+        lines.push("", "Antes de comenzar, quiero confirmar alcance, responsable, fecha, dependencias y evidencia de aceptación.");
+        return lines.join("\n");
+      }
+
+      function fallbackCopy(text) {
+        var textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        var copied = document.execCommand("copy");
+        document.body.removeChild(textarea);
+        return copied ? Promise.resolve() : Promise.reject(new Error("copy failed"));
+      }
+
+      checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          status.textContent = "";
+          renderSelection(true);
+        });
+      });
+
+      copyButton.addEventListener("click", function () {
+        var message = collaborationMessage();
+        var copy = navigator.clipboard && window.isSecureContext
+          ? navigator.clipboard.writeText(message)
+          : fallbackCopy(message);
+        copy.then(function () {
+          status.textContent = "Mensaje copiado. Compártelo con la coordinación para confirmar la tarea.";
+        }).catch(function () {
+          status.textContent = "No se pudo copiar automáticamente. Selecciona menos tareas o inténtalo desde HTTPS.";
+        });
+      });
+
+      restoreSelection();
+    }());
+  </script>
+</body>
+</html>

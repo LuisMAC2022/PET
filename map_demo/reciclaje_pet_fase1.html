@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3 · Simulación del MVP PET | FES Acatlán</title>
+  <style>
+    :root {
+      --bg: #f4f4f1;
+      --panel: #ffffff;
+      --ink: #1d1d1b;
+      --muted: #6b6b66;
+      --line: #d8d8d2;
+      --bad: #b42318;
+      --ok: #197a45;
+      --warn: #986f00;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    header {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .project-nav {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      max-width: 900px;
+      margin: 0 0 14px;
+    }
+
+    .project-nav a {
+      display: grid;
+      gap: 2px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: var(--panel);
+      text-decoration: none;
+    }
+
+    .project-nav a:hover,
+    .project-nav a:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 1px;
+    }
+
+    .project-nav a[aria-current="page"] {
+      border-color: var(--ink);
+      color: white;
+      background: var(--ink);
+    }
+
+    .project-nav strong { font-size: 13px; }
+    .project-nav span { color: var(--muted); font-size: 11px; }
+    .project-nav a[aria-current="page"] span { color: #d8d8d2; }
+
+    .phase-objective {
+      max-width: 900px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--ok);
+      background: #edf7f1;
+      color: #24543a;
+      font-size: 13px;
+    }
+
+    .phase-objective a { color: inherit; font-weight: 700; }
+
+    h1 { margin: 0; font-size: 22px; }
+    .sub { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+    main {
+      display: grid;
+      grid-template-columns: 260px minmax(320px, 1fr) 300px;
+      gap: 14px;
+      padding: 14px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    section, aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 160px;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    h3 { margin: 14px 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+    button, input, select {
+      appearance: none;
+      border: 1px solid var(--ink);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover { background: #eee; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+
+    .stack { display: grid; gap: 8px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+    .generation-controls {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfbfa;
+    }
+
+    .generation-controls label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .generation-controls input,
+    .generation-controls select { width: 100%; }
+
+    .generation-controls .pill { color: var(--ink); }
+
+    .money {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 4px 0 12px;
+    }
+
+    .bar {
+      height: 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: #222;
+      transition: width .18s ease;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12px;
+      background: #fafafa;
+    }
+
+    .bottle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .bottle {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      min-height: 134px;
+      cursor: pointer;
+    }
+
+    .bottle.selected { outline: 3px solid #111; }
+    .bottle.perfect { border-color: var(--ok); }
+    .bottle.dirty { border-color: #d49a9a; }
+
+    .mini-svg {
+      width: 52px;
+      height: 72px;
+      display: block;
+      margin: 0 auto 8px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 10px;
+      line-height: 1.2;
+      color: var(--muted);
+    }
+
+    .tag.bad { color: var(--bad); border-color: #e4b5b2; }
+    .tag.good { color: var(--ok); border-color: #b8d9c6; }
+
+    .price {
+      margin-top: 8px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .price.neg { color: var(--bad); }
+    .price.pos { color: var(--ok); }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .details {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 130px;
+      background: #fbfbfa;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 10px;
+      color: var(--warn);
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .message.show { opacity: 1; }
+
+    .log {
+      max-height: 150px;
+      overflow: auto;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .guide {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .guide li + li { margin-top: 5px; }
+
+    .next-step {
+      margin: 10px 0 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .project-nav { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="project-nav" aria-label="Recorrido integrado del proyecto">
+      <a href="presentacion.html#estimacion"><strong>1 · Estimación</strong><span>Datos, supuestos y modelo.</span></a>
+      <a href="presentacion.html#propuesta"><strong>2 · Propuesta</strong><span>Hipótesis, MVP y validación.</span></a>
+      <a href="reciclaje_pet_fase1.html" aria-current="page"><strong>3 · Simulación</strong><span>Practica el ciclo del MVP.</span></a>
+      <a href="proyectos.html"><strong>Proyectos hermanos</strong><span>Selector PET + Ciclo Tierra.</span></a>
+    </nav>
+    <h1 id="titulo">Fase 3 · Simulador de la cadena de valor del PET</h1>
+    <div class="sub" id="subtitulo">Iteración 1 del MVP: recolectar → procesar → vender. Sin maquinaria ni fase industrial.</div>
+    <div class="phase-objective"><strong>Objetivo mínimo:</strong> completar un ciclo y observar una consecuencia visible de separar o contaminar el material. <a href="presentacion.html#fase-3">Ver validación</a> · <a href="presentacion.html#colaborar">Elegir una tarea</a>.</div>
+  </header>
+
+  <main>
+    <aside aria-labelledby="estado-title">
+      <h2 id="estado-title">Estado</h2>
+      <div class="money" id="dinero">$0.00</div>
+
+      <div class="row"><strong>Inventario</strong><span id="volumenTexto">0.0 / 10.0</span></div>
+      <div class="bar"><div class="fill" id="inventarioBar"></div></div>
+
+      <h3>Contenedor</h3>
+      <div class="row"><span>Instancia</span><span class="pill" id="contenedorNombre">demo</span></div>
+      <div class="row"><span>Botellas disponibles</span><span class="pill" id="contenedorCantidad">0</span></div>
+      <div class="row"><span>Capacidad fijada</span><span class="pill" id="contenedorCapacidad">100</span></div>
+      <div class="bar"><div class="fill" id="contenedorBar"></div></div>
+
+      <h3>Poisson no homogénea</h3>
+      <div class="generation-controls">
+        <label>
+          Tasa base de este contenedor (botellas/hora simulada)
+          <input id="tasaGeneracion" type="number" min="0" max="240" step="0.5" inputmode="decimal">
+        </label>
+        <label>
+          Perfil horario
+          <select id="perfilGeneracion">
+            <option value="campus">Campus completo</option>
+            <option value="matutino">Mayor afluencia matutina</option>
+            <option value="vespertino">Mayor afluencia vespertina</option>
+          </select>
+        </label>
+        <div class="row"><span>Intensidad actual λ(t)</span><span class="pill" id="lambdaActual">0.0/h</span></div>
+        <div class="row"><span>Hora simulada</span><span class="pill" id="horaSimulada">00:00</span></div>
+        <button id="btnAlternarGeneracion" type="button">Pausar generación</button>
+        <div class="sub">Escala demo: 1 segundo real equivale a 1 minuto simulado.</div>
+      </div>
+
+      <h3>Ciclo</h3>
+      <div class="stack">
+        <button id="btnGenerar" type="button">+ generar botella</button>
+        <button id="btnRecolectar" type="button">Recolectar una</button>
+        <button id="btnVender" type="button">Vender seleccionada</button>
+        <button id="btnVenderTodo" type="button">Vender todo</button>
+        <button id="btnVolverPropuesta" type="button">Volver a la propuesta</button>
+        <button id="btnVerTareas" type="button">Elegir una tarea del proyecto</button>
+      </div>
+
+      <div id="mensaje" class="message"></div>
+    </aside>
+
+    <section>
+      <div class="row">
+        <h2>Inventario</h2>
+        <span class="pill" id="inventarioCantidad">0 botellas</span>
+      </div>
+      <div id="inventario" class="bottle-grid"></div>
+    </section>
+
+    <aside aria-labelledby="procesar-title">
+      <h2 id="procesar-title">Procesar botella</h2>
+      <div id="detalle" class="details empty">Selecciona una botella del inventario.</div>
+
+      <h3>Acciones puras</h3>
+      <div class="actions">
+        <button data-accion="destapar" type="button">Destapar</button>
+        <button data-accion="quitarEtiqueta" type="button">Quitar etiqueta</button>
+        <button data-accion="vaciar" type="button">Vaciar</button>
+        <button data-accion="secar" type="button">Secar</button>
+        <button data-accion="comprimir" type="button">Comprimir</button>
+        <button data-accion="descomprimir" type="button">Descomprimir</button>
+      </div>
+
+      <h3>Orden óptimo</h3>
+      <p class="sub">destapar → quitar etiqueta → vaciar → secar → comprimir</p>
+
+      <h3>Por qué importa cada paso</h3>
+      <ol class="guide">
+        <li><strong>Destapar:</strong> deja salir el líquido y permite que circule aire.</li>
+        <li><strong>Quitar la etiqueta:</strong> evita mezclar papel, adhesivo u otro plástico con el PET.</li>
+        <li><strong>Vaciar:</strong> elimina residuos que contaminan el material recuperado.</li>
+        <li><strong>Secar:</strong> evita que la humedad afecte el procesamiento del PET.</li>
+        <li><strong>Comprimir:</strong> reduce el volumen para almacenar y transportar más material; conviene hacerlo al final para no atrapar líquido en los pliegues.</li>
+      </ol>
+
+      <h3>Registro</h3>
+      <ol id="log" class="log"></ol>
+    </aside>
+  </main>
+
+  <script>
+    const CAPACIDAD_INVENTARIO = 10;
+    const CAPACIDAD_CONTENEDOR = 100;
+    const TASA_PREDETERMINADA_POR_HORA = 12;
+    const MS_POR_MINUTO_SIMULADO = 1000;
+    const INTERVALO_ACTUALIZACION_MS = 1000;
+    const MAX_MINUTOS_RECUPERACION = 3 * 24 * 60;
+    const STORAGE_KEY_GLOBAL = "simuladorPET:v3:global";
+    const STORAGE_KEY_GLOBAL_V2 = "simuladorPET:v2:global";
+
+    const BASE = 28;
+    const PENALIZACIONES = [
+      { condicion: b => b.tiene_tapa, penalizacion: 3 },
+      { condicion: b => b.tiene_etiqueta, penalizacion: 2 },
+      { condicion: b => !b.comprimida, penalizacion: 4 },
+      { condicion: b => !b.seca, penalizacion: 6 },
+      { condicion: b => b.tiene_liquido, penalizacion: 18 },
+      { condicion: b => b.comprimida && b.tiene_liquido, penalizacion: 10 }
+    ];
+
+    const EVENTOS_PET = Object.freeze({
+      GENERAR: "pet:generar",
+      CONFIGURAR: "pet:configurar-generacion",
+      PAUSAR: "pet:pausar-generacion",
+      REANUDAR: "pet:reanudar-generacion",
+      GENERADA: "pet:botella-generada",
+      ESTADO: "pet:estado-generacion"
+    });
+
+    const PERFILES = Object.freeze({
+      campus: normalizarPerfil([
+        0.15, 0.10, 0.08, 0.07, 0.08, 0.15,
+        0.40, 1.10, 1.60, 1.45, 1.30, 1.35,
+        1.55, 1.40, 1.25, 1.45, 1.65, 1.50,
+        1.10, 0.75, 0.50, 0.35, 0.25, 0.18
+      ]),
+      matutino: normalizarPerfil([
+        0.12, 0.08, 0.06, 0.05, 0.08, 0.20,
+        0.65, 1.45, 2.10, 1.95, 1.55, 1.30,
+        1.10, 0.95, 0.85, 0.80, 0.75, 0.65,
+        0.50, 0.38, 0.30, 0.24, 0.18, 0.14
+      ]),
+      vespertino: normalizarPerfil([
+        0.12, 0.08, 0.06, 0.05, 0.07, 0.12,
+        0.30, 0.55, 0.75, 0.85, 0.95, 1.05,
+        1.20, 1.40, 1.65, 1.90, 2.10, 1.95,
+        1.55, 1.10, 0.75, 0.48, 0.30, 0.18
+      ])
+    });
+
+    const params = new URLSearchParams(location.search);
+    const INSTANCIA_ID = limpiar(params.get("contenedor") || params.get("id") || "demo");
+    const INSTANCIA_NOMBRE = params.get("nombre") || INSTANCIA_ID;
+    const TASA_URL = numeroFinito(params.get("tasa"), null);
+    const PERFIL_URL = PERFILES[params.get("perfil")] ? params.get("perfil") : null;
+    const STORAGE_KEY_V1 = "simuladorPET:v1:" + INSTANCIA_ID;
+    const CONTENEDORES_RESPALDO = Array.from({ length: 16 }, (_, indice) => ({
+      id: "C-" + (indice + 1),
+      nombre: "Contenedor " + (indice + 1)
+    }));
+
+    let catalogoContenedores = [];
+    let estadoGlobal = null;
+    let estado = null;
+    let timerGeneracion = null;
+
+    function normalizarPerfil(valores) {
+      const media = valores.reduce((suma, valor) => suma + valor, 0) / valores.length;
+      return Object.freeze(valores.map(valor => valor / media));
+    }
+
+    function numeroFinito(valor, respaldo) {
+      if (valor === null || valor === undefined || valor === "") return respaldo;
+      const numero = Number(valor);
+      return Number.isFinite(numero) ? numero : respaldo;
+    }
+
+    function limpiar(valor) {
+      return String(valor || "demo")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || "demo";
+    }
+
+    function esObjeto(valor) {
+      return !!valor && typeof valor === "object" && !Array.isArray(valor);
+    }
+
+    function crearReloj(ahoraMs) {
+      const fecha = new Date(ahoraMs);
+      return {
+        origenRealMs: ahoraMs,
+        minutoOrigen: fecha.getHours() * 60 + fecha.getMinutes() + fecha.getSeconds() / 60
+      };
+    }
+
+    function normalizarReloj(entrada, ahoraMs) {
+      if (!esObjeto(entrada)) return crearReloj(ahoraMs);
+      return {
+        origenRealMs: numeroFinito(entrada.origenRealMs, ahoraMs),
+        minutoOrigen: numeroFinito(entrada.minutoOrigen, crearReloj(ahoraMs).minutoOrigen)
+      };
+    }
+
+    function minutoSimulado(ahoraMs, global = estadoGlobal) {
+      const reloj = global && global.reloj ? global.reloj : crearReloj(ahoraMs);
+      return reloj.minutoOrigen + (ahoraMs - reloj.origenRealMs) / MS_POR_MINUTO_SIMULADO;
+    }
+
+    function minutoDelDia(minutoAbsoluto) {
+      return ((minutoAbsoluto % 1440) + 1440) % 1440;
+    }
+
+    function horaDeMinuto(minutoAbsoluto) {
+      return Math.floor(minutoDelDia(minutoAbsoluto) / 60);
+    }
+
+    function formatoHoraSimulada(minutoAbsoluto) {
+      const minuto = Math.floor(minutoDelDia(minutoAbsoluto));
+      const horas = String(Math.floor(minuto / 60)).padStart(2, "0");
+      const minutos = String(minuto % 60).padStart(2, "0");
+      return horas + ":" + minutos;
+    }
+
+    function botellaNuevaPara(destino) {
+      return {
+        id: destino.siguienteId++,
+        tiene_tapa: true,
+        tiene_etiqueta: true,
+        tiene_liquido: true,
+        comprimida: false,
+        seca: false,
+        volumen: 1.0
+      };
+    }
+
+    function crearEstadoInicial(meta, global, ahoraMs) {
+      const tasaInicial = meta.id === INSTANCIA_ID && TASA_URL !== null
+        ? Math.min(240, Math.max(0, TASA_URL))
+        : Math.min(240, Math.max(0, numeroFinito(meta.tasaHora, TASA_PREDETERMINADA_POR_HORA)));
+      const perfilInicial = meta.id === INSTANCIA_ID && PERFIL_URL
+        ? PERFIL_URL
+        : (PERFILES[meta.perfil] ? meta.perfil : "campus");
+      const inicial = {
+        id: meta.id,
+        nombre: meta.nombre || meta.id,
+        dinero: 0,
+        contenedor: [],
+        inventario: [],
+        seleccion: null,
+        siguienteId: 1,
+        generacionActiva: true,
+        tasaHora: tasaInicial,
+        perfil: perfilInicial,
+        capacidad: CAPACIDAD_CONTENEDOR,
+        ultimaGeneracionMinuto: minutoSimulado(ahoraMs, global)
+      };
+      for (let i = 0; i < 4; i += 1) inicial.contenedor.push(botellaNuevaPara(inicial));
+      return inicial;
+    }
+
+    function normalizarBotella(botella, idRespaldo) {
+      const id = Number(botella && botella.id);
+      const comprimida = !!(botella && botella.comprimida);
+      const volumen = Number(botella && botella.volumen);
+      return {
+        id: Number.isInteger(id) && id > 0 ? id : idRespaldo,
+        tiene_tapa: botella && botella.tiene_tapa === false ? false : true,
+        tiene_etiqueta: botella && botella.tiene_etiqueta === false ? false : true,
+        tiene_liquido: botella && botella.tiene_liquido === false ? false : true,
+        comprimida,
+        seca: !!(botella && botella.seca),
+        volumen: Number.isFinite(volumen) ? volumen : (comprimida ? 0.3 : 1.0)
+      };
+    }
+
+    function normalizarEstadoContenedor(entrada, meta, global, ahoraMs) {
+      if (!esObjeto(entrada)) return crearEstadoInicial(meta, global, ahoraMs);
+      let siguienteId = Math.max(1, Math.floor(numeroFinito(entrada.siguienteId, 1)));
+      const normalizarLista = lista => (Array.isArray(lista) ? lista : []).map(botella => {
+        const normalizada = normalizarBotella(botella, siguienteId);
+        siguienteId = Math.max(siguienteId, normalizada.id + 1);
+        return normalizada;
+      });
+      const contenedor = normalizarLista(entrada.contenedor);
+      const inventario = normalizarLista(entrada.inventario);
+      const seleccionEntrada = entrada.seleccion !== undefined
+        ? entrada.seleccion
+        : (entrada.seleccionadaId !== undefined ? entrada.seleccionadaId : null);
+      const seleccionNumero = Number(seleccionEntrada);
+      const seleccion = Number.isInteger(seleccionNumero) && inventario.some(botella => botella.id === seleccionNumero)
+        ? seleccionNumero
+        : null;
+      let ultimaGeneracionMinuto = numeroFinito(entrada.ultimaGeneracionMinuto, null);
+      if (ultimaGeneracionMinuto === null && numeroFinito(entrada.ultimaActualizacionMs, null) !== null) {
+        ultimaGeneracionMinuto = minutoSimulado(Number(entrada.ultimaActualizacionMs), global);
+      }
+      if (ultimaGeneracionMinuto === null) ultimaGeneracionMinuto = minutoSimulado(ahoraMs, global);
+      const tasaAnterior = numeroFinito(entrada.tasaHora, numeroFinito(entrada.tasaMediaPorHora, null));
+      const perfil = PERFILES[entrada.perfil] ? entrada.perfil : (PERFILES[meta.perfil] ? meta.perfil : "campus");
+      return {
+        id: meta.id,
+        nombre: String(entrada.nombre || meta.nombre || meta.id),
+        dinero: numeroFinito(entrada.dinero, numeroFinito(entrada.dineroCentavos, 0) / 100),
+        contenedor,
+        inventario,
+        seleccion,
+        siguienteId,
+        generacionActiva: entrada.generacionActiva !== undefined ? entrada.generacionActiva !== false : entrada.aparicionActiva !== false,
+        tasaHora: Math.min(240, Math.max(0,
+          tasaAnterior === null ? numeroFinito(meta.tasaHora, TASA_PREDETERMINADA_POR_HORA) : tasaAnterior)),
+        perfil,
+        capacidad: Math.max(1, Math.floor(numeroFinito(entrada.capacidad, CAPACIDAD_CONTENEDOR))),
+        ultimaGeneracionMinuto
+      };
+    }
+
+    async function cargarCatalogoContenedores() {
+      try {
+        const respuesta = await fetch("puntos.json", { cache: "no-store" });
+        if (!respuesta.ok) throw new Error("No se pudo cargar puntos.json (" + respuesta.status + ")");
+        const puntos = await respuesta.json();
+        const pet = (Array.isArray(puntos) ? puntos : [])
+          .filter(punto => punto && punto.id && /pet|contenedor/i.test(String(punto.categoria || "")))
+          .map(punto => ({
+            id: limpiar(punto.id),
+            nombre: String(punto.nombre || punto.id),
+            tasaHora: numeroFinito(punto.tasa_pet_hora, numeroFinito(punto.tasaHora, TASA_PREDETERMINADA_POR_HORA)),
+            perfil: PERFILES[punto.perfil_pet] ? punto.perfil_pet : "campus"
+          }));
+        if (pet.length) return pet;
+      } catch (error) {
+        console.warn("No se pudo cargar el catálogo PET; se usará el respaldo.", error);
+      }
+      return CONTENEDORES_RESPALDO.map(meta => ({ ...meta }));
+    }
+
+    function metaActual() {
+      return catalogoContenedores.find(meta => meta.id === INSTANCIA_ID) || {
+        id: INSTANCIA_ID,
+        nombre: INSTANCIA_NOMBRE,
+        tasaHora: TASA_PREDETERMINADA_POR_HORA,
+        perfil: "campus"
+      };
+    }
+
+    function leerJSONLocal(clave) {
+      try {
+        const valor = localStorage.getItem(clave);
+        return valor ? JSON.parse(valor) : null;
+      } catch (error) {
+        console.warn("No se pudo leer " + clave + ".", error);
+        return null;
+      }
+    }
+
+    function normalizarEstadoGlobal(entrada, ahoraMs = Date.now()) {
+      const base = esObjeto(entrada) ? entrada : {};
+      const global = {
+        version: 3,
+        reloj: normalizarReloj(base.reloj, ahoraMs),
+        contenedores: {},
+        actualizadoEnMs: numeroFinito(base.actualizadoEnMs, ahoraMs)
+      };
+      const existentes = esObjeto(base.contenedores) ? base.contenedores : {};
+      const metas = new Map(catalogoContenedores.map(meta => [meta.id, { ...meta }]));
+      Object.entries(existentes).forEach(([clave, valor]) => {
+        const id = limpiar((valor && valor.id) || clave);
+        if (!metas.has(id)) metas.set(id, { id, nombre: String((valor && valor.nombre) || id) });
+      });
+      const actual = metaActual();
+      metas.set(actual.id, actual);
+      metas.forEach((meta, id) => {
+        global.contenedores[id] = normalizarEstadoContenedor(existentes[id], meta, global, ahoraMs);
+      });
+      return global;
+    }
+
+    function leerEstadoGlobal(ahoraMs = Date.now()) {
+      const v3 = leerJSONLocal(STORAGE_KEY_GLOBAL);
+      const v2 = v3 ? null : leerJSONLocal(STORAGE_KEY_GLOBAL_V2);
+      const global = normalizarEstadoGlobal(v3 || v2, ahoraMs);
+      if (!v3 && !v2) {
+        const v1 = leerJSONLocal(STORAGE_KEY_V1);
+        if (v1) {
+          global.contenedores[INSTANCIA_ID] = normalizarEstadoContenedor(v1, metaActual(), global, ahoraMs);
+        }
+      }
+      return global;
+    }
+
+    function escribirEstadoGlobal(global) {
+      global.actualizadoEnMs = Date.now();
+      try {
+        localStorage.setItem(STORAGE_KEY_GLOBAL, JSON.stringify(global));
+        return true;
+      } catch (error) {
+        console.warn("No se pudo guardar el estado global PET.", error);
+        return false;
+      }
+    }
+
+    function adoptarEstadoGlobal(global) {
+      estadoGlobal = global;
+      estado = global.contenedores[INSTANCIA_ID];
+      configurarEncabezado();
+    }
+
+    function guardarEstadoActual() {
+      if (!estadoGlobal || !estado) return;
+      estadoGlobal.contenedores[INSTANCIA_ID] = estado;
+      escribirEstadoGlobal(estadoGlobal);
+    }
+
+    function perfilDe(estadoContenedor) {
+      return PERFILES[estadoContenedor.perfil] || PERFILES.campus;
+    }
+
+    function intensidadPorHora(estadoContenedor, minutoAbsoluto) {
+      if (!estadoContenedor.generacionActiva) return 0;
+      return estadoContenedor.tasaHora * perfilDe(estadoContenedor)[horaDeMinuto(minutoAbsoluto)];
+    }
+
+    function integrarIntensidad(estadoContenedor, inicioMinuto, finMinuto) {
+      let cursor = inicioMinuto;
+      let media = 0;
+      const perfil = perfilDe(estadoContenedor);
+      while (cursor < finMinuto) {
+        const dentroDelDia = minutoDelDia(cursor);
+        const dentroDeHora = dentroDelDia % 60;
+        const minutosHastaLimite = Math.max(0.000001, 60 - dentroDeHora);
+        const siguiente = Math.min(finMinuto, cursor + minutosHastaLimite);
+        media += estadoContenedor.tasaHora * perfil[Math.floor(dentroDelDia / 60)] * (siguiente - cursor) / 60;
+        cursor = siguiente;
+      }
+      return media;
+    }
+
+    function muestraPoisson(media, limite) {
+      // En un NHPP, el número de llegadas del intervalo es Poisson con media
+      // igual a la integral de λ(t). Los tramos suman variables Poisson independientes.
+      let restante = Math.max(0, media);
+      let total = 0;
+      while (restante > 0 && total < limite) {
+        const tramo = Math.min(20, restante);
+        const umbral = Math.exp(-tramo);
+        let producto = 1;
+        let k = 0;
+        do {
+          k += 1;
+          producto *= Math.random();
+        } while (producto > umbral);
+        total += k - 1;
+        restante -= tramo;
+      }
+      return Math.min(total, limite);
+    }
+
+    function detalleEstado(estadoContenedor, ahoraMs = Date.now(), fuente = "estado") {
+      const minuto = minutoSimulado(ahoraMs, estadoGlobal);
+      return {
+        fuente,
+        contenedor: estadoContenedor.id,
+        nombre: estadoContenedor.nombre,
+        botellas: estadoContenedor.contenedor.length,
+        capacidad: estadoContenedor.capacidad,
+        activo: estadoContenedor.generacionActiva,
+        tasaHora: estadoContenedor.tasaHora,
+        perfil: estadoContenedor.perfil,
+        lambdaActual: intensidadPorHora(estadoContenedor, minuto),
+        minutoSimulado: minuto,
+        horaSimulada: formatoHoraSimulada(minuto)
+      };
+    }
+
+    function emitirEventoGlobal(nombre, detalle) {
+      const payload = Object.freeze({ ...detalle });
+      window.dispatchEvent(new CustomEvent(nombre, { detail: payload }));
+      const mensaje = { type: nombre, detail: payload };
+      if (window.parent && window.parent !== window) window.parent.postMessage(mensaje, location.origin);
+      if (window.opener && !window.opener.closed) window.opener.postMessage(mensaje, location.origin);
+    }
+
+    function emitirEstado(estadoContenedor, fuente) {
+      emitirEventoGlobal(EVENTOS_PET.ESTADO, detalleEstado(estadoContenedor, Date.now(), fuente));
+    }
+
+    function emitirBotellasGeneradas(estadoContenedor, botellas, fuente, mediaPoisson) {
+      botellas.forEach(botella => {
+        emitirEventoGlobal(EVENTOS_PET.GENERADA, {
+          ...detalleEstado(estadoContenedor, Date.now(), fuente),
+          botellaId: botella.id,
+          mediaPoisson: numeroFinito(mediaPoisson, 0)
+        });
+      });
+      if (botellas.length) emitirEstado(estadoContenedor, fuente);
+    }
+
+    function actualizarContenedorPoisson(estadoContenedor, global, ahoraMs) {
+      const fin = minutoSimulado(ahoraMs, global);
+      const inicioGuardado = numeroFinito(estadoContenedor.ultimaGeneracionMinuto, fin);
+      const inicio = Math.max(inicioGuardado, fin - MAX_MINUTOS_RECUPERACION);
+      estadoContenedor.ultimaGeneracionMinuto = fin;
+      const disponibles = Math.max(0, estadoContenedor.capacidad - estadoContenedor.contenedor.length);
+      if (!estadoContenedor.generacionActiva || estadoContenedor.tasaHora <= 0 || disponibles === 0 || fin <= inicio) {
+        return { botellas: [], media: 0 };
+      }
+      const media = integrarIntensidad(estadoContenedor, inicio, fin);
+      const cantidad = muestraPoisson(media, disponibles);
+      const botellas = [];
+      for (let i = 0; i < cantidad; i += 1) {
+        const botella = botellaNuevaPara(estadoContenedor);
+        estadoContenedor.contenedor.push(botella);
+        botellas.push(botella);
+      }
+      return { botellas, media };
+    }
+
+    function actualizarTodosLosContenedores(ahoraMs = Date.now(), renderizar = true) {
+      const global = leerEstadoGlobal(ahoraMs);
+      const generadas = [];
+      Object.values(global.contenedores).forEach(estadoContenedor => {
+        const resultado = actualizarContenedorPoisson(estadoContenedor, global, ahoraMs);
+        if (resultado.botellas.length) generadas.push({ estadoContenedor, ...resultado });
+      });
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      generadas.forEach(item => emitirBotellasGeneradas(item.estadoContenedor, item.botellas, "nhpp", item.media));
+      if (renderizar) render(false);
+    }
+
+    function obtenerContenedorGlobal(idSolicitado, global) {
+      const id = limpiar(idSolicitado || INSTANCIA_ID);
+      if (!global.contenedores[id]) {
+        const meta = catalogoContenedores.find(item => item.id === id) || { id, nombre: id };
+        global.contenedores[id] = crearEstadoInicial(meta, global, Date.now());
+      }
+      return global.contenedores[id];
+    }
+
+    function generarParaContenedor(detalle = {}) {
+      const global = leerEstadoGlobal(Date.now());
+      const destino = obtenerContenedorGlobal(detalle.contenedor || detalle.id, global);
+      const solicitadas = Math.max(1, Math.floor(numeroFinito(detalle.cantidad, 1)));
+      const disponibles = Math.max(0, destino.capacidad - destino.contenedor.length);
+      const cantidad = Math.min(solicitadas, disponibles);
+      const botellas = [];
+      for (let i = 0; i < cantidad; i += 1) {
+        const botella = botellaNuevaPara(destino);
+        destino.contenedor.push(botella);
+        botellas.push(botella);
+      }
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      emitirBotellasGeneradas(destino, botellas, detalle.fuente || "manual", 0);
+      if (!cantidad && destino.id === INSTANCIA_ID) mostrarMensaje("Contenedor lleno. El desbordamiento queda fuera del MVP.");
+      render(false);
+      return botellas;
+    }
+
+    function configurarGeneracion(detalle = {}, fuente = "configuracion") {
+      const global = leerEstadoGlobal(Date.now());
+      const destino = obtenerContenedorGlobal(detalle.contenedor || detalle.id, global);
+      const tasa = numeroFinito(detalle.tasaHora, numeroFinito(detalle.tasa, null));
+      if (tasa !== null) destino.tasaHora = Math.min(240, Math.max(0, tasa));
+      if (PERFILES[detalle.perfil]) destino.perfil = detalle.perfil;
+      if (typeof detalle.activo === "boolean") destino.generacionActiva = detalle.activo;
+      if (numeroFinito(detalle.capacidad, null) !== null) {
+        destino.capacidad = Math.max(1, Math.floor(Number(detalle.capacidad)));
+      }
+      destino.ultimaGeneracionMinuto = minutoSimulado(Date.now(), global);
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      emitirEstado(destino, fuente);
+      render(false);
+      return detalleEstado(destino, Date.now(), fuente);
+    }
+
+    function registrarEventosGlobales() {
+      // Comandos públicos dirigidos por detail.contenedor; las salidas son
+      // pet:botella-generada y pet:estado-generacion sobre window.
+      window.addEventListener(EVENTOS_PET.GENERAR, evento => generarParaContenedor(evento.detail || {}));
+      window.addEventListener(EVENTOS_PET.CONFIGURAR, evento => {
+        const detalle = evento.detail || {};
+        configurarGeneracion(detalle, detalle.fuente || "configuracion");
+      });
+      window.addEventListener(EVENTOS_PET.PAUSAR, evento => configurarGeneracion({ ...(evento.detail || {}), activo: false }, "pausa"));
+      window.addEventListener(EVENTOS_PET.REANUDAR, evento => configurarGeneracion({ ...(evento.detail || {}), activo: true }, "reanudacion"));
+      window.addEventListener("message", evento => {
+        if (evento.origin !== location.origin || !esObjeto(evento.data)) return;
+        const comandos = [EVENTOS_PET.GENERAR, EVENTOS_PET.CONFIGURAR, EVENTOS_PET.PAUSAR, EVENTOS_PET.REANUDAR];
+        if (!comandos.includes(evento.data.type)) return;
+        window.dispatchEvent(new CustomEvent(evento.data.type, { detail: evento.data.detail || {} }));
+      });
+      window.addEventListener("storage", evento => {
+        if (evento.key !== STORAGE_KEY_GLOBAL || !evento.newValue) return;
+        try {
+          adoptarEstadoGlobal(normalizarEstadoGlobal(JSON.parse(evento.newValue), Date.now()));
+          render(false);
+        } catch (error) {
+          console.warn("No se pudo sincronizar el cambio de otra pestaña.", error);
+        }
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) actualizarTodosLosContenedores(Date.now());
+      });
+
+      window.PETGenerador = Object.freeze({
+        eventos: EVENTOS_PET,
+        generar: detalle => window.dispatchEvent(new CustomEvent(EVENTOS_PET.GENERAR, { detail: detalle || {} })),
+        configurar: detalle => window.dispatchEvent(new CustomEvent(EVENTOS_PET.CONFIGURAR, { detail: detalle || {} })),
+        pausar: contenedor => window.dispatchEvent(new CustomEvent(EVENTOS_PET.PAUSAR, { detail: { contenedor } })),
+        reanudar: contenedor => window.dispatchEvent(new CustomEvent(EVENTOS_PET.REANUDAR, { detail: { contenedor } })),
+        obtenerEstado: contenedor => {
+          const global = leerEstadoGlobal(Date.now());
+          const actual = obtenerContenedorGlobal(contenedor, global);
+          return JSON.parse(JSON.stringify(detalleEstado(actual)));
+        }
+      });
+    }
+
+    function configurarEncabezado() {
+      if (!estado) return;
+      document.title = "Fase 3 · Simulador PET — " + estado.nombre + " (" + estado.id + ")";
+      document.getElementById("titulo").textContent = "Fase 3 · Simulador PET — " + estado.nombre + " (" + estado.id + ")";
+      document.getElementById("subtitulo").textContent =
+        "Iteración 1 del MVP: recolectar → procesar → vender. Estado global sincronizado y generación Poisson no homogénea independiente por contenedor.";
+    }
+
+    function calcularPrecio(botella) {
+      const centavos = PENALIZACIONES.reduce((total, regla) => {
+        return total - (regla.condicion(botella) ? regla.penalizacion : 0);
+      }, BASE);
+      return centavos / 100;
+    }
+
+    function sinCambio(botella, texto) {
+      mostrarMensaje(texto);
+      return botella;
+    }
+
+    function destapar(botella) {
+      if (!botella.tiene_tapa) {
+        return sinCambio(botella, "No hace falta destapar: la botella ya está abierta y el líquido y el aire pueden salir.");
+      }
+      return { ...botella, tiene_tapa: false };
+    }
+
+    function quitarEtiqueta(botella) {
+      if (!botella.tiene_etiqueta) {
+        return sinCambio(botella, "No hace falta quitar la etiqueta: ya fue retirada y no contaminará el PET.");
+      }
+      return { ...botella, tiene_etiqueta: false };
+    }
+
+    function vaciar(botella) {
+      if (botella.tiene_tapa) {
+        return sinCambio(botella, "No se puede vaciar sin destapar la botella: la tapa bloquea la salida del líquido.");
+      }
+      if (!botella.tiene_liquido) {
+        return sinCambio(botella, "No hace falta vaciar: la botella ya no contiene líquido.");
+      }
+      return { ...botella, tiene_liquido: false, seca: false };
+    }
+
+    function secar(botella) {
+      if (botella.tiene_tapa) {
+        return sinCambio(botella, "No se puede secar sin destapar la botella: la tapa impide que salga la humedad y que circule aire.");
+      }
+      if (botella.tiene_liquido) {
+        return sinCambio(botella, "No se puede secar mientras contiene líquido: primero hay que vaciarla para retirar el residuo que contaminaría el PET.");
+      }
+      if (botella.seca) {
+        return sinCambio(botella, "No hace falta secar: la botella ya está seca y lista para el siguiente paso.");
+      }
+      if (botella.comprimida) {
+        return sinCambio(botella, "No se puede secar una botella comprimida: los pliegues del PET atrapan líquido residual e impiden que circule aire. Descomprímela primero.");
+      }
+      return { ...botella, seca: true };
+    }
+
+    function comprimir(botella) {
+      if (botella.comprimida) {
+        return sinCambio(botella, "No hace falta comprimir: la botella ya ocupa el volumen mínimo.");
+      }
+      if (botella.tiene_tapa) {
+        return sinCambio(botella, "No se puede comprimir sin destapar la botella: la tapa atrapa aire y presión dentro del envase.");
+      }
+      return { ...botella, comprimida: true, volumen: 0.3 };
+    }
+
+    function descomprimir(botella) {
+      if (!botella.comprimida) {
+        return sinCambio(botella, "No hace falta descomprimir: la botella ya tiene su volumen normal.");
+      }
+      return { ...botella, comprimida: false, volumen: 1.0 };
+    }
+
+    const acciones = { destapar, quitarEtiqueta, vaciar, secar, comprimir, descomprimir };
+
+    function volumenUsado() {
+      return estado.inventario.reduce((suma, botella) => suma + botella.volumen, 0);
+    }
+
+    function esPerfecta(botella) {
+      return !botella.tiene_tapa && !botella.tiene_etiqueta && !botella.tiene_liquido &&
+        botella.comprimida && botella.seca && botella.volumen === 0.3;
+    }
+
+    function recolectar() {
+      if (estado.contenedor.length === 0) {
+        mostrarMensaje("El contenedor está vacío. Genera o espera una botella.");
+        return;
+      }
+      const botella = estado.contenedor[0];
+      if (volumenUsado() + botella.volumen > CAPACIDAD_INVENTARIO) {
+        mostrarMensaje("Inventario lleno: procesa, comprime o vende antes de recoger más.");
+        return;
+      }
+      estado.contenedor.shift();
+      estado.inventario.push(botella);
+      estado.seleccion = botella.id;
+      registrar("Recolectada botella #" + botella.id + ".");
+      render();
+    }
+
+    function generarBotella() {
+      window.dispatchEvent(new CustomEvent(EVENTOS_PET.GENERAR, {
+        detail: { contenedor: INSTANCIA_ID, cantidad: 1, fuente: "manual" }
+      }));
+    }
+
+    function aplicarAccion(nombre) {
+      if (estado.seleccion === null) {
+        mostrarMensaje("Selecciona una botella antes de procesar.");
+        return;
+      }
+      const i = estado.inventario.findIndex(botella => botella.id === estado.seleccion);
+      if (i === -1) return;
+      const antes = estado.inventario[i];
+      if (nombre === "descomprimir" && antes.comprimida) {
+        const volumenAlDescomprimir = volumenUsado() - antes.volumen + 1.0;
+        if (volumenAlDescomprimir > CAPACIDAD_INVENTARIO) {
+          const espacioNecesario = volumenAlDescomprimir - volumenUsado();
+          mostrarMensaje("No se puede descomprimir: la botella necesita " + espacioNecesario.toFixed(1) +
+            " unidades adicionales de volumen y el inventario no tiene espacio. Comprime o vende otra botella primero.");
+          return;
+        }
+      }
+      const despues = acciones[nombre](antes);
+      estado.inventario[i] = despues;
+      estado.seleccion = despues.id;
+      if (despues !== antes) {
+        registrar(nombre + " aplicada a botella #" + despues.id + ".");
+        if (nombre === "vaciar" && antes.comprimida) {
+          mostrarMensaje("La botella se vació, pero sus pliegues comprimidos retienen líquido residual. Descomprímela antes de secarla.");
+        } else if (nombre === "comprimir" && (!antes.seca || antes.tiene_liquido)) {
+          mostrarMensaje("La botella ocupa menos espacio, pero comprimirla antes de vaciarla y secarla puede atrapar residuos en los pliegues del PET.");
+        }
+      }
+      render();
+    }
+
+    function venderSeleccionada() {
+      if (estado.seleccion === null) {
+        mostrarMensaje("Selecciona una botella para vender.");
+        return;
+      }
+      const i = estado.inventario.findIndex(botella => botella.id === estado.seleccion);
+      if (i === -1) return;
+      const botella = estado.inventario.splice(i, 1)[0];
+      const precio = calcularPrecio(botella);
+      estado.dinero += precio;
+      estado.seleccion = estado.inventario.length ? estado.inventario[0].id : null;
+      registrar("Vendida botella #" + botella.id + " por " + formato(precio) + ".");
+      render();
+    }
+
+    function venderTodo() {
+      if (estado.inventario.length === 0) {
+        mostrarMensaje("No hay botellas en inventario.");
+        return;
+      }
+      const total = estado.inventario.reduce((suma, botella) => suma + calcularPrecio(botella), 0);
+      const n = estado.inventario.length;
+      estado.dinero += total;
+      estado.inventario = [];
+      estado.seleccion = null;
+      registrar("Venta total: " + n + " botellas por " + formato(total) + ".");
+      render();
+    }
+
+    function formato(numero) {
+      const signo = numero < 0 ? "-" : "";
+      return signo + "$" + Math.abs(numero).toFixed(2);
+    }
+
+    function mostrarMensaje(texto) {
+      const elemento = document.getElementById("mensaje");
+      elemento.textContent = texto;
+      elemento.classList.add("show");
+      clearTimeout(mostrarMensaje.timer);
+      mostrarMensaje.timer = setTimeout(() => elemento.classList.remove("show"), 4200);
+    }
+
+    function registrar(texto) {
+      const log = document.getElementById("log");
+      const li = document.createElement("li");
+      li.textContent = texto;
+      log.prepend(li);
+      while (log.children.length > 9) log.removeChild(log.lastChild);
+    }
+
+    function botellaSvg(botella) {
+      const alto = botella.comprimida ? 38 : 62;
+      const y = botella.comprimida ? 26 : 8;
+      const cuelloY = botella.comprimida ? 10 : 8;
+      const liquido = botella.tiene_liquido ? '<rect x="17" y="45" width="18" height="18" rx="3" fill="#ddd" />' : "";
+      const tapa = botella.tiene_tapa ? '<rect x="21" y="2" width="10" height="7" rx="1" fill="#333" />' : "";
+      const etiqueta = botella.tiene_etiqueta ? '<rect x="13" y="34" width="26" height="10" rx="2" fill="#e6e6e6" stroke="#aaa" />' : "";
+      return '<svg class="mini-svg" viewBox="0 0 52 76" aria-hidden="true">' +
+        tapa +
+        '<rect x="18" y="' + cuelloY + '" width="16" height="11" rx="3" fill="none" stroke="#222" />' +
+        '<rect x="10" y="' + y + '" width="32" height="' + alto + '" rx="8" fill="none" stroke="#222" stroke-width="2" />' +
+        liquido + etiqueta +
+      "</svg>";
+    }
+
+    function siguientePaso(botella) {
+      if (botella.tiene_tapa) return "<strong>Siguiente paso: destapar.</strong> La abertura permite evacuar el líquido y ventilar la humedad.";
+      if (botella.tiene_etiqueta) return "<strong>Siguiente paso: quitar la etiqueta.</strong> Así no se mezclan adhesivos u otros materiales con el PET.";
+      if (botella.tiene_liquido) {
+        return botella.comprimida
+          ? "<strong>Siguiente paso: vaciar.</strong> Se puede hacer comprimida, pero después habrá que descomprimirla para liberar el residuo atrapado antes de secar."
+          : "<strong>Siguiente paso: vaciar.</strong> El líquido residual contaminaría el material recuperado.";
+      }
+      if (!botella.seca && botella.comprimida) return "<strong>Siguiente paso: descomprimir.</strong> Los pliegues retienen líquido residual e impiden el secado.";
+      if (!botella.seca) return "<strong>Siguiente paso: secar.</strong> La humedad perjudica el procesamiento del PET.";
+      if (!botella.comprimida) return "<strong>Siguiente paso: comprimir.</strong> Ya vacía y seca, ocupará menos espacio sin atrapar residuos.";
+      return "<strong>Lista para vender.</strong> El PET está separado, vacío, seco y compactado.";
+    }
+
+    function etiquetas(botella) {
+      return [
+        botella.tiene_tapa ? ["tapa", "bad"] : ["sin tapa", "good"],
+        botella.tiene_etiqueta ? ["etiqueta", "bad"] : ["sin etiqueta", "good"],
+        botella.tiene_liquido ? ["líquido", "bad"] : ["vacía", "good"],
+        botella.comprimida ? ["comprimida", "good"] : ["sin comprimir", "bad"],
+        botella.seca ? ["seca", "good"] : ["húmeda", "bad"]
+      ].map(([texto, clase]) => '<span class="tag ' + clase + '">' + texto + "</span>").join("");
+    }
+
+    function renderInventario() {
+      const contenedor = document.getElementById("inventario");
+      if (estado.inventario.length === 0) {
+        contenedor.innerHTML = '<div class="empty">Inventario vacío. Recolecta botellas del contenedor.</div>';
+        return;
+      }
+      contenedor.innerHTML = estado.inventario.map(botella => {
+        const precio = calcularPrecio(botella);
+        const clases = ["bottle", botella.id === estado.seleccion ? "selected" : "", esPerfecta(botella) ? "perfect" : "dirty"].join(" ");
+        return '<div class="' + clases + '" data-id="' + botella.id + '">' +
+          botellaSvg(botella) +
+          '<div class="tags">' + etiquetas(botella) + "</div>" +
+          '<div class="price ' + (precio < 0 ? "neg" : "pos") + '">' + formato(precio) + "</div>" +
+        "</div>";
+      }).join("");
+      contenedor.querySelectorAll(".bottle").forEach(elemento => {
+        elemento.addEventListener("click", () => {
+          estado.seleccion = Number(elemento.dataset.id);
+          render();
+        });
+      });
+    }
+
+    function renderDetalle() {
+      const elemento = document.getElementById("detalle");
+      const botella = estado.inventario.find(item => item.id === estado.seleccion);
+      if (!botella) {
+        elemento.className = "details empty";
+        elemento.innerHTML = "Selecciona una botella del inventario.";
+        return;
+      }
+      elemento.className = "details";
+      elemento.innerHTML =
+        "<strong>Botella #" + botella.id + "</strong>" +
+        '<div class="price ' + (calcularPrecio(botella) < 0 ? "neg" : "pos") + '">' + formato(calcularPrecio(botella)) + "</div>" +
+        '<p class="sub">Volumen: ' + botella.volumen.toFixed(1) + "</p>" +
+        '<div class="tags">' + etiquetas(botella) + "</div>" +
+        '<p class="next-step">' + siguientePaso(botella) + "</p>";
+    }
+
+    function render(persistir = true) {
+      if (!estado || !estadoGlobal) return;
+      const volumen = volumenUsado();
+      const minuto = minutoSimulado(Date.now(), estadoGlobal);
+      document.getElementById("dinero").textContent = formato(estado.dinero);
+      document.getElementById("volumenTexto").textContent = volumen.toFixed(1) + " / " + CAPACIDAD_INVENTARIO.toFixed(1);
+      document.getElementById("inventarioBar").style.width = Math.min(100, volumen / CAPACIDAD_INVENTARIO * 100) + "%";
+      document.getElementById("contenedorNombre").textContent = estado.id;
+      document.getElementById("contenedorCantidad").textContent = estado.contenedor.length;
+      document.getElementById("contenedorCapacidad").textContent = estado.capacidad;
+      document.getElementById("contenedorBar").style.width = Math.min(100, estado.contenedor.length / estado.capacidad * 100) + "%";
+      document.getElementById("inventarioCantidad").textContent =
+        estado.inventario.length + (estado.inventario.length === 1 ? " botella" : " botellas");
+      document.getElementById("lambdaActual").textContent = intensidadPorHora(estado, minuto).toFixed(1) + "/h";
+      document.getElementById("horaSimulada").textContent = formatoHoraSimulada(minuto);
+      document.getElementById("btnAlternarGeneracion").textContent =
+        estado.generacionActiva ? "Pausar generación" : "Reanudar generación";
+      const tasaInput = document.getElementById("tasaGeneracion");
+      if (document.activeElement !== tasaInput) tasaInput.value = String(estado.tasaHora);
+      document.getElementById("perfilGeneracion").value = estado.perfil;
+      document.getElementById("btnGenerar").disabled = estado.contenedor.length >= estado.capacidad;
+      document.getElementById("btnRecolectar").disabled = estado.contenedor.length === 0;
+      document.getElementById("btnVender").disabled = estado.seleccion === null;
+      document.getElementById("btnVenderTodo").disabled = estado.inventario.length === 0;
+      renderInventario();
+      renderDetalle();
+      if (persistir) guardarEstadoActual();
+    }
+
+    document.getElementById("btnGenerar").addEventListener("click", generarBotella);
+    document.getElementById("btnRecolectar").addEventListener("click", recolectar);
+    document.getElementById("btnVender").addEventListener("click", venderSeleccionada);
+    document.getElementById("btnVenderTodo").addEventListener("click", venderTodo);
+    document.getElementById("btnVolverPropuesta").addEventListener("click", () => {
+      location.href = "presentacion.html#propuesta";
+    });
+    document.getElementById("btnVerTareas").addEventListener("click", () => {
+      location.href = "presentacion.html#colaborar";
+    });
+    document.getElementById("btnAlternarGeneracion").addEventListener("click", () => {
+      const tipo = estado.generacionActiva ? EVENTOS_PET.PAUSAR : EVENTOS_PET.REANUDAR;
+      window.dispatchEvent(new CustomEvent(tipo, { detail: { contenedor: INSTANCIA_ID } }));
+    });
+    document.getElementById("tasaGeneracion").addEventListener("change", evento => {
+      window.dispatchEvent(new CustomEvent(EVENTOS_PET.CONFIGURAR, {
+        detail: { contenedor: INSTANCIA_ID, tasaHora: evento.target.value, fuente: "tasa-ui" }
+      }));
+    });
+    document.getElementById("perfilGeneracion").addEventListener("change", evento => {
+      window.dispatchEvent(new CustomEvent(EVENTOS_PET.CONFIGURAR, {
+        detail: { contenedor: INSTANCIA_ID, perfil: evento.target.value, fuente: "perfil-ui" }
+      }));
+    });
+    document.querySelectorAll("[data-accion]").forEach(boton => {
+      boton.addEventListener("click", () => aplicarAccion(boton.dataset.accion));
+    });
+
+    registrarEventosGlobales();
+
+    async function iniciar() {
+      catalogoContenedores = await cargarCatalogoContenedores();
+      const global = leerEstadoGlobal(Date.now());
+      escribirEstadoGlobal(global);
+      adoptarEstadoGlobal(global);
+      actualizarTodosLosContenedores(Date.now(), false);
+      render(false);
+      emitirEstado(estado, "inicio");
+      timerGeneracion = setInterval(() => actualizarTodosLosContenedores(Date.now()), INTERVALO_ACTUALIZACION_MS);
+    }
+
+    iniciar().catch(error => {
+      console.error("No se pudo iniciar el simulador PET.", error);
+      mostrarMensaje("No se pudo iniciar la simulación PET.");
+      clearInterval(timerGeneracion);
+    });
+  </script>
+</body>
+</html>

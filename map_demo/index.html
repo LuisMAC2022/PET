@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa de contenedores PET | Módulo fuera del recorrido</title>
+  <style>
+    :root {
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --surface: #f3f4f6;
+      --accent: #111827;
+      --marker-pet: #3f8f00;
+      --marker-bathroom: #2563eb;
+      --marker-active: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    .skip-link {
+      position: absolute;
+      top: .75rem;
+      left: .75rem;
+      z-index: 10;
+      transform: translateY(-150%);
+      border-radius: .5rem;
+      padding: .65rem .85rem;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      min-height: 100vh;
+    }
+
+    .map-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 1rem;
+      background:
+        linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+        linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+        linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+
+    .map-stage svg {
+      width: min(100%, 1180px);
+      height: auto;
+      max-height: calc(100vh - 2rem);
+      background: transparent url("acatlan.png") center / 100% 100% no-repeat;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 28px rgba(0,0,0,.12);
+      touch-action: manipulation;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      padding: 1rem;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      overflow: auto;
+      max-height: 100vh;
+    }
+
+    .project-nav {
+      display: grid;
+      gap: .4rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project-nav a {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .15rem .55rem;
+      align-items: baseline;
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      padding: .55rem .65rem;
+      color: var(--ink);
+      background: white;
+      text-decoration: none;
+    }
+
+    .project-nav a:hover,
+    .project-nav a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .project-nav a[aria-current="page"] {
+      border-color: var(--accent);
+      color: white;
+      background: var(--accent);
+    }
+
+    .project-nav strong { font-size: .84rem; }
+    .project-nav span { color: var(--muted); font-size: .73rem; }
+    .project-nav a[aria-current="page"] span { color: #d1d5db; }
+
+    h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    label {
+      display: grid;
+      gap: .35rem;
+      font-size: .9rem;
+      font-weight: 650;
+    }
+
+    input, select, button, .link-button {
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: .6rem;
+      padding: .65rem .75rem;
+      background: white;
+    }
+
+    button, .link-button {
+      cursor: pointer;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .link-button:hover,
+    .link-button:focus-visible {
+      outline: 2px solid #111827;
+      outline-offset: 1px;
+    }
+
+    button[data-active="true"] {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .filter-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .filter-list button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .result-list {
+      display: grid;
+      gap: .5rem;
+    }
+
+    .result-card {
+      display: grid;
+      gap: .2rem;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: .75rem;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .result-card:hover,
+    .result-card:focus-visible,
+    .result-card[data-active="true"] {
+      outline: 2px solid #111827;
+      outline-offset: 1px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+
+    .result-card {
+      text-align: left;
+    }
+
+    .result-card strong {
+      font-size: .95rem;
+    }
+
+    .result-card span {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .info-card {
+      display: grid;
+      gap: .35rem;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: .8rem;
+      background: #f9fafb;
+      min-height: 6rem;
+    }
+
+    .marker {
+      cursor: pointer;
+    }
+
+    .marker circle {
+      fill: var(--marker-pet);
+      stroke: white;
+      stroke-width: 4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .marker text {
+      font: 800 16px system-ui, sans-serif;
+      fill: white;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+
+    .marker--bathroom circle {
+      fill: var(--marker-bathroom);
+    }
+
+    .marker:focus-visible circle {
+      stroke: var(--accent);
+      stroke-width: 7;
+    }
+
+    .marker[data-active="true"] circle {
+      stroke: var(--marker-active);
+      stroke-width: 7;
+    }
+
+    .marker image {
+      pointer-events: none;
+    }
+
+    .marker[data-hidden="true"] {
+      display: none;
+    }
+
+    @media (max-width: 840px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: 58vh auto;
+      }
+
+      .map-stage {
+        padding: .5rem;
+      }
+
+      .map-stage svg {
+        width: 100%;
+        max-height: 56vh;
+      }
+
+      .control-panel {
+        max-height: none;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al mapa</a>
+
+  <div class="app-shell">
+    <main id="contenido" class="map-stage" aria-label="Mapa interactivo" tabindex="-1"></main>
+
+    <aside class="control-panel" aria-labelledby="map-title">
+      <nav class="project-nav" aria-label="Recorrido integrado del proyecto">
+        <a href="presentacion.html#estimacion"><strong>1 · Estimación</strong><span>Datos, supuestos y modelo.</span></a>
+        <a href="presentacion.html#propuesta"><strong>2 · Propuesta</strong><span>Hipótesis, MVP y validación.</span></a>
+        <a href="reciclaje_pet_fase1.html"><strong>3 · Simulación</strong><span>Practica el ciclo del MVP.</span></a>
+        <a href="proyectos.html"><strong>Proyectos hermanos</strong><span>Selector PET + Ciclo Tierra.</span></a>
+      </nav>
+      <header>
+        <h1 id="map-title">Mapa interactivo FES Acatlán</h1>
+        <p><strong>Módulo fuera del recorrido actual.</strong> Se conserva para una iteración posterior. Selecciona un contenedor de PET para abrir una instancia del simulador.</p>
+      </header>
+
+      <label for="search">
+        Buscar punto
+      </label>
+      <input id="search" type="search" placeholder="Ej. baño, PET, baño 1" autocomplete="off">
+
+      <section aria-labelledby="filters-title">
+        <h2 id="filters-title">Categorías</h2>
+        <div class="filter-list" id="filters">
+          <!-- Categorías futuras; se conservan desactivadas y fuera de la interfaz.
+          <button type="button" disabled>Bebedero</button>
+          <button type="button" disabled>Tapitas</button>
+          <button type="button" disabled>Pilas</button>
+          -->
+        </div>
+      </section>
+
+      <section class="info-card" id="info" aria-live="polite">
+        <h2>Selecciona un punto</h2>
+        <p>Haz clic en un marcador del mapa o en un resultado de la lista.</p>
+      </section>
+
+      <section aria-labelledby="results-title">
+        <h2 id="results-title">Resultados</h2>
+        <div class="result-list" id="results"></div>
+      </section>
+    </aside>
+  </div>
+
+  <script>
+    const SVG_FILE = "mapa_vectorizado.svg";
+    const POINT_FILES = ["puntos.json", "bano.json"];
+    const PET_SIMULATOR_FILE = "reciclaje_pet_fase1.html";
+
+    const stage = document.querySelector("#contenido");
+    const search = document.querySelector("#search");
+    const filters = document.querySelector("#filters");
+    const results = document.querySelector("#results");
+    const info = document.querySelector("#info");
+
+    let svg;
+    let markerLayer;
+    let points = [];
+    let activeCategory = null;
+    let activePointId = null;
+
+    start().catch(error => {
+      stage.textContent = "No se pudo cargar el mapa. Sirve esta carpeta con un servidor local, por ejemplo: python3 -m http.server";
+      console.error(error);
+    });
+
+    async function start() {
+      const [svgText, ...loadedPointGroups] = await Promise.all([
+        fetch(SVG_FILE).then(readTextResponse),
+        ...POINT_FILES.map(file => fetch(file).then(readJSONResponse))
+      ]);
+
+      points = normalizePoints(loadedPointGroups.flat());
+      activeCategory = getInitialCategory();
+
+      const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
+      svg = doc.documentElement;
+
+      ensureViewBox(svg);
+      mostrarFondoAcatlan(svg);
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "Mapa vectorial de FES Acatlán sobre la imagen del campus");
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+
+      markerLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      markerLayer.setAttribute("id", "poi-markers");
+      markerLayer.setAttribute("aria-label", "Puntos de interés del mapa");
+      svg.appendChild(markerLayer);
+
+      stage.replaceChildren(svg);
+
+      renderFilters();
+      renderMarkers();
+      renderResults();
+
+      search.addEventListener("input", () => {
+        renderMarkers();
+        renderResults();
+      });
+    }
+
+    function readTextResponse(response) {
+      if (!response.ok) throw new Error(`No se pudo cargar ${response.url}`);
+      return response.text();
+    }
+
+    function readJSONResponse(response) {
+      if (!response.ok) throw new Error(`No se pudo cargar ${response.url}`);
+      return response.json();
+    }
+
+    function normalizePoints(rawPoints) {
+      return rawPoints.map((point, index) => {
+        const normalized = {
+          id: String(point.id || `punto-${index + 1}`),
+          nombre: String(point.nombre || point.name || `Punto ${index + 1}`),
+          categoria: String(point.categoria || point.type || "sin_clasificar"),
+          x: Number(point.x),
+          y: Number(point.y),
+          descripcion: String(point.descripcion || point.description || ""),
+          edificio: point.edificio || point.building || "",
+          piso: point.piso || point.floor || "",
+          tags: Array.isArray(point.tags) ? point.tags.map(String) : [],
+          simulador: point.simulador || point.simulator || ""
+        };
+
+        if (isPETContainer(normalized) && !normalized.simulador) {
+          normalized.simulador = buildPETSimulatorURL(normalized);
+        }
+
+        return normalized;
+      }).filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
+    }
+
+    function ensureViewBox(svgElement) {
+      if (svgElement.hasAttribute("viewBox")) return;
+
+      const width = parseFloat(svgElement.getAttribute("width"));
+      const height = parseFloat(svgElement.getAttribute("height"));
+
+      if (Number.isFinite(width) && Number.isFinite(height)) {
+        svgElement.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      }
+    }
+
+    function mostrarFondoAcatlan(svgElement) {
+      svgElement.querySelectorAll("[fill]").forEach(element => {
+        if (esBlanco(element.getAttribute("fill"))) {
+          element.setAttribute("fill-opacity", "0");
+        }
+      });
+    }
+
+    function esBlanco(color) {
+      const match = String(color).trim().match(/^#([0-9a-f]{6})$/i);
+      if (!match) return false;
+
+      const channels = match[1].match(/.{2}/g).map(value => parseInt(value, 16));
+      return channels.every(channel => channel >= 248);
+    }
+
+    function getInitialCategory() {
+      return points
+        .map(point => point.categoria)
+        .find(category => !isCategoryDisabled(category)) || null;
+    }
+
+    function isCategoryDisabled(category) {
+      const normalizedCategory = normalizeSearchText(category);
+      return normalizedCategory === "todas"
+        || normalizedCategory === "todos"
+        || normalizedCategory.includes("bano");
+    }
+
+    function renderFilters() {
+      const categories = ["todas", ...new Set(points.map(point => point.categoria))];
+
+      filters.replaceChildren(...categories.map(category => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = category.replaceAll("_", " ");
+        const desactivado = isCategoryDisabled(category);
+        button.dataset.active = String(!desactivado && category === activeCategory);
+        button.disabled = desactivado;
+        button.setAttribute("aria-disabled", String(desactivado));
+        if (desactivado) button.title = "Categoría temporalmente desactivada";
+
+        button.addEventListener("click", () => {
+          if (desactivado) return;
+          activeCategory = category;
+          [...filters.children].forEach(child => child.dataset.active = "false");
+          button.dataset.active = "true";
+          renderMarkers();
+          renderResults();
+        });
+
+        return button;
+      }));
+    }
+
+    function renderMarkers() {
+      markerLayer.replaceChildren();
+
+      for (const point of points) {
+        if (!matches(point)) continue;
+
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        marker.classList.add("marker", getMarkerClass(point));
+        marker.dataset.id = point.id;
+        marker.dataset.active = String(point.id === activePointId);
+        marker.setAttribute("transform", `translate(${point.x} ${point.y})`);
+        marker.setAttribute("tabindex", "0");
+        marker.setAttribute("role", "button");
+        marker.setAttribute("aria-label", `${point.nombre}, ${point.categoria.replaceAll("_", " ")}`);
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "22");
+
+        marker.append(circle, createMarkerIcon(point));
+
+        marker.addEventListener("click", () => selectPoint(point.id));
+        marker.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectPoint(point.id);
+          }
+        });
+
+        markerLayer.appendChild(marker);
+      }
+    }
+
+    function renderResults() {
+      const visible = points.filter(matches);
+
+      results.replaceChildren(...visible.map(point => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "result-card";
+        card.dataset.active = String(point.id === activePointId);
+        card.innerHTML = `
+          <strong>${escapeHTML(point.nombre)}</strong>
+          <span>${escapeHTML(point.categoria.replaceAll("_", " "))} · x:${point.x}, y:${point.y}</span>
+          ${point.simulador ? "<span>Instancia PET vinculada</span>" : ""}
+        `;
+        card.addEventListener("click", () => selectPoint(point.id));
+        return card;
+      }));
+    }
+
+    function selectPoint(id) {
+      activePointId = id;
+      const point = points.find(candidate => candidate.id === id);
+      if (!point) return;
+
+      info.innerHTML = `
+        <h2>${escapeHTML(point.nombre)}</h2>
+        <p><b>Categoría:</b> ${escapeHTML(point.categoria.replaceAll("_", " "))}</p>
+        ${point.edificio ? `<p><b>Edificio:</b> ${escapeHTML(point.edificio)}</p>` : ""}
+        ${point.piso ? `<p><b>Piso/zona:</b> ${escapeHTML(point.piso)}</p>` : ""}
+        ${point.descripcion ? `<p>${escapeHTML(point.descripcion)}</p>` : "<p>Falta descripción humana del punto.</p>"}
+        <p><b>Coordenadas SVG:</b> ${point.x}, ${point.y}</p>
+        ${point.simulador ? `<p><a class="link-button" href="${escapeHTML(point.simulador)}">Abrir simulador de este contenedor</a></p>` : ""}
+      `;
+
+      renderMarkers();
+      renderResults();
+
+      const marker = markerLayer.querySelector(`[data-id="${CSS.escape(id)}"]`);
+      marker?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    }
+
+    function getMarkerClass(point) {
+      return isBathroom(point) ? "marker--bathroom" : "marker--pet";
+    }
+
+    function createMarkerIcon(point) {
+      if (!isBathroom(point)) {
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        icon.setAttribute("href", "pet_icon.svg");
+        icon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "pet_icon.svg");
+        icon.setAttribute("x", "-12");
+        icon.setAttribute("y", "-12");
+        icon.setAttribute("width", "24");
+        icon.setAttribute("height", "24");
+        return icon;
+      }
+
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.textContent = "WC";
+      return label;
+    }
+
+    function isBathroom(point) {
+      return normalizeSearchText(point.categoria).includes("bano");
+    }
+
+    function isPETContainer(point) {
+      const haystack = normalizeSearchText(`${point.id} ${point.nombre} ${point.categoria}`);
+      return haystack.includes("pet") || haystack.includes("contenedor");
+    }
+
+    function buildPETSimulatorURL(point) {
+      const params = new URLSearchParams({
+        contenedor: point.id,
+        nombre: point.nombre
+      });
+      return `${PET_SIMULATOR_FILE}?${params.toString()}`;
+    }
+
+    function matches(point) {
+      const q = normalizeSearchText(search.value.trim());
+
+      const byCategory = activeCategory === "todas" || point.categoria === activeCategory;
+      if (!byCategory) return false;
+
+      if (!q) return true;
+
+      const haystack = [
+        point.id,
+        point.nombre,
+        point.categoria,
+        point.descripcion,
+        point.edificio,
+        point.piso,
+        point.simulador,
+        ...point.tags
+      ].join(" ");
+
+      return normalizeSearchText(haystack).includes(q);
+    }
+
+    function normalizeSearchText(value) {
+      return String(value)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+  </script>
+</body>
+</html>

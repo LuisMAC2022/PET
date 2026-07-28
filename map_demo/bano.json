@@ -1,0 +1,93 @@
+[
+  {
+    "id": "baño-1",
+    "nombre": "baño-1",
+    "categoria": "baño",
+    "x": 405.06,
+    "y": 288.9
+  },
+  {
+    "id": "baño-2",
+    "nombre": "baño-2",
+    "categoria": "baño",
+    "x": 519.44,
+    "y": 383.48
+  },
+  {
+    "id": "baño-3",
+    "nombre": "baño-3",
+    "categoria": "baño",
+    "x": 669.01,
+    "y": 390.08
+  },
+  {
+    "id": "baño-4",
+    "nombre": "baño-4",
+    "categoria": "baño",
+    "x": 789.99,
+    "y": 462.66
+  },
+  {
+    "id": "baño-5",
+    "nombre": "baño-5",
+    "categoria": "baño",
+    "x": 789.99,
+    "y": 522.05
+  },
+  {
+    "id": "baño-6",
+    "nombre": "baño-6",
+    "categoria": "baño",
+    "x": 937.36,
+    "y": 572.64
+  },
+  {
+    "id": "baño-7",
+    "nombre": "baño-7",
+    "categoria": "baño",
+    "x": 416.06,
+    "y": 491.26
+  },
+  {
+    "id": "baño-8",
+    "nombre": "baño-8",
+    "categoria": "baño",
+    "x": 453.45,
+    "y": 513.25
+  },
+  {
+    "id": "baño-9",
+    "nombre": "baño-9",
+    "categoria": "baño",
+    "x": 1034.14,
+    "y": 724.41
+  },
+  {
+    "id": "baño-10",
+    "nombre": "baño-10",
+    "categoria": "baño",
+    "x": 1139.72,
+    "y": 632.03
+  },
+  {
+    "id": "baño-11",
+    "nombre": "baño-11",
+    "categoria": "baño",
+    "x": 640.42,
+    "y": 218.51
+  },
+  {
+    "id": "baño-12",
+    "nombre": "baño-12",
+    "categoria": "baño",
+    "x": 680.01,
+    "y": 97.54
+  },
+  {
+    "id": "baño-13",
+    "nombre": "baño-13",
+    "categoria": "baño",
+    "x": 739.4,
+    "y": 673.82
+  }
+]
