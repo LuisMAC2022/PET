@@ -1,4 +1,4 @@
-name: Inspeccionar sol_sim
+name: Integrar map_demo
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  inspect:
+  integrate:
     runs-on: ubuntu-latest
     steps:
       - name: Preparar rama de trabajo
@@ -16,52 +16,81 @@ jobs:
         with:
           ref: agent/map-demo-sync
           fetch-depth: 0
-      - name: Guardar contexto de la interfaz actual
+      - name: Descargar rama origen
+        run: git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
+      - name: Copiar árbol y actualizar navegación
         shell: bash
         run: |
-          python3 - <<'PY' > DEST_CONTEXT.txt
+          set -euo pipefail
+          rm -rf map_demo
+          mkdir -p map_demo
+          rsync -a --delete --exclude='.git' /tmp/map-demo/ map_demo/
+
+          python3 - <<'PY'
           from pathlib import Path
-          import unicodedata
 
-          root = Path('.')
-          excluded = {'.git', 'CONTROL_CONTEXT.txt', 'TARGET_CONTEXT.txt', 'DEST_CONTEXT.txt'}
-          print('INVENTARIO ACTUAL')
-          for path in sorted(root.rglob('*')):
-              if path.is_file() and not any(part in excluded for part in path.parts):
-                  print(path)
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
 
-          print('\nCOINCIDENCIAS')
-          found = False
-          for path in sorted(root.rglob('*')):
-              if not path.is_file() or any(part in excluded for part in path.parts):
-                  continue
-              try:
-                  lines = path.read_text(encoding='utf-8').splitlines()
-              except (UnicodeDecodeError, OSError):
-                  continue
-              normalized = [unicodedata.normalize('NFD', line.lower()).encode('ascii', 'ignore').decode() for line in lines]
-              hits = [i for i, line in enumerate(normalized) if ('editar texto' in line or ('ver' in line and ('simulacion' in line or 'simulador' in line)))]
-              if not hits:
-                  continue
-              found = True
-              print(f'\nFILE: {path}')
-              windows = []
-              for hit in hits:
-                  start = max(0, hit - 32)
-                  end = min(len(lines), hit + 33)
-                  if windows and start <= windows[-1][1]:
-                      windows[-1] = (windows[-1][0], max(windows[-1][1], end))
-                  else:
-                      windows.append((start, end))
-              for start, end in windows:
-                  print(f'--- líneas {start + 1}-{end} ---')
-                  for number in range(start, end):
-                      print(f'{number + 1:04d}: {lines[number]}')
-          if not found:
-              print('No se encontraron coincidencias.')
+          old_css = '  .ayuda menu{ list-style:none; display:flex; gap:8px; padding:0; }'
+          new_css = '''  .ayuda menu{ list-style:none; display:grid; gap:8px; padding:0; }
+          .ayuda menu li{ display:flex; gap:8px; }'''
+
+          old_menu = '''  <menu>
+            <li><a class="enlace-simulador" href="simulador.html">↗ Abrir simulador</a></li>
+            <li><button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button></li>
+            <li><button type="button" id="btn-imprimir">⎙ Imprimir</button></li>
+          </menu>'''
+          new_menu = '''  <menu>
+            <li class="fila-enlaces">
+              <a class="enlace-simulador" href="map_demo/presentacion.html#modelo">Explorar modelo</a>
+              <a class="enlace-simulador" href="simulador.html">Ver simulación</a>
+            </li>
+            <li class="fila-acciones">
+              <button type="button" id="btn-editar" class="secundario" aria-pressed="false">✎ Editar textos</button>
+              <button type="button" id="btn-imprimir">⎙ Imprimir</button>
+            </li>
+          </menu>'''
+
+          if old_css not in text:
+              raise SystemExit('No se encontró la regla CSS esperada de .ayuda menu')
+          if old_menu not in text:
+              raise SystemExit('No se encontró el menú esperado en index.html')
+
+          text = text.replace(old_css, new_css, 1).replace(old_menu, new_menu, 1)
+          path.write_text(text, encoding='utf-8')
           PY
+
+          rm -f SYNC_REQUEST.md CONTROL_CONTEXT.txt TARGET_CONTEXT.txt DEST_CONTEXT.txt
+          rm -f .github/workflows/sync-map-demo.yml
+
+      - name: Validar integración
+        shell: bash
+        run: |
+          set -euo pipefail
+          diff -qr --exclude='.git' /tmp/map-demo map_demo
+          source_count=$(find /tmp/map-demo -type f ! -path '*/.git/*' | wc -l)
+          copied_count=$(find map_demo -type f | wc -l)
+          test "$source_count" -eq "$copied_count"
+          test "$source_count" -eq 19
+          grep -Fq 'href="map_demo/presentacion.html#modelo">Explorar modelo</a>' index.html
+          grep -Fq 'href="simulador.html">Ver simulación</a>' index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          explore = text.index('>Explorar modelo</a>')
+          simulation = text.index('>Ver simulación</a>')
+          edit = text.index('id="btn-editar"')
+          assert explore < simulation < edit
+          PY
+          npm test
+
+      - name: Publicar cambios en la rama de trabajo
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add DEST_CONTEXT.txt
-          git commit -m "Registra contexto actual de sol_sim"
+          git add -A
+          git commit -m "Integra map_demo y agrega navegación al modelo"
           git push origin HEAD:agent/map-demo-sync
