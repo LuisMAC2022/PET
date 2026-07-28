@@ -1,10 +1,8 @@
 name: Inspeccionar map_demo
 
 on:
-  push:
+  pull_request:
     branches: [sol_sim]
-    paths:
-      - .github/workflows/sync-map-demo.yml
 
 permissions:
   contents: write
@@ -13,10 +11,10 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Preparar rama destino
+      - name: Preparar rama de trabajo
         uses: actions/checkout@v4
         with:
-          ref: sol_sim
+          ref: agent/map-demo-sync
           fetch-depth: 0
       - name: Descargar rama origen
         run: git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
@@ -42,8 +40,8 @@ jobs:
               found = True
               print(f'FILE: {path.relative_to(root)}')
               for hit in hits:
-                  start = max(0, hit - 16)
-                  end = min(len(lines), hit + 17)
+                  start = max(0, hit - 18)
+                  end = min(len(lines), hit + 19)
                   print(f'--- contexto línea {hit + 1} ---')
                   for number in range(start, end):
                       print(f'{number + 1:04d}: {lines[number]}')
@@ -54,4 +52,4 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add CONTROL_CONTEXT.txt
           git commit -m "Registra contexto de controles"
-          git push origin HEAD:sol_sim
+          git push origin HEAD:agent/map-demo-sync
