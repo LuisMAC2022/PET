@@ -1,4 +1,4 @@
-name: Inspeccionar map_demo
+name: Inspeccionar sol_sim
 
 on:
   pull_request:
@@ -16,34 +16,39 @@ jobs:
         with:
           ref: agent/map-demo-sync
           fetch-depth: 0
-      - name: Descargar rama origen
-        run: git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
-      - name: Guardar contexto objetivo
+      - name: Guardar contexto de la interfaz actual
         shell: bash
         run: |
-          python3 - <<'PY' > TARGET_CONTEXT.txt
+          python3 - <<'PY' > DEST_CONTEXT.txt
           from pathlib import Path
           import unicodedata
 
-          root = Path('/tmp/map-demo')
+          root = Path('.')
+          excluded = {'.git', 'CONTROL_CONTEXT.txt', 'TARGET_CONTEXT.txt', 'DEST_CONTEXT.txt'}
+          print('INVENTARIO ACTUAL')
+          for path in sorted(root.rglob('*')):
+              if path.is_file() and not any(part in excluded for part in path.parts):
+                  print(path)
+
+          print('\nCOINCIDENCIAS')
           found = False
           for path in sorted(root.rglob('*')):
-              if not path.is_file() or '.git' in path.parts:
+              if not path.is_file() or any(part in excluded for part in path.parts):
                   continue
               try:
                   lines = path.read_text(encoding='utf-8').splitlines()
               except (UnicodeDecodeError, OSError):
                   continue
               normalized = [unicodedata.normalize('NFD', line.lower()).encode('ascii', 'ignore').decode() for line in lines]
-              hits = [i for i, line in enumerate(normalized) if ('editar' in line or ('ver' in line and ('simulacion' in line or 'simulador' in line)))]
+              hits = [i for i, line in enumerate(normalized) if ('editar texto' in line or ('ver' in line and ('simulacion' in line or 'simulador' in line)))]
               if not hits:
                   continue
               found = True
-              print(f'FILE: {path.relative_to(root)}')
+              print(f'\nFILE: {path}')
               windows = []
               for hit in hits:
-                  start = max(0, hit - 24)
-                  end = min(len(lines), hit + 25)
+                  start = max(0, hit - 32)
+                  end = min(len(lines), hit + 33)
                   if windows and start <= windows[-1][1]:
                       windows[-1] = (windows[-1][0], max(windows[-1][1], end))
                   else:
@@ -57,6 +62,6 @@ jobs:
           PY
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add TARGET_CONTEXT.txt
-          git commit -m "Registra contexto objetivo"
+          git add DEST_CONTEXT.txt
+          git commit -m "Registra contexto actual de sol_sim"
           git push origin HEAD:agent/map-demo-sync
