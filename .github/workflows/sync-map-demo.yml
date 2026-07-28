@@ -18,14 +18,20 @@ jobs:
           fetch-depth: 0
       - name: Descargar rama origen
         run: git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
-      - name: Guardar contexto de controles
+      - name: Guardar inventario y contexto
         shell: bash
         run: |
           python3 - <<'PY' > CONTROL_CONTEXT.txt
           from pathlib import Path
+          import unicodedata
 
           root = Path('/tmp/map-demo')
-          needles = ('Ver simulación', 'Editar texto')
+          print('INVENTARIO')
+          for path in sorted(root.rglob('*')):
+              if path.is_file() and '.git' not in path.parts:
+                  print(path.relative_to(root))
+
+          print('\nCOINCIDENCIAS')
           found = False
           for path in sorted(root.rglob('*')):
               if not path.is_file() or '.git' in path.parts:
@@ -34,22 +40,28 @@ jobs:
                   lines = path.read_text(encoding='utf-8').splitlines()
               except (UnicodeDecodeError, OSError):
                   continue
-              hits = [i for i, line in enumerate(lines) if any(n in line for n in needles)]
+              normalized = [unicodedata.normalize('NFD', line.lower()).encode('ascii', 'ignore').decode() for line in lines]
+              hits = [i for i, line in enumerate(normalized) if any(term in line for term in ('simulacion', 'simulador', 'editar texto', 'explorar modelo', 'modelo'))]
               if not hits:
                   continue
               found = True
-              print(f'FILE: {path.relative_to(root)}')
+              print(f'\nFILE: {path.relative_to(root)}')
+              emitted = set()
               for hit in hits:
-                  start = max(0, hit - 18)
-                  end = min(len(lines), hit + 19)
+                  start = max(0, hit - 10)
+                  end = min(len(lines), hit + 11)
+                  key = (start, end)
+                  if key in emitted:
+                      continue
+                  emitted.add(key)
                   print(f'--- contexto línea {hit + 1} ---')
                   for number in range(start, end):
                       print(f'{number + 1:04d}: {lines[number]}')
           if not found:
-              raise SystemExit('No se encontraron los textos solicitados')
+              print('No se encontraron coincidencias.')
           PY
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add CONTROL_CONTEXT.txt
-          git commit -m "Registra contexto de controles"
+          git commit -m "Registra inventario y contexto"
           git push origin HEAD:agent/map-demo-sync
