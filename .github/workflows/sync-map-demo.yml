@@ -1,0 +1,48 @@
+name: Inspeccionar map_demo
+
+on:
+  push:
+    branches: [sol_sim]
+    paths:
+      - .github/workflows/sync-map-demo.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar rama origen
+        run: git clone --depth 1 --branch map_demo https://github.com/LuisMAC2022/map.git /tmp/map-demo
+      - name: Localizar controles
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('/tmp/map-demo')
+          needles = ('Ver simulación', 'Editar texto')
+          found = False
+          for path in sorted(root.rglob('*')):
+              if not path.is_file() or '.git' in path.parts:
+                  continue
+              try:
+                  lines = path.read_text(encoding='utf-8').splitlines()
+              except (UnicodeDecodeError, OSError):
+                  continue
+              hits = [i for i, line in enumerate(lines) if any(n in line for n in needles)]
+              if not hits:
+                  continue
+              found = True
+              print(f'::group::{path.relative_to(root)}')
+              for hit in hits:
+                  start = max(0, hit - 12)
+                  end = min(len(lines), hit + 13)
+                  print(f'--- contexto línea {hit + 1} ---')
+                  for number in range(start, end):
+                      print(f'{number + 1:04d}: {lines[number]}')
+              print('::endgroup::')
+          if not found:
+              raise SystemExit('No se encontraron los textos solicitados')
+          PY
